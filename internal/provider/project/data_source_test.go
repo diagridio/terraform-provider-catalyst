@@ -12,8 +12,6 @@ import (
 )
 
 func TestAccProjectDataSource(t *testing.T) {
-	t.Skip("skipping")
-
 	name := acctest.RandomWithPrefix("prj")
 	// fetch region from environment and default to const if not defined
 	region := region.GetEnvOrDefault("TEST_CATALYST_REGION", region.DefaultRegion)

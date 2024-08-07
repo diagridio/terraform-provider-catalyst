@@ -2,10 +2,10 @@ module github.com/diagridio/terraform-provider-catalyst
 
 go 1.22.5
 
-replace (
-	github.com/diagridio/diagrid-cloud-go => ../diagrid-cloud-go
-	github.com/hashicorp/terraform-plugin-framework => ../../Projects/terraform-plugin-framework
-)
+// replace (
+// 	github.com/diagridio/diagrid-cloud-go => ../diagrid-cloud-go
+// 	github.com/hashicorp/terraform-plugin-framework => ../../Projects/terraform-plugin-framework
+// )
 
 require (
 	github.com/diagridio/diagrid-cloud-go v0.0.0-20240717131420-9cf18f02b9db
