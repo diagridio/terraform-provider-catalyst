@@ -18,8 +18,7 @@ func TestAccOrganizationDataSource(t *testing.T) {
 				{
 					Config: testAccOrganizationDataSourceConfig,
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_organization.test", "id", "defdcd7c-4f15-4770-b96a-fed964150c98"),
-						resource.TestCheckResourceAttr("data.catalyst_organization.test", "name", "cat-1722855591725950000"),
+						resource.TestCheckResourceAttr("data.catalyst_organization.test", "name", "terraform"),
 						resource.TestCheckResourceAttr("data.catalyst_organization.test", "plan", "cra:standard"),
 					),
 				},

@@ -68,19 +68,19 @@ func (p *projectResource) Schema(ctx context.Context,
 				MarkdownDescription: "Managed pubsub component enabled",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(false),
 			},
 			"managed_kvstore": schema.BoolAttribute{
 				MarkdownDescription: "Managed KV store component enabled",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(false),
 			},
 			"managed_workflow": schema.BoolAttribute{
 				MarkdownDescription: "Managed workflow component enabled",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(false),
 			},
 		},
 	}
@@ -327,7 +327,7 @@ func (p *projectResource) Delete(ctx context.Context,
 				return true, nil
 			}
 
-			return false, fmt.Errorf("Error getting project: %w", err)
+			return false, fmt.Errorf("error checking for deleted project: %w", err)
 		}
 
 		return false, nil
