@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/diagrid-cloud-go/management"
+	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 )
 
@@ -17,7 +17,7 @@ var _ datasource.DataSource = &dataSource{}
 
 // dataSource defines the data source implementation.
 type dataSource struct {
-	managementClient *management.ManagementClient
+	client catalyst.Client
 }
 
 func NewDataSource() datasource.DataSource {
@@ -75,7 +75,7 @@ func (d *dataSource) Configure(ctx context.Context,
 		return
 	}
 
-	d.managementClient = providerData.ManagementClient
+	d.client = providerData.Client
 }
 
 func (d *dataSource) Read(ctx context.Context,
@@ -91,7 +91,7 @@ func (d *dataSource) Read(ctx context.Context,
 	}
 
 	// Read the user's current organization data
-	org, err := d.managementClient.GetUserOrg(ctx)
+	org, err := d.client.GetUserOrg(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to read organization data", err.Error())
 		return
@@ -105,7 +105,8 @@ func (d *dataSource) Read(ctx context.Context,
 	// Save the organization data into the model
 	model.SetID(*org.Data.Id)
 	model.SetName(*org.Data.Attributes.Name)
-	if org.Data.Attributes.Products.Cra != nil {
+	if org.Data.Attributes.Products != nil &&
+		org.Data.Attributes.Products.Cra != nil {
 		model.SetPlan(*org.Data.Attributes.Products.Cra.Plan)
 	}
 

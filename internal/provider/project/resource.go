@@ -11,11 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/samber/lo"
 
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
 	cloudruntime_errors "github.com/diagridio/diagrid-cloud-go/cloudruntime/errors"
-	"github.com/diagridio/diagrid-cloud-go/management"
 	"github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 
+	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/region"
@@ -27,8 +26,7 @@ var _ resource.ResourceWithImportState = &projectResource{}
 
 // projectResource defines the resource implementation.
 type projectResource struct {
-	client           cloudruntime.CloudruntimeAPIClient
-	managementClient *management.ManagementClient
+	client catalyst.Client
 }
 
 func NewResource() resource.Resource {
@@ -105,8 +103,7 @@ func (p *projectResource) Configure(ctx context.Context,
 		return
 	}
 
-	p.client = providerData.CatalystClient
-	p.managementClient = providerData.ManagementClient
+	p.client = providerData.Client
 }
 
 func (p *projectResource) Create(ctx context.Context,
@@ -364,7 +361,7 @@ func (p *projectResource) ImportState(ctx context.Context,
 	}
 
 	// Read the user's current organization data
-	org, err := p.managementClient.GetUserOrg(ctx)
+	org, err := p.client.GetUserOrg(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to read organization data", err.Error())
 		return

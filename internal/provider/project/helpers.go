@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
 	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
 func read(ctx context.Context,
-	client cloudruntime.CloudruntimeAPIClient,
+	client catalyst.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading project", map[string]interface{}{
@@ -27,6 +27,8 @@ func read(ctx context.Context,
 
 	m.SetName(*project.Metadata.Name)
 	m.SetRegion(*project.Spec.Region)
+	m.SetGRPCEndpoint(*project.Status.Endpoints.Grpc.Url)
+	m.SetHTTPEndpoint(*project.Status.Endpoints.Http.Url)
 	m.SetManagedPubsub(false)
 	if project.Spec.DefaultPubsubEnabled != nil {
 		m.SetManagedPubsub(*project.Spec.DefaultPubsubEnabled)

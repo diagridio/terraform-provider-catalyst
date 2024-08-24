@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"net/http"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -13,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
-	"github.com/diagridio/diagrid-cloud-go/management"
+	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/organization"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/project"
@@ -35,12 +33,21 @@ const (
 	ProviderName = "catalyst"
 )
 
+type ClientFactory func(endpoint, apiKey string) (catalyst.Client, error)
+
+type Provider interface {
+	provider.Provider
+
+	WithClientFactory(ClientFactory) Provider
+}
+
 // catalyst defines the provider implementation.
 type catalystProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
-	version string
+	version       string
+	clientFactory ClientFactory
 }
 
 // catalystModel describes the provider data model.
@@ -49,13 +56,18 @@ type catalystModel struct {
 	APIKey   types.String `tfsdk:"api_key"`
 }
 
-func New(version string) func() provider.Provider {
-	return func() provider.Provider {
-		return &catalystProvider{
-			version: version,
-		}
+func New(version string) Provider {
+	return &catalystProvider{
+		version:       version,
+		clientFactory: catalyst.NewClient,
 	}
 }
+
+func (p *catalystProvider) WithClientFactory(f ClientFactory) Provider {
+	p.clientFactory = f
+	return p
+}
+
 func (p *catalystProvider) Metadata(ctx context.Context,
 	req provider.MetadataRequest,
 	resp *provider.MetadataResponse) {
@@ -139,24 +151,7 @@ func (p *catalystProvider) Configure(ctx context.Context,
 		// Not returning early allows the logic to collect all errors.
 	}
 
-	// Example client configuration for data sources and resources
-	maxRetries := 1
-	mc, err := management.NewManagementClientWithExponentialBackoff(http.DefaultClient,
-		endpoint,
-		maxRetries,
-		management.WithAPIKeyToken(apiKey))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating management client",
-			err.Error(),
-		)
-		return
-	}
-
-	catalystClient, err := cloudruntime.NewCloudruntimeClientWithExponentialBackoff(http.DefaultClient,
-		endpoint,
-		maxRetries,
-		cloudruntime.WithAPIKeyToken(apiKey))
+	c, err := p.clientFactory(endpoint, apiKey)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating catalyst client",
@@ -166,8 +161,7 @@ func (p *catalystProvider) Configure(ctx context.Context,
 	}
 
 	providerData := data.ProviderData{
-		ManagementClient: mc,
-		CatalystClient:   catalystClient,
+		Client: c,
 	}
 
 	resp.DataSourceData = providerData

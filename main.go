@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	tfprovider "github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -45,7 +46,9 @@ func main() {
 		Debug:   debug,
 	}
 
-	if err := providerserver.Serve(ctx, provider.New(version), opts); err != nil {
+	if err := providerserver.Serve(ctx, func() tfprovider.Provider {
+		return provider.New(version)
+	}, opts); err != nil {
 		log.Fatal(err.Error())
 	}
 }

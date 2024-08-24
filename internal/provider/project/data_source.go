@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
 	cloudruntime_errors "github.com/diagridio/diagrid-cloud-go/cloudruntime/errors"
 )
 
@@ -19,7 +19,7 @@ var _ datasource.DataSource = &projectDataSource{}
 
 // projectDataSource defines the data source implementation.
 type projectDataSource struct {
-	client cloudruntime.CloudruntimeAPIClient
+	client catalyst.Client
 }
 
 // projectDataSourceModel describes the data source data model.
@@ -49,12 +49,12 @@ func (d *projectDataSource) Schema(ctx context.Context,
 		MarkdownDescription: "Project data source",
 
 		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Project name",
-				Optional:            true,
-			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization id",
+				Optional:            true,
+			},
+			"name": schema.StringAttribute{
+				MarkdownDescription: "Project name",
 				Optional:            true,
 			},
 			"region": schema.StringAttribute{
@@ -73,6 +73,16 @@ func (d *projectDataSource) Schema(ctx context.Context,
 			},
 			"managed_workflow": schema.BoolAttribute{
 				MarkdownDescription: "Managed workflow component enabled",
+				Optional:            true,
+				Computed:            true,
+			},
+			"grpc_endpoint": schema.StringAttribute{
+				MarkdownDescription: "gRPC endpoint",
+				Optional:            true,
+				Computed:            true,
+			},
+			"http_endpoint": schema.StringAttribute{
+				MarkdownDescription: "HTTP endpoint",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -99,7 +109,7 @@ func (d *projectDataSource) Configure(ctx context.Context,
 		return
 	}
 
-	d.client = providerData.CatalystClient
+	d.client = providerData.Client
 }
 
 func (d *projectDataSource) Read(ctx context.Context,

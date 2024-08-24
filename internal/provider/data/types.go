@@ -1,11 +1,7 @@
 package data
 
-import (
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
-	"github.com/diagridio/diagrid-cloud-go/management"
-)
+import "github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 
 type ProviderData struct {
-	ManagementClient *management.ManagementClient
-	CatalystClient   cloudruntime.CloudruntimeAPIClient
+	Client catalyst.Client
 }

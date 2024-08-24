@@ -1,7 +1,7 @@
 data "catalyst_organization" "current" {}
 
 data "catalyst_region" "onebox" {
-  name = "Onebox Host #1"
+  id = "onebox"
 }
 
 data "catalyst_project" "project" {

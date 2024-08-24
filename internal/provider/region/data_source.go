@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
+	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 )
 
@@ -17,7 +17,7 @@ var _ datasource.DataSource = &dataSource{}
 
 // dataSource defines the data source implementation.
 type dataSource struct {
-	client cloudruntime.CloudruntimeAPIClient
+	client catalyst.Client
 }
 
 func NewDataSource() datasource.DataSource {
@@ -79,7 +79,7 @@ func (d *dataSource) Configure(ctx context.Context,
 		return
 	}
 
-	d.client = providerData.CatalystClient
+	d.client = providerData.Client
 }
 
 func (d *dataSource) Read(ctx context.Context,
@@ -109,7 +109,7 @@ func (d *dataSource) Read(ctx context.Context,
 	})
 
 	for _, region := range *regions {
-		if *region.Id == model.GetID() {
+		if *region.Id == model.GetName() {
 			// update the model
 			model.SetID(*region.Id)
 			model.SetName(*region.DisplayName)

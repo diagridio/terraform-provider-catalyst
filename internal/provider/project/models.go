@@ -18,6 +18,8 @@ type model struct {
 	OrganizationID  types.String `tfsdk:"organization_id"`
 	Name            types.String `tfsdk:"name"`
 	Region          types.String `tfsdk:"region"`
+	GRPCEndpoint    types.String `tfsdk:"grpc_endpoint"`
+	HTTPEndpoint    types.String `tfsdk:"http_endpoint"`
 	ManagedPubsub   types.Bool   `tfsdk:"managed_pubsub"`
 	ManagedKVStore  types.Bool   `tfsdk:"managed_kvstore"`
 	ManagedWorkflow types.Bool   `tfsdk:"managed_workflow"`
@@ -32,6 +34,8 @@ func (m *model) Log(ctx context.Context, msg string) {
 		"organization_id":  m.GetOrganizationID(),
 		"name":             m.GetName(),
 		"region":           m.GetRegion(),
+		"grpc_endpoint":    m.GRPCEndpoint.ValueString(),
+		"http_endpoint":    m.HTTPEndpoint.ValueString(),
 		"managed_pubsub":   m.GetManagedPubsub(),
 		"managed_kvstore":  m.GetManagedKVStore(),
 		"managed_workflow": m.GetManagedWorkflow(),
@@ -42,12 +46,16 @@ func (m *model) String() string {
 	return fmt.Sprintf(`organization_id: %s,
 		name: %s,
 		region: %s,
+		grpc_endpoint: %s,
+		http_endpoint: %s,
 		managed_pubsub: %t,
 		managed_kvstore: %t,
 		managed_workflow: %t`,
 		m.GetOrganizationID(),
 		m.GetName(),
 		m.GetRegion(),
+		m.GetGRPCEndpoint(),
+		m.GetHTTPEndpoint(),
 		m.GetManagedPubsub(),
 		m.GetManagedKVStore(),
 		m.GetManagedWorkflow())
@@ -75,6 +83,22 @@ func (m *model) GetRegion() string {
 
 func (m *model) SetRegion(region string) {
 	m.Region = types.StringValue(region)
+}
+
+func (m *model) GetGRPCEndpoint() string {
+	return m.GRPCEndpoint.ValueString()
+}
+
+func (m *model) SetGRPCEndpoint(endpoint string) {
+	m.GRPCEndpoint = types.StringValue(endpoint)
+}
+
+func (m *model) GetHTTPEndpoint() string {
+	return m.HTTPEndpoint.ValueString()
+}
+
+func (m *model) SetHTTPEndpoint(endpoint string) {
+	m.HTTPEndpoint = types.StringValue(endpoint)
 }
 
 func (m *model) GetManagedPubsub() bool {
