@@ -17,10 +17,16 @@ Region data source
 
 ### Required
 
-- `id` (String) Region identifier
+- `name` (String) Region name
 
 ### Optional
 
-- `cloud_provider` (String) Cloud provider
-- `cloud_provider_region` (String) Cloud provider region
-- `name` (String) Region name
+- `host` (String) Region host
+- `ingress` (String) Region ingress
+- `location` (String) Region location
+- `type` (String) Region type
+
+### Read-Only
+
+- `connected` (Boolean) Whether the region is connected
+- `join_token` (String, Sensitive) Join token for the region

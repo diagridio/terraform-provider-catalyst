@@ -15,7 +15,7 @@ output "region_location" {
 }
 
 output "region_join_token" {
-  value = data.catalyst_region.region.join_token
+  value     = data.catalyst_region.region.join_token
   sensitive = true
 }
 

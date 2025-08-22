@@ -13,14 +13,17 @@ Catalyst project resource
 ## Example Usage
 
 ```terraform
-resource "catalyst_project" "project" {
-  organization_id = data.catalyst_organization.current.id
-  region          = data.catalyst_region.current.id
-  name            = "prj1"
+resource "catalyst_region" "region1" {
+  name     = "region1"
+  ingress  = "https://*.88288338.xyz:443"
+  host     = "regionhost1"
+  location = "regionlocation1"
+}
 
-  managed_workflow = true
-  managed_pubsub   = false
-  managed_kvstore  = false
+resource "catalyst_project" "project" {
+  # region          = data.catalyst_region.onebox.name
+  region = catalyst_region.region1.name
+  name   = "prj1"
 }
 ```
 
@@ -30,14 +33,13 @@ resource "catalyst_project" "project" {
 ### Required
 
 - `name` (String) Project name
-- `organization_id` (String) Organization id
 
 ### Optional
 
-- `managed_kvstore` (Boolean) Managed KV store component enabled
-- `managed_pubsub` (Boolean) Managed pubsub component enabled
-- `managed_workflow` (Boolean) Managed workflow component enabled
+- `grpc_endpoint` (String) gRPC endpoint
+- `http_endpoint` (String) HTTP endpoint
 - `region` (String) Project region
+- `wait_for_ready` (Boolean) Wait for the project to be in ready state before returning
 
 ## Import
 

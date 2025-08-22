@@ -20,7 +20,7 @@ test:
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 doc:
-	@cd tools && go generate .
+	@go generate ./...
 
 # Please keep targets in alphabetical order
 .PHONY: \

@@ -1,4 +1,4 @@
 data "catalyst_project" "project" {
-  name            = "prj1"
+  name = "prj1"
 }
 

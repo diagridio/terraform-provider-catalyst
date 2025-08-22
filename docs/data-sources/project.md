@@ -17,9 +17,8 @@ Project data source
 
 ### Optional
 
-- `managed_kvstore` (Boolean) Managed KV store component enabled
-- `managed_pubsub` (Boolean) Managed pubsub component enabled
-- `managed_workflow` (Boolean) Managed workflow component enabled
+- `grpc_endpoint` (String) gRPC endpoint
+- `http_endpoint` (String) HTTP endpoint
 - `name` (String) Project name
-- `organization_id` (String) Organization id
 - `region` (String) Region
+- `wait_for_ready` (Boolean) Wait for the project to be in ready state before returning

@@ -19,7 +19,7 @@ output "region_type" {
 }
 
 output "region_join_token" {
-  value = catalyst_region.region.join_token
+  value     = catalyst_region.region.join_token
   sensitive = true
 }
 
