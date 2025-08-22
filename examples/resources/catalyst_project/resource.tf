@@ -1,9 +1,12 @@
-resource "catalyst_project" "project" {
-  organization_id = data.catalyst_organization.current.id
-  region          = data.catalyst_region.current.id
-  name            = "prj1"
+resource "catalyst_region" "region1" {
+  name    = "region1"
+  ingress = "https://*.88288338.xyz:443"
+  host = "regionhost1"
+  location = "regionlocation1"
+}
 
-  managed_workflow = true
-  managed_pubsub   = false
-  managed_kvstore  = false
+resource "catalyst_project" "project" {
+  # region          = data.catalyst_region.onebox.name
+  region          = catalyst_region.region1.name
+  name            = "prj1"
 }

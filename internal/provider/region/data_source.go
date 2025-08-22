@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
+
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 )
@@ -40,21 +42,34 @@ func (d *dataSource) Schema(ctx context.Context,
 		MarkdownDescription: "Region data source",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Region identifier",
-				Required:            true,
-			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Region name",
+				Required:            true,
+			},
+			"host": schema.StringAttribute{
+				MarkdownDescription: "Region host",
 				Optional:            true,
 			},
-			"cloud_provider": schema.StringAttribute{
-				MarkdownDescription: "Cloud provider",
+			"ingress": schema.StringAttribute{
+				MarkdownDescription: "Region ingress",
 				Optional:            true,
 			},
-			"cloud_provider_region": schema.StringAttribute{
-				MarkdownDescription: "Cloud provider region",
+			"location": schema.StringAttribute{
+				MarkdownDescription: "Region location",
 				Optional:            true,
+			},
+			"type": schema.StringAttribute{
+				MarkdownDescription: "Region type",
+				Optional:            true,
+			},
+			"join_token": schema.StringAttribute{
+				MarkdownDescription: "Join token for the region",
+				Computed:            true,
+				Sensitive:           true,
+			},
+			"connected": schema.BoolAttribute{
+				MarkdownDescription: "Whether the region is connected",
+				Computed:            true,
 			},
 		},
 	}
@@ -94,32 +109,24 @@ func (d *dataSource) Read(ctx context.Context,
 		return
 	}
 
-	tflog.Debug(ctx, "reading region data", map[string]interface{}{
-		"id": model.GetID(),
-	})
+	tflog.Debug(ctx, "reading region data",
+		map[string]interface{}{
+			"name": model.GetName(),
+		})
 
-	regions, err := d.client.ListRegions(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to list regions", err.Error())
+	if err := read(ctx, d.client, model); err != nil {
+		if diagrid_errors.IsResourceNotFoundError(err) {
+			tflog.Debug(ctx, "project not found", map[string]interface{}{
+				"name": model.GetName(),
+			})
+			return
+		}
+
+		resp.Diagnostics.AddError("Client Error",
+			fmt.Sprintf("error reading project datasource: %s", err))
 		return
 	}
 
-	tflog.Debug(ctx, "read regions data", map[string]interface{}{
-		"regions": *regions,
-	})
-
-	for _, region := range *regions {
-		if *region.Id == model.GetName() {
-			// update the model
-			model.SetID(*region.Id)
-			model.SetName(*region.DisplayName)
-			model.SetCloudProvider(*region.CloudProvider)
-			model.SetCloudProviderRegion(*region.CloudProviderRegion)
-
-			break
-		}
-	}
-
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

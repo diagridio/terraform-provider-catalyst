@@ -1,3 +1,3 @@
-data "catalyst_region" "current" {
-  id = "onebox"
+data "catalyst_region" "region" {
+  name = "region1"
 }

@@ -8,21 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// TODO: move this somewhere else
-const (
-	CatalystDiagridV1Beta1 = "cra.diagrid.io/v1beta1"
-	Project                = "Project"
-)
-
 type model struct {
-	OrganizationID  types.String `tfsdk:"organization_id"`
-	Name            types.String `tfsdk:"name"`
-	Region          types.String `tfsdk:"region"`
-	GRPCEndpoint    types.String `tfsdk:"grpc_endpoint"`
-	HTTPEndpoint    types.String `tfsdk:"http_endpoint"`
-	ManagedPubsub   types.Bool   `tfsdk:"managed_pubsub"`
-	ManagedKVStore  types.Bool   `tfsdk:"managed_kvstore"`
-	ManagedWorkflow types.Bool   `tfsdk:"managed_workflow"`
+	Name         types.String `tfsdk:"name"`
+	Region       types.String `tfsdk:"region"`
+	GRPCEndpoint types.String `tfsdk:"grpc_endpoint"`
+	HTTPEndpoint types.String `tfsdk:"http_endpoint"`
+	WaitForReady types.Bool   `tfsdk:"wait_for_ready"`
 }
 
 func NewModel() *model {
@@ -31,42 +22,22 @@ func NewModel() *model {
 
 func (m *model) Log(ctx context.Context, msg string) {
 	tflog.Debug(ctx, msg, map[string]interface{}{
-		"organization_id":  m.GetOrganizationID(),
-		"name":             m.GetName(),
-		"region":           m.GetRegion(),
-		"grpc_endpoint":    m.GRPCEndpoint.ValueString(),
-		"http_endpoint":    m.HTTPEndpoint.ValueString(),
-		"managed_pubsub":   m.GetManagedPubsub(),
-		"managed_kvstore":  m.GetManagedKVStore(),
-		"managed_workflow": m.GetManagedWorkflow(),
+		"name":          m.GetName(),
+		"region":        m.GetRegion(),
+		"grpc_endpoint": m.GRPCEndpoint.ValueString(),
+		"http_endpoint": m.HTTPEndpoint.ValueString(),
 	})
 }
 
 func (m *model) String() string {
-	return fmt.Sprintf(`organization_id: %s,
-		name: %s,
+	return fmt.Sprintf(`name: %s,
 		region: %s,
 		grpc_endpoint: %s,
-		http_endpoint: %s,
-		managed_pubsub: %t,
-		managed_kvstore: %t,
-		managed_workflow: %t`,
-		m.GetOrganizationID(),
+		http_endpoint: %s`,
 		m.GetName(),
 		m.GetRegion(),
 		m.GetGRPCEndpoint(),
-		m.GetHTTPEndpoint(),
-		m.GetManagedPubsub(),
-		m.GetManagedKVStore(),
-		m.GetManagedWorkflow())
-}
-
-func (m *model) GetOrganizationID() string {
-	return m.OrganizationID.ValueString()
-}
-
-func (m *model) SetOrganizationID(organizationID string) {
-	m.OrganizationID = types.StringValue(organizationID)
+		m.GetHTTPEndpoint())
 }
 
 func (m *model) GetName() string {
@@ -99,28 +70,4 @@ func (m *model) GetHTTPEndpoint() string {
 
 func (m *model) SetHTTPEndpoint(endpoint string) {
 	m.HTTPEndpoint = types.StringValue(endpoint)
-}
-
-func (m *model) GetManagedPubsub() bool {
-	return m.ManagedPubsub.ValueBool()
-}
-
-func (m *model) SetManagedPubsub(b bool) {
-	m.ManagedPubsub = types.BoolValue(b)
-}
-
-func (m *model) GetManagedKVStore() bool {
-	return m.ManagedKVStore.ValueBool()
-}
-
-func (m *model) SetManagedKVStore(b bool) {
-	m.ManagedKVStore = types.BoolValue(b)
-}
-
-func (m *model) GetManagedWorkflow() bool {
-	return m.ManagedWorkflow.ValueBool()
-}
-
-func (m *model) SetManagedWorkflow(b bool) {
-	m.ManagedWorkflow = types.BoolValue(b)
 }

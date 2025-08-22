@@ -19,6 +19,9 @@ test:
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
+doc:
+	@cd tools && go generate .
+
 # Please keep targets in alphabetical order
 .PHONY: \
 	build \
@@ -26,6 +29,7 @@ test:
 	fmt \
 	install \
 	test \
-	testacc
+	testacc \
+	doc
 
 

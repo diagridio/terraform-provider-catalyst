@@ -116,7 +116,9 @@ func (p *catalystProvider) Configure(ctx context.Context,
 
 	var model catalystModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
+	// Read the provider configuration from the request.
+	diagnostics := req.Config.Get(ctx, &model)
+	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "Error reading provider configuration")
 		return
@@ -129,26 +131,6 @@ func (p *catalystProvider) Configure(ctx context.Context,
 	}
 	if model.Endpoint.ValueString() != "" {
 		endpoint = model.Endpoint.ValueString()
-	}
-
-	if apiKey == "" {
-		resp.Diagnostics.AddError(
-			"Missing API Key Configuration",
-			"While configuring the provider, the API key was not found in "+
-				"the CATALYST_API_KEY environment variable or provider "+
-				"configuration block api_key attribute.",
-		)
-		// Not returning early allows the logic to collect all errors.
-	}
-
-	if endpoint == "" {
-		resp.Diagnostics.AddError(
-			"Missing Endpoint Configuration",
-			"While configuring the provider, the endpoint was not found in "+
-				"the CATALYST_API_ENDPOINT environment variable or provider "+
-				"configuration block endpoint attribute.",
-		)
-		// Not returning early allows the logic to collect all errors.
 	}
 
 	c, err := p.clientFactory(endpoint, apiKey)
@@ -171,6 +153,7 @@ func (p *catalystProvider) Configure(ctx context.Context,
 func (p *catalystProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		project.NewResource,
+		region.NewResource,
 	}
 }
 

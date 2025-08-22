@@ -8,10 +8,9 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	cloudruntime_errors "github.com/diagridio/diagrid-cloud-go/cloudruntime/errors"
+	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -20,13 +19,6 @@ var _ datasource.DataSource = &projectDataSource{}
 // projectDataSource defines the data source implementation.
 type projectDataSource struct {
 	client catalyst.Client
-}
-
-// projectDataSourceModel describes the data source data model.
-type projectDataSourceModel struct {
-	OrganizationID types.String `tfsdk:"organization_id"`
-	Name           types.String `tfsdk:"name"`
-	Region         types.String `tfsdk:"region"`
 }
 
 func NewDataSource() datasource.DataSource {
@@ -49,10 +41,6 @@ func (d *projectDataSource) Schema(ctx context.Context,
 		MarkdownDescription: "Project data source",
 
 		Attributes: map[string]schema.Attribute{
-			"organization_id": schema.StringAttribute{
-				MarkdownDescription: "Organization id",
-				Optional:            true,
-			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Project name",
 				Optional:            true,
@@ -61,21 +49,6 @@ func (d *projectDataSource) Schema(ctx context.Context,
 				MarkdownDescription: "Region",
 				Optional:            true,
 			},
-			"managed_pubsub": schema.BoolAttribute{
-				MarkdownDescription: "Managed pubsub component enabled",
-				Optional:            true,
-				Computed:            true,
-			},
-			"managed_kvstore": schema.BoolAttribute{
-				MarkdownDescription: "Managed KV store component enabled",
-				Optional:            true,
-				Computed:            true,
-			},
-			"managed_workflow": schema.BoolAttribute{
-				MarkdownDescription: "Managed workflow component enabled",
-				Optional:            true,
-				Computed:            true,
-			},
 			"grpc_endpoint": schema.StringAttribute{
 				MarkdownDescription: "gRPC endpoint",
 				Optional:            true,
@@ -83,6 +56,11 @@ func (d *projectDataSource) Schema(ctx context.Context,
 			},
 			"http_endpoint": schema.StringAttribute{
 				MarkdownDescription: "HTTP endpoint",
+				Optional:            true,
+				Computed:            true,
+			},
+			"wait_for_ready": schema.BoolAttribute{
+				MarkdownDescription: "Wait for the project to be in ready state before returning",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -125,7 +103,7 @@ func (d *projectDataSource) Read(ctx context.Context,
 	}
 
 	if err := read(ctx, d.client, model); err != nil {
-		if cloudruntime_errors.IsResourceNotFoundError(err) {
+		if diagrid_errors.IsResourceNotFoundError(err) {
 			tflog.Debug(ctx, "project not found", map[string]interface{}{
 				"name": model.GetName(),
 			})
@@ -133,7 +111,7 @@ func (d *projectDataSource) Read(ctx context.Context,
 		}
 
 		resp.Diagnostics.AddError("Client Error",
-			fmt.Sprintf("error reading project: %s", err))
+			fmt.Sprintf("error reading project datasource: %s", err))
 		return
 	}
 

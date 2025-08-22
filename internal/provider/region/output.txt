@@ -1,4 +1,0 @@
-=== RUN   TestAccRegionDataSource
---- PASS: TestAccRegionDataSource (0.84s)
-PASS
-ok  	github.com/diagridio/terraform-provider-catalyst/internal/provider/region	1.432s

@@ -1,6 +1,4 @@
-data "catalyst_organization" "current" {}
-
-data "catalyst_region" "current" {
-  id = "onebox"
+data "catalyst_region" "onebox" {
+  name = "diagrid-onebox"
 }
 

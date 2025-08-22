@@ -7,17 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/samber/lo"
 
-	cloudruntime_errors "github.com/diagridio/diagrid-cloud-go/cloudruntime/errors"
 	"github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/region"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -48,10 +48,6 @@ func (p *projectResource) Schema(ctx context.Context,
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Catalyst project resource",
 		Attributes: map[string]schema.Attribute{
-			"organization_id": schema.StringAttribute{
-				MarkdownDescription: "Organization id",
-				Required:            true,
-			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Project name",
 				Required:            true,
@@ -59,26 +55,25 @@ func (p *projectResource) Schema(ctx context.Context,
 			"region": schema.StringAttribute{
 				MarkdownDescription: "Project region",
 				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(region.DefaultRegion.ID()),
 			},
-			"managed_pubsub": schema.BoolAttribute{
-				MarkdownDescription: "Managed pubsub component enabled",
+			"grpc_endpoint": schema.StringAttribute{
+				MarkdownDescription: "gRPC endpoint",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
 			},
-			"managed_kvstore": schema.BoolAttribute{
-				MarkdownDescription: "Managed KV store component enabled",
+			"http_endpoint": schema.StringAttribute{
+				MarkdownDescription: "HTTP endpoint",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
 			},
-			"managed_workflow": schema.BoolAttribute{
-				MarkdownDescription: "Managed workflow component enabled",
+			"wait_for_ready": schema.BoolAttribute{
+				MarkdownDescription: "Wait for the project to be in ready state before returning",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -118,28 +113,21 @@ func (p *projectResource) Create(ctx context.Context,
 		return
 	}
 
-	tflog.Debug(ctx, "creating project", map[string]interface{}{
-		"name":             model.GetName(),
-		"region":           model.GetRegion(),
-		"managed_pubsub":   model.GetManagedPubsub(),
-		"managed_kvstore":  model.GetManagedKVStore(),
-		"managed_workflow": model.GetManagedWorkflow(),
-	})
+	tflog.Debug(ctx, "creating project",
+		map[string]interface{}{
+			"name":   model.GetName(),
+			"region": model.GetRegion(),
+		})
 
-	apiVersion := CatalystDiagridV1Beta1
-	kind := Project
 	project := &client.Project{
-		ApiVersion: &apiVersion,
-		Kind:       &kind,
+		ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
+		Kind:       lo.ToPtr(catalyst.KindProject),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
 		Spec: &client.ProjectSpec{
-			DisplayName:                 lo.ToPtr(model.GetName()),
-			Region:                      lo.ToPtr(model.GetRegion()),
-			DefaultPubsubEnabled:        lo.ToPtr(model.GetManagedPubsub()),
-			DefaultKVStoreEnabled:       lo.ToPtr(model.GetManagedKVStore()),
-			DefaultWorkflowStoreEnabled: lo.ToPtr(model.GetManagedWorkflow()),
+			DisplayName: lo.ToPtr(model.GetName()),
+			Region:      lo.ToPtr(model.GetRegion()),
 		},
 		Status: &client.ProjectStatus{},
 	}
@@ -156,9 +144,22 @@ func (p *projectResource) Create(ctx context.Context,
 			return false, fmt.Errorf("Error getting project: %w", err)
 		}
 
-		if *project.Status.Status == "ready" {
+		expectedStatus := "processing"
+		if model.WaitForReady.ValueBool() {
+			expectedStatus = "ready"
+		}
+
+		if project.Status != nil &&
+			project.Status.Status != nil &&
+			*project.Status.Status == expectedStatus {
 			return true, nil
 		}
+
+		tflog.Debug(ctx, "project status still not at expected value",
+			map[string]interface{}{
+				"name":     model.GetName(),
+				"expected": expectedStatus,
+			})
 
 		return false, nil
 	}); err != nil {
@@ -168,17 +169,14 @@ func (p *projectResource) Create(ctx context.Context,
 	}
 
 	tflog.Debug(ctx, "created project", map[string]interface{}{
-		"id":               project.Metadata.Uid,
-		"name":             *project.Metadata.Name,
-		"region":           *project.Spec.Region,
-		"managed_pubsub":   *project.Spec.DefaultPubsubEnabled,
-		"managed_kvstore":  *project.Spec.DefaultKVStoreEnabled,
-		"managed_workflow": *project.Spec.DefaultWorkflowStoreEnabled,
+		"id":     project.Metadata.Uid,
+		"name":   *project.Metadata.Name,
+		"region": *project.Spec.Region,
 	})
 
 	if err := read(ctx, p.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
-			fmt.Sprintf("error reading project: %s", err))
+			fmt.Sprintf("error reading created project: %s", err))
 		return
 	}
 
@@ -199,7 +197,7 @@ func (p *projectResource) Read(ctx context.Context,
 	}
 
 	if err := read(ctx, p.client, model); err != nil {
-		if cloudruntime_errors.IsResourceNotFoundError(err) {
+		if diagrid_errors.IsResourceNotFoundError(err) {
 			tflog.Debug(ctx, "project not found", map[string]interface{}{
 				"name": model.GetName(),
 			})
@@ -240,16 +238,13 @@ func (p *projectResource) Update(ctx context.Context,
 
 	project.Spec.DisplayName = lo.ToPtr(model.GetName())
 	project.Spec.Region = lo.ToPtr(model.GetRegion())
-	project.Spec.DefaultPubsubEnabled = lo.ToPtr(model.GetManagedPubsub())
-	project.Spec.DefaultKVStoreEnabled = lo.ToPtr(model.GetManagedKVStore())
-	project.Spec.DefaultWorkflowStoreEnabled = lo.ToPtr(model.GetManagedWorkflow())
 	project.Status = &client.ProjectStatus{}
 
 	tflog.Debug(ctx, "updating project", map[string]interface{}{
 		"model": model.String(),
 	})
 
-	if err := p.client.PatchProject(ctx, project); err != nil {
+	if err := p.client.UpdateProject(ctx, project); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("Error updating project: %s", err))
 		return
@@ -262,7 +257,14 @@ func (p *projectResource) Update(ctx context.Context,
 			return false, fmt.Errorf("Error getting project: %w", err)
 		}
 
-		if *project.Status.Status == "ready" {
+		expectedStatus := "processing"
+		if model.WaitForReady.ValueBool() {
+			expectedStatus = "ready"
+		}
+
+		if project.Status != nil &&
+			project.Status.Status != nil &&
+			*project.Status.Status == expectedStatus {
 			return true, nil
 		}
 
@@ -275,7 +277,7 @@ func (p *projectResource) Update(ctx context.Context,
 
 	if err := read(ctx, p.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
-			fmt.Sprintf("error reading project: %s", err))
+			fmt.Sprintf("error reading updated project: %s", err))
 		return
 	}
 
@@ -299,12 +301,13 @@ func (p *projectResource) Delete(ctx context.Context,
 		return
 	}
 
-	tflog.Debug(ctx, "deleting project", map[string]interface{}{
-		"name": model.GetName(),
-	})
+	tflog.Debug(ctx, "deleting project",
+		map[string]interface{}{
+			"name": model.GetName(),
+		})
 
 	if err := p.client.DeleteProject(ctx, model.GetName()); err != nil {
-		if cloudruntime_errors.IsResourceNotFoundError(err) {
+		if diagrid_errors.IsResourceNotFoundError(err) {
 			tflog.Debug(ctx, "project to delete not found", map[string]interface{}{
 				"name": model.GetName(),
 			})
@@ -320,7 +323,7 @@ func (p *projectResource) Delete(ctx context.Context,
 	if err := helpers.WaitUntil(ctx, func(ctx context.Context) (bool, error) {
 		_, err := p.client.GetProject(ctx, model.GetName(), &client.DescribeProjectParams{})
 		if err != nil {
-			if cloudruntime_errors.IsResourceNotFoundError(err) {
+			if diagrid_errors.IsResourceNotFoundError(err) {
 				return true, nil
 			}
 
@@ -334,9 +337,10 @@ func (p *projectResource) Delete(ctx context.Context,
 		return
 	}
 
-	tflog.Debug(ctx, "deleted project", map[string]interface{}{
-		"name": model.GetName(),
-	})
+	tflog.Debug(ctx, "deleted project",
+		map[string]interface{}{
+			"name": model.GetName(),
+		})
 }
 
 func (p *projectResource) ImportState(ctx context.Context,
@@ -347,7 +351,7 @@ func (p *projectResource) ImportState(ctx context.Context,
 	model.SetName(req.ID)
 
 	if err := read(ctx, p.client, model); err != nil {
-		if cloudruntime_errors.IsResourceNotFoundError(err) {
+		if diagrid_errors.IsResourceNotFoundError(err) {
 			tflog.Debug(ctx, "project not found", map[string]interface{}{
 				"name": model.GetName(),
 			})
@@ -356,17 +360,9 @@ func (p *projectResource) ImportState(ctx context.Context,
 		}
 
 		resp.Diagnostics.AddError("Client Error",
-			fmt.Sprintf("error reading project: %s", err))
+			fmt.Sprintf("error reading imported project: %s", err))
 		return
 	}
-
-	// Read the user's current organization data
-	org, err := p.client.GetUserOrg(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to read organization data", err.Error())
-		return
-	}
-	model.SetOrganizationID(*org.Data.Id)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
