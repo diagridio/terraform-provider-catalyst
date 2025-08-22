@@ -39,7 +39,7 @@ jobs:
           git config --global url."https://x-acces-token:${{ inputs.workflow_token || steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.5.0
         env:
           GOPRIVATE: "github.com/diagridio/*"
           GOPROXY: "https://proxy.golang.org,direct"
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-go@v5.0.2
+      - uses: actions/setup-go@v5.5.0
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -92,7 +92,7 @@ jobs:
           - '1.9.*'
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-go@v5.0.2
+      - uses: actions/setup-go@v5.5.0
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -122,7 +122,7 @@ jobs:
           - '1.9.*'
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-go@v5.0.2
+      - uses: actions/setup-go@v5.5.0
         with:
           go-version-file: 'go.mod'
           cache: true
