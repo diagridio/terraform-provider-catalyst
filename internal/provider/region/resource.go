@@ -166,8 +166,7 @@ func (p *regionResource) Create(ctx context.Context,
 
 		if region.Status != nil &&
 			region.Status.Status != nil &&
-			region.Status.Status.Status != nil &&
-			*region.Status.Status.Status == "ready" {
+			*region.Status.Status == "ready" {
 			return true, nil
 		}
 
@@ -283,8 +282,7 @@ func (p *regionResource) Update(ctx context.Context,
 
 		if region.Status != nil &&
 			region.Status.Status != nil &&
-			region.Status.Status.Status != nil &&
-			*region.Status.Status.Status == "ready" {
+			*region.Status.Status == "ready" {
 			return true, nil
 		}
 

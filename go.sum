@@ -45,8 +45,8 @@ github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d/go.
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeCxkaw7y45JueMRL4DIyJDKs=
 github.com/deepmap/oapi-codegen v1.11.0 h1:f/X2NdIkaBKsSdpeuwLnY/vDI0AtPUrmB5LMgc7YD+A=
 github.com/deepmap/oapi-codegen v1.11.0/go.mod h1:k+ujhoQGxmQYBZBbxhOZNZf4j08qv5mC+OH+fFTnKxM=
-github.com/diagridio/diagrid-cloud-go v0.0.0-20250821100217-5f47ed39a635 h1:T089grKb175Yqd5TEpjZ1asTuY0I9XlgSi2/MNInhBU=
-github.com/diagridio/diagrid-cloud-go v0.0.0-20250821100217-5f47ed39a635/go.mod h1:eW4R6lFvnvg03Qb4b09PsiDYU5d0s+pG0MeEgafJ16k=
+github.com/diagridio/diagrid-cloud-go v0.0.0-20250825103347-f88fc3e17957 h1:gOzlORYWS+seK0Zf2MixVd8G/X0V3oMj3rrgi3rocMw=
+github.com/diagridio/diagrid-cloud-go v0.0.0-20250825103347-f88fc3e17957/go.mod h1:eW4R6lFvnvg03Qb4b09PsiDYU5d0s+pG0MeEgafJ16k=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
