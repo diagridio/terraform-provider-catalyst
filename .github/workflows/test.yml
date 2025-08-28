@@ -59,19 +59,44 @@ jobs:
           version: latest
 
   generate:
+    name: Code Generation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-go@v5.0.2
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.DIAGRID_BOT_APPLICATION_ID }}  
+          application_private_key: ${{ secrets.DIAGRID_BOT_APPLICATION_PRIVATE_KEY }}
+          revoke_token: true
+
+      - name: Grant access to private diagrid repos
+        shell: bash # required on run steps in composite actions
+        run: |
+          git config --global url."https://x-access-token:${{ inputs.workflow_token || steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5.0.2
+        env:
+          GOPRIVATE: "github.com/diagridio/*"
+          GOPROXY: "https://proxy.golang.org,direct"
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraform@v3.1.1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.1
         with:
           terraform_version: '1.9.3'
           terraform_wrapper: false
-      - run: go generate ./...
-      - name: git diff
+
+      - name: Generate
+        run: make generate
+
+      - name: Diff check
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
@@ -100,10 +125,7 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
-      - run: go mod download
-      - env:
-          TF_ACC: "1"
-        run: go test -v -cover ./...
+      - run: go test -v -cover ./...
         timeout-minutes: 10
 
   # Run acceptance tests in a matrix with Terraform CLI versions

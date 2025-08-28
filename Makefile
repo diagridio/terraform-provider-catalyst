@@ -1,6 +1,15 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 
+MOCKGEN_VERSION ?= v0.4.0
+
 default: build
+
+.PHONY: mock-tools
+mock-tools: ## Install mockgen tool
+	@GO111MODULE=on go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
+
+generate: mock-tools
+	go generate ./...
 
 build: ## Build provider
 	@go build .
