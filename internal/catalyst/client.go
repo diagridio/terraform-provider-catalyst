@@ -26,7 +26,7 @@ type Client interface {
 }
 
 type cclient struct {
-	management *management.ManagementClient
+	management management.ManagementClient
 	catalyst   cloudruntime.CloudruntimeAPIClient
 }
 

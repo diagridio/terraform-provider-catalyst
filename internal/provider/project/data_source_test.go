@@ -17,7 +17,6 @@ import (
 	"github.com/samber/lo"
 	"go.uber.org/mock/gomock"
 
-	"github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 	conductor_client "github.com/diagridio/diagrid-cloud-go/pkg/conductor/client"
 	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
@@ -116,9 +115,7 @@ func mockDatasourceClientFactory(t *testing.T, ctrl *gomock.Controller) provider
 						Type:     lo.ToPtr(regionType),
 					},
 					Status: &cloudruntime_client.RegionStatus{
-						Status: &client.ProjectSubResourceStatus{
-							Status: lo.ToPtr("ready"),
-						},
+						Status: lo.ToPtr("ready"),
 					},
 				}
 				return "", nil

@@ -201,4 +201,5 @@ jobs:
         run: go test -v -cover ./...
         env:
           TF_ACC: "1"
+          CATALYST_API_KEY: ${{ secrets.CATALYST_API_KEY }}
         timeout-minutes: 10

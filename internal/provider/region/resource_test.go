@@ -160,9 +160,7 @@ func mockResourceClientFactory(t *testing.T, ctrl *gomock.Controller) provider.C
 						Type:     lo.ToPtr(regionType),
 					},
 					Status: &client.RegionStatus{
-						Status: &client.ProjectSubResourceStatus{
-							Status: lo.ToPtr("ready"),
-						},
+						Status: lo.ToPtr("ready"),
 					},
 				}
 

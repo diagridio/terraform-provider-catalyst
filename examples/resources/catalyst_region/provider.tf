@@ -2,7 +2,8 @@
 terraform {
   required_providers {
     catalyst = {
-      source = "diagridio/catalyst"
+      source  = "diagridio/catalyst"
+      version = "~> 0.0.1"
     }
   }
 }
