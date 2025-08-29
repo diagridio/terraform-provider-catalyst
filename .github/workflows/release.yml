@@ -17,20 +17,41 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.7
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
         with:
           # Allow goreleaser to access older tag information.
           fetch-depth: 0
-      - uses: actions/setup-go@v5.0.2
+
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.DIAGRID_BOT_APPLICATION_ID }}  
+          application_private_key: ${{ secrets.DIAGRID_BOT_APPLICATION_PRIVATE_KEY }}
+          revoke_token: true
+
+      - name: Grant access to private diagrid repos
+        shell: bash # required on run steps in composite actions
+        run: |
+          git config --global url."https://x-access-token:${{ inputs.workflow_token || steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5.0.2
+        env:
+          GOPRIVATE: "github.com/diagridio/*"
+          GOPROXY: "https://proxy.golang.org,direct"
         with:
           go-version-file: 'go.mod'
           cache: true
+
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6.1.0
         id: import_gpg
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6.0.0
         with:

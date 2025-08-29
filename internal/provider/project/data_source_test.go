@@ -50,7 +50,7 @@ func TestMockProjectDataSource(t *testing.T) {
 		resource.TestCase{
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
-					provider.New("test").WithClientFactory(mockDatasourceClientFactory(t, ctrl)),
+					provider.New("test").WithClientFactory(mockDatasourceClientFactory(ctrl)),
 				),
 			},
 			Steps: []resource.TestStep{
@@ -82,7 +82,7 @@ func TestMockProjectDataSource(t *testing.T) {
 		})
 }
 
-func mockDatasourceClientFactory(t *testing.T, ctrl *gomock.Controller) provider.ClientFactory {
+func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	return func(endpoint, apiKey string) (catalyst.Client, error) {
 		c := catalyst.NewMockClient(ctrl)
 

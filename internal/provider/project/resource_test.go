@@ -76,14 +76,14 @@ func TestMockProjectResource(t *testing.T) {
 			PreCheck: func() { acceptance.TestAccPreCheck(t) },
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
-					provider.New("test").WithClientFactory(mockResourceClientFactory(t, ctrl)),
+					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
 				),
 			},
 			Steps: testSteps(),
 		})
 }
 
-func mockResourceClientFactory(t *testing.T, ctrl *gomock.Controller) provider.ClientFactory {
+func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	return func(endpoint, apiKey string) (catalyst.Client, error) {
 		c := catalyst.NewMockClient(ctrl)
 

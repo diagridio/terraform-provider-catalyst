@@ -30,6 +30,4 @@ func WaitUntil(ctx context.Context, fn func(context.Context) (bool, error)) erro
 			}
 		}
 	}
-
-	return nil
 }

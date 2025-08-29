@@ -20,7 +20,7 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 	),
 }
 
-// TestAccPreCheck - Check if the environment variables are set
+// TestAccPreCheck - Check if the environment variables are set.
 func TestAccPreCheck(t *testing.T) {
 	if v := os.Getenv("CATALYST_API_KEY"); v == "" {
 		t.Fatal("CATALYST_API_KEY must be set for acceptance tests")
