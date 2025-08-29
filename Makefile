@@ -28,6 +28,9 @@ test:
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
+testacc: ## Run acceptance tests
+	TF_ACC=1 go test -i $(TEST) -timeout 5m || exit 1
+
 doc:
 	@go generate ./...
 

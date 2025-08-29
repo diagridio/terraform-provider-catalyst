@@ -148,7 +148,7 @@ jobs:
           terraform_wrapper: false
 
       - name: Unit Tests
-        run: go test -v -cover ./...
+        run: make test
         timeout-minutes: 10
 
   # Run acceptance tests in a matrix with Terraform CLI versions
@@ -198,7 +198,7 @@ jobs:
           terraform_wrapper: false
 
       - name: Acceptance Tests
-        run: go test -v -cover ./...
+        run: make testacc
         env:
           TF_ACC: "1"
           CATALYST_API_KEY: ${{ secrets.CATALYST_API_KEY }}
