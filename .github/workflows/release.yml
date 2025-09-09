@@ -37,7 +37,7 @@ jobs:
           git config --global url."https://x-access-token:${{ inputs.workflow_token || steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
-        uses: actions/setup-go@v5.5.0
+        uses: actions/setup-go@v6.0.0
         env:
           GOPRIVATE: "github.com/diagridio/*"
           GOPROXY: "https://proxy.golang.org,direct"
