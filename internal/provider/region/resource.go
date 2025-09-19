@@ -161,7 +161,7 @@ func (p *regionResource) Create(ctx context.Context,
 	if err := helpers.WaitUntil(ctx, func(ctx context.Context) (bool, error) {
 		region, err = p.client.GetRegion(ctx, model.GetName())
 		if err != nil {
-			return false, fmt.Errorf("Error getting region: %w", err)
+			return false, fmt.Errorf("error getting region: %w", err)
 		}
 
 		if region.Status != nil &&
@@ -277,7 +277,7 @@ func (p *regionResource) Update(ctx context.Context,
 	if err := helpers.WaitUntil(ctx, func(ctx context.Context) (bool, error) {
 		region, err := p.client.GetRegion(ctx, model.GetName())
 		if err != nil {
-			return false, fmt.Errorf("Error getting region: %w", err)
+			return false, fmt.Errorf("error getting region: %w", err)
 		}
 
 		if region.Status != nil &&

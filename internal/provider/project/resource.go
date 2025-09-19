@@ -141,7 +141,7 @@ func (p *projectResource) Create(ctx context.Context,
 	if err := helpers.WaitUntil(ctx, func(ctx context.Context) (bool, error) {
 		project, err := p.client.GetProject(ctx, model.GetName(), &client.DescribeProjectParams{})
 		if err != nil {
-			return false, fmt.Errorf("Error getting project: %w", err)
+			return false, fmt.Errorf("error getting project: %w", err)
 		}
 
 		expectedStatus := "processing"
@@ -254,7 +254,7 @@ func (p *projectResource) Update(ctx context.Context,
 	if err := helpers.WaitUntil(ctx, func(ctx context.Context) (bool, error) {
 		project, err := p.client.GetProject(ctx, model.GetName(), &client.DescribeProjectParams{})
 		if err != nil {
-			return false, fmt.Errorf("Error getting project: %w", err)
+			return false, fmt.Errorf("error getting project: %w", err)
 		}
 
 		expectedStatus := "processing"
