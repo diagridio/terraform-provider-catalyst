@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	"github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
 
@@ -150,16 +149,16 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				region = &cloudruntime_client.Region{
 					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
 					Kind:       lo.ToPtr(catalyst.KindRegion),
-					Metadata: &client.Metadata{
+					Metadata: &cloudruntime_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
-					Spec: &client.RegionSpec{
+					Spec: &cloudruntime_client.RegionSpec{
 						Host:     lo.ToPtr(regionHost),
 						Ingress:  lo.ToPtr(regionIngress),
 						Location: lo.ToPtr(regionLocation),
 						Type:     lo.ToPtr(regionType),
 					},
-					Status: &client.RegionStatus{
+					Status: &cloudruntime_client.RegionStatus{
 						Status: lo.ToPtr("ready"),
 					},
 				}
