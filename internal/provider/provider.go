@@ -17,6 +17,7 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/organization"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/project"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/region"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/serviceaccount"
 )
 
 // Ensure ScaffoldingProvider satisfies various provider interfaces.
@@ -154,6 +155,7 @@ func (p *catalystProvider) Resources(ctx context.Context) []func() resource.Reso
 	return []func() resource.Resource{
 		project.NewResource,
 		region.NewResource,
+		serviceaccount.NewResource,
 	}
 }
 
@@ -162,6 +164,7 @@ func (p *catalystProvider) DataSources(ctx context.Context) []func() datasource.
 		organization.NewDataSource,
 		project.NewDataSource,
 		region.NewDataSource,
+		serviceaccount.NewDataSource,
 	}
 }
 
