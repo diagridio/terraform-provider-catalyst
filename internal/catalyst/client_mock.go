@@ -72,6 +72,20 @@ func (mr *MockClientMockRecorder) CreateRegion(ctx, region any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRegion", reflect.TypeOf((*MockClient)(nil).CreateRegion), ctx, region)
 }
 
+// CreateServiceAccount mocks base method.
+func (m *MockClient) CreateServiceAccount(ctx context.Context, serviceAccount *client.ServiceAccount) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateServiceAccount", ctx, serviceAccount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateServiceAccount indicates an expected call of CreateServiceAccount.
+func (mr *MockClientMockRecorder) CreateServiceAccount(ctx, serviceAccount any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateServiceAccount", reflect.TypeOf((*MockClient)(nil).CreateServiceAccount), ctx, serviceAccount)
+}
+
 // DeleteProject mocks base method.
 func (m *MockClient) DeleteProject(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
@@ -98,6 +112,20 @@ func (m *MockClient) DeleteRegion(ctx context.Context, name string) error {
 func (mr *MockClientMockRecorder) DeleteRegion(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegion", reflect.TypeOf((*MockClient)(nil).DeleteRegion), ctx, name)
+}
+
+// DeleteServiceAccount mocks base method.
+func (m *MockClient) DeleteServiceAccount(ctx context.Context, serviceAccountId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteServiceAccount", ctx, serviceAccountId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteServiceAccount indicates an expected call of DeleteServiceAccount.
+func (mr *MockClientMockRecorder) DeleteServiceAccount(ctx, serviceAccountId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteServiceAccount", reflect.TypeOf((*MockClient)(nil).DeleteServiceAccount), ctx, serviceAccountId)
 }
 
 // GetProject mocks base method.
@@ -128,6 +156,21 @@ func (m *MockClient) GetRegion(ctx context.Context, name string) (*client.Region
 func (mr *MockClientMockRecorder) GetRegion(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegion", reflect.TypeOf((*MockClient)(nil).GetRegion), ctx, name)
+}
+
+// GetServiceAccount mocks base method.
+func (m *MockClient) GetServiceAccount(ctx context.Context, serviceAccountId string) (*client.ServiceAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServiceAccount", ctx, serviceAccountId)
+	ret0, _ := ret[0].(*client.ServiceAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetServiceAccount indicates an expected call of GetServiceAccount.
+func (mr *MockClientMockRecorder) GetServiceAccount(ctx, serviceAccountId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceAccount", reflect.TypeOf((*MockClient)(nil).GetServiceAccount), ctx, serviceAccountId)
 }
 
 // GetUserOrg mocks base method.
@@ -171,4 +214,18 @@ func (m *MockClient) UpdateRegion(ctx context.Context, region *client.Region) er
 func (mr *MockClientMockRecorder) UpdateRegion(ctx, region any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRegion", reflect.TypeOf((*MockClient)(nil).UpdateRegion), ctx, region)
+}
+
+// UpdateServiceAccount mocks base method.
+func (m *MockClient) UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *client.ServiceAccount) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateServiceAccount", ctx, serviceAccountId, serviceAccount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateServiceAccount indicates an expected call of UpdateServiceAccount.
+func (mr *MockClientMockRecorder) UpdateServiceAccount(ctx, serviceAccountId, serviceAccount any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateServiceAccount", reflect.TypeOf((*MockClient)(nil).UpdateServiceAccount), ctx, serviceAccountId, serviceAccount)
 }

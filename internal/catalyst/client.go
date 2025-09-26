@@ -23,6 +23,11 @@ type Client interface {
 	CreateProject(ctx context.Context, project *cloudruntime_client.Project) error
 	UpdateProject(ctx context.Context, prj *cloudruntime_client.Project) error
 	DeleteProject(ctx context.Context, id string) error
+
+	CreateServiceAccount(ctx context.Context, serviceAccount *cloudruntime_client.ServiceAccount) error
+	GetServiceAccount(ctx context.Context, serviceAccountId string) (*cloudruntime_client.ServiceAccount, error)
+	UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *cloudruntime_client.ServiceAccount) error
+	DeleteServiceAccount(ctx context.Context, serviceAccountId string) error
 }
 
 type cclient struct {
@@ -147,6 +152,39 @@ func (c *cclient) UpdateProject(ctx context.Context, project *cloudruntime_clien
 func (c *cclient) DeleteProject(ctx context.Context, id string) error {
 	if err := c.catalyst.DeleteProject(ctx, id); err != nil {
 		return fmt.Errorf("error deleting project %s: %w", id, err)
+	}
+
+	return nil
+}
+
+func (c *cclient) CreateServiceAccount(ctx context.Context, serviceAccount *cloudruntime_client.ServiceAccount) error {
+	if err := c.catalyst.CreateServiceAccount(ctx, serviceAccount); err != nil {
+		return fmt.Errorf("error creating service account: %w", err)
+	}
+
+	return nil
+}
+
+func (c *cclient) GetServiceAccount(ctx context.Context, serviceAccountId string) (*cloudruntime_client.ServiceAccount, error) {
+	serviceAccount, err := c.catalyst.GetServiceAccount(ctx, serviceAccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	return serviceAccount, nil
+}
+
+func (c *cclient) UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *cloudruntime_client.ServiceAccount) error {
+	if err := c.catalyst.PatchServiceAccount(ctx, serviceAccountId, serviceAccount); err != nil {
+		return fmt.Errorf("error updating service account %s: %w", serviceAccountId, err)
+	}
+
+	return nil
+}
+
+func (c *cclient) DeleteServiceAccount(ctx context.Context, serviceAccountId string) error {
+	if err := c.catalyst.DeleteServiceAccount(ctx, serviceAccountId); err != nil {
+		return fmt.Errorf("error deleting service account %s: %w", serviceAccountId, err)
 	}
 
 	return nil

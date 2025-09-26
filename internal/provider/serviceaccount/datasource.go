@@ -1,4 +1,4 @@
-package project
+package serviceaccount
 
 import (
 	"context"
@@ -10,54 +10,52 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
-var _ datasource.DataSource = &projectDataSource{}
+var _ datasource.DataSource = &serviceAccountDataSource{}
 
-// projectDataSource defines the data source implementation.
-type projectDataSource struct {
+type serviceAccountDataSource struct {
 	client catalyst.Client
 }
 
 func NewDataSource() datasource.DataSource {
-	return &projectDataSource{}
+	return &serviceAccountDataSource{}
 }
 
-func (d *projectDataSource) Metadata(ctx context.Context,
+func (d *serviceAccountDataSource) Metadata(ctx context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_project"
+	resp.TypeName = req.ProviderTypeName + "_service_account"
 }
 
-func (d *projectDataSource) Schema(ctx context.Context,
+func (d *serviceAccountDataSource) Schema(ctx context.Context,
 	req datasource.SchemaRequest,
 	resp *datasource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Project data source",
+		MarkdownDescription: "Service account data source",
 
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Project name",
-				Optional:            true,
+				MarkdownDescription: "Service account name",
+				Required:            true,
 			},
-			"region": schema.StringAttribute{
-				MarkdownDescription: "Region",
-				Optional:            true,
-			},
-			"grpc_endpoint": schema.StringAttribute{
-				MarkdownDescription: "gRPC endpoint",
+			"description": schema.StringAttribute{
+				MarkdownDescription: "Service account description",
 				Optional:            true,
 				Computed:            true,
 			},
-			"http_endpoint": schema.StringAttribute{
-				MarkdownDescription: "HTTP endpoint",
+			"owner": schema.StringAttribute{
+				MarkdownDescription: "Service account owner",
 				Optional:            true,
 				Computed:            true,
 			},
-			"wait_for_ready": schema.BoolAttribute{
-				MarkdownDescription: "Wait for the project to be in ready state before returning",
+			"role": schema.StringAttribute{
+				MarkdownDescription: "Service account role",
+				Optional:            true,
+				Computed:            true,
+			},
+			"email": schema.StringAttribute{
+				MarkdownDescription: "Service account email",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -65,11 +63,10 @@ func (d *projectDataSource) Schema(ctx context.Context,
 	}
 }
 
-func (d *projectDataSource) Configure(ctx context.Context,
+func (d *serviceAccountDataSource) Configure(ctx context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
 ) {
-	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
@@ -87,13 +84,12 @@ func (d *projectDataSource) Configure(ctx context.Context,
 	d.client = providerData.Client
 }
 
-func (d *projectDataSource) Read(ctx context.Context,
+func (d *serviceAccountDataSource) Read(ctx context.Context,
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
 	model := NewModel()
 
-	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -101,10 +97,9 @@ func (d *projectDataSource) Read(ctx context.Context,
 
 	if err := read(ctx, d.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
-			fmt.Sprintf("error reading project datasource: %s", err))
+			fmt.Sprintf("error reading service account datasource: %s", err))
 		return
 	}
 
-	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
-
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
 )
@@ -115,15 +113,8 @@ func (d *dataSource) Read(ctx context.Context,
 		})
 
 	if err := read(ctx, d.client, model); err != nil {
-		if diagrid_errors.IsResourceNotFoundError(err) {
-			tflog.Debug(ctx, "project not found", map[string]interface{}{
-				"name": model.GetName(),
-			})
-			return
-		}
-
 		resp.Diagnostics.AddError("Client Error",
-			fmt.Sprintf("error reading project datasource: %s", err))
+			fmt.Sprintf("error reading region datasource: %s", err))
 		return
 	}
 
