@@ -60,6 +60,7 @@ func testSteps() []resource.TestStep {
 }
 
 func TestAccProjectResource(t *testing.T) {
+	t.Skip("Skipping acceptance test for project resource since we're not able to created projects in not connected regions")
 	resource.Test(t,
 		resource.TestCase{
 			PreCheck:                 func() { acceptance.TestAccPreCheck(t) },
