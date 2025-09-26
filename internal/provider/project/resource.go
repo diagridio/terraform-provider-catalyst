@@ -150,9 +150,13 @@ func (p *projectResource) Create(ctx context.Context,
 		}
 
 		if project.Status != nil &&
-			project.Status.Status != nil &&
-			*project.Status.Status == expectedStatus {
-			return true, nil
+			project.Status.Status != nil {
+			switch *project.Status.Status {
+			case expectedStatus:
+				return true, nil
+			case "error":
+				return false, fmt.Errorf("project in error state")
+			}
 		}
 
 		tflog.Debug(ctx, "project status still not at expected value",
@@ -263,10 +267,20 @@ func (p *projectResource) Update(ctx context.Context,
 		}
 
 		if project.Status != nil &&
-			project.Status.Status != nil &&
-			*project.Status.Status == expectedStatus {
-			return true, nil
+			project.Status.Status != nil {
+			switch *project.Status.Status {
+			case expectedStatus:
+				return true, nil
+			case "error":
+				return false, fmt.Errorf("project in error state")
+			}
 		}
+
+		tflog.Debug(ctx, "project status still not at expected value",
+			map[string]interface{}{
+				"name":     model.GetName(),
+				"expected": expectedStatus,
+			})
 
 		return false, nil
 	}); err != nil {
