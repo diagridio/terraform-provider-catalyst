@@ -50,7 +50,7 @@ jobs:
         id: import_gpg
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6.4.0
@@ -62,7 +62,6 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
   terraform-provider-release:
-    runs-on: ubuntu-latest
     name: 'Terraform Provider Release'
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v4
     with:
