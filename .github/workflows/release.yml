@@ -65,8 +65,9 @@ jobs:
     runs-on: ubuntu-latest
     name: 'Terraform Provider Release'
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/community.yml@v4
-    secrets:
-      gpg-private-key: '${{ secrets.GPG_PRIVATE_KEY }}'
     with:
-      setup-go-version-file: 'go.mod'
+      setup_go_version_file: go.mod
+    secrets:
+      gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      gpg_passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
