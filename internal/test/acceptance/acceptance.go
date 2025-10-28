@@ -25,8 +25,4 @@ func TestAccPreCheck(t *testing.T) {
 	if v := os.Getenv("CATALYST_API_KEY"); v == "" {
 		t.Fatal("CATALYST_API_KEY must be set for acceptance tests")
 	}
-	if v := os.Getenv("CATALYST_API_ENDPOINT"); v == "" {
-		t.Fatal("CATALYST_API_ENDPOINT must be set for acceptance tests (e.g., https://api.local.diagrid.io)")
-	}
-	// CATALYST_TLS_SKIP_VERIFY is optional, defaults to false if not set
 }
