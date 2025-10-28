@@ -3,12 +3,12 @@
 page_title: "catalyst_subscription Resource - catalyst"
 subcategory: ""
 description: |-
-  Catalyst Dapr Subscription resource
+  Catalyst Subscription resource
 ---
 
 # catalyst_subscription (Resource)
 
-Catalyst Dapr Subscription resource
+Catalyst Subscription resource
 
 ## Example Usage
 
@@ -30,6 +30,22 @@ resource "catalyst_subscription" "example" {
   name         = "my-subscription"
   pubsub_name  = catalyst_pubsub.example.name
   topic        = "my-topic"
+
+  scopes = ["app1"]
+
+  # Spec defines Dapr Subscription as YAML
+  spec = <<-EOT
+    routes:
+      default: /orders
+      rules:
+      - match: event.type == "premium"
+        path: /premium-orders
+    bulkSubscribe:
+      enabled: true
+      maxMessagesCount: 100
+      maxAwaitDurationMs: 1000
+    deadLetterTopic: orders-dlq
+  EOT
 }
 ```
 
@@ -40,17 +56,14 @@ resource "catalyst_subscription" "example" {
 
 - `name` (String) Subscription name
 - `project_name` (String) Project name
-
-### Optional
-
 - `pubsub_name` (String) PubSub name
 - `topic` (String) Topic name
 
-## Import
+### Optional
 
-Import is supported using the following syntax:
+- `scopes` (List of String) Scopes
+- `spec` (String) Dapr Subscription spec in YAML format
 
-```shell
-# using project_name/name
-terraform import catalyst_subscription.example my-project/my-subscription
-```
+### Read-Only
+
+- `status` (String) Status

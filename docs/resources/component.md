@@ -3,12 +3,12 @@
 page_title: "catalyst_component Resource - catalyst"
 subcategory: ""
 description: |-
-  Catalyst Dapr Component resource
+  Catalyst Component resource
 ---
 
 # catalyst_component (Resource)
 
-Catalyst Dapr Component resource
+Catalyst Component resource
 
 ## Example Usage
 
@@ -23,6 +23,19 @@ resource "catalyst_component" "example" {
   name         = "my-component"
   type         = "state.redis"
   version      = "v1"
+
+  # Metadata as YAML
+  spec = <<-EOT
+    - name: redisHost
+      value: "redis:6379"
+    - name: redisPassword
+      secretKeyRef:
+        name: redis-secret
+        key: password
+  EOT
+
+  secret_store = "kubernetes"
+  scopes       = ["app1", "app2"]
 }
 ```
 
@@ -33,17 +46,15 @@ resource "catalyst_component" "example" {
 
 - `name` (String) Component name
 - `project_name` (String) Project name
-
-### Optional
-
+- `spec` (String) Dapr Component Metadata in YAML format
 - `type` (String) Component type
 - `version` (String) Component version
 
-## Import
+### Optional
 
-Import is supported using the following syntax:
+- `scopes` (List of String) App IDs that can access this component
+- `secret_store` (String) Secret store for secret reference resolution
 
-```shell
-# using project_name/name
-terraform import catalyst_component.example my-project/my-component
-```
+### Read-Only
+
+- `status` (String) Status of the component

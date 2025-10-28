@@ -32,11 +32,36 @@ resource "catalyst_appid" "example" {
 - `name` (String) AppID name
 - `project_id` (String) Project ID
 
-## Import
+### Optional
 
-Import is supported using the following syntax:
+- `app_config` (String) App configuration name
+- `app_endpoint` (Attributes) Application endpoint configuration (see [below for nested schema](#nestedatt--app_endpoint))
+- `health_check` (Attributes) Health check configuration (see [below for nested schema](#nestedatt--health_check))
+- `protocol` (String) Protocol (e.g., 'http', 'grpc')
 
-```shell
-# using project_id/name
-terraform import catalyst_appid.example my-project/my-app
-```
+### Read-Only
+
+- `api_token_revision` (Number) API token revision
+- `status` (String) Status of the AppID
+
+<a id="nestedatt--app_endpoint"></a>
+### Nested Schema for `app_endpoint`
+
+Optional:
+
+- `client_timeout_seconds` (Number) Client timeout in seconds
+- `token` (String, Sensitive) Authentication token
+- `token_header` (String) Header name for the authentication token
+- `url` (String) Application endpoint URL
+
+
+<a id="nestedatt--health_check"></a>
+### Nested Schema for `health_check`
+
+Optional:
+
+- `enabled` (Boolean) Whether the probe is enabled
+- `failure_threshold` (Number) Number of failures before marking as unhealthy
+- `interval_seconds` (Number) Interval between probe checks in seconds
+- `path` (String) Health check path
+- `timeout_ms` (Number) Timeout for each probe check in milliseconds

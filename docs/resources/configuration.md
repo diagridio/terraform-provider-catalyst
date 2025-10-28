@@ -3,12 +3,12 @@
 page_title: "catalyst_configuration Resource - catalyst"
 subcategory: ""
 description: |-
-  Catalyst Dapr Configuration resource
+  Catalyst Configuration resource
 ---
 
 # catalyst_configuration (Resource)
 
-Catalyst Dapr Configuration resource
+Catalyst Configuration resource
 
 ## Example Usage
 
@@ -21,6 +21,33 @@ resource "catalyst_project" "example" {
 resource "catalyst_configuration" "example" {
   project_id = catalyst_project.example.name
   name       = "my-configuration"
+
+  # Spec defines Dapr configuration as YAML
+  spec = <<-EOT
+    accessControl:
+      defaultAction: deny
+      policies:
+      - appId: app1
+        defaultAction: allow
+        namespace: default
+      - appId: app2
+        defaultAction: deny
+        namespace: default
+    api:
+      allowed:
+      - name: "GET /healthz"
+        protocol: "http"
+    tracing:
+      samplingRate: "1"
+      zipkin:
+        endpointAddress: "http://zipkin.default.svc.cluster.local:9411/api/v2/spans"
+    metrics:
+      enabled: true
+    secrets:
+      scopes:
+      - storeName: "local-secret-store"
+        defaultAccess: "allow"
+  EOT
 }
 ```
 
@@ -31,12 +58,8 @@ resource "catalyst_configuration" "example" {
 
 - `name` (String) Configuration name
 - `project_id` (String) Project ID
+- `spec` (String) Dapr Configuration spec in YAML format
 
-## Import
+### Read-Only
 
-Import is supported using the following syntax:
-
-```shell
-# using project_id/name
-terraform import catalyst_configuration.example my-project/my-configuration
-```
+- `status` (String) Status

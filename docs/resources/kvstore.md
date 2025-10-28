@@ -31,19 +31,15 @@ resource "catalyst_kvstore" "example" {
 
 ### Required
 
+- `component_name` (String) Component name
 - `name` (String) KVStore name
 - `project_name` (String) Project name
 
 ### Optional
 
-- `component_name` (String) Component name
-- `create_component` (Boolean) Whether to create the component
+- `create_component` (Boolean) Create component
+- `scopes` (List of String) Scopes
 
-## Import
+### Read-Only
 
-Import is supported using the following syntax:
-
-```shell
-# using project_name/name
-terraform import catalyst_kvstore.example my-project/my-kvstore
-```
+- `status` (String) Status

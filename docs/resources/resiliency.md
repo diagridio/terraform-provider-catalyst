@@ -3,12 +3,12 @@
 page_title: "catalyst_resiliency Resource - catalyst"
 subcategory: ""
 description: |-
-  Catalyst Dapr Resiliency resource
+  Catalyst Resiliency resource
 ---
 
 # catalyst_resiliency (Resource)
 
-Catalyst Dapr Resiliency resource
+Catalyst Resiliency resource
 
 ## Example Usage
 
@@ -21,6 +21,38 @@ resource "catalyst_project" "example" {
 resource "catalyst_resiliency" "example" {
   project_id = catalyst_project.example.name
   name       = "my-resiliency-policy"
+
+  # Scopes define which apps use this resiliency policy
+  scopes = ["app1", "app2"]
+
+  # Spec defines Dapr Resiliency as YAML
+  spec = <<-EOT
+    policies:
+      retries:
+        DefaultRetryPolicy:
+          policy: constant
+          duration: 5s
+          maxRetries: 10
+      timeouts:
+        DefaultTimeoutPolicy: 60s
+      circuitBreakers:
+        DefaultCircuitBreakerPolicy:
+          maxRequests: 1
+          interval: 30s
+          timeout: 60s
+          trip: consecutiveFailures > 5
+    targets:
+      apps:
+        app1:
+          retry: DefaultRetryPolicy
+          timeout: DefaultTimeoutPolicy
+          circuitBreaker: DefaultCircuitBreakerPolicy
+      components:
+        statestore:
+          outbound:
+            retry: DefaultRetryPolicy
+            timeout: DefaultTimeoutPolicy
+  EOT
 }
 ```
 
@@ -29,14 +61,14 @@ resource "catalyst_resiliency" "example" {
 
 ### Required
 
-- `name` (String) Resiliency policy name
+- `name` (String) Resiliency name
 - `project_id` (String) Project ID
+- `spec` (String) Dapr Resiliency spec in YAML format
 
-## Import
+### Optional
 
-Import is supported using the following syntax:
+- `scopes` (List of String) Scopes
 
-```shell
-# using project_id/name
-terraform import catalyst_resiliency.example my-project/my-resiliency-policy
-```
+### Read-Only
+
+- `status` (String) Status

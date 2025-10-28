@@ -6,10 +6,10 @@ resource "catalyst_project" "example" {
 resource "catalyst_resiliency" "example" {
   project_id = catalyst_project.example.name
   name       = "my-resiliency-policy"
-  
+
   # Scopes define which apps use this resiliency policy
   scopes = ["app1", "app2"]
-  
+
   # Spec defines Dapr Resiliency as YAML
   spec = <<-EOT
     policies:

@@ -31,19 +31,15 @@ resource "catalyst_pubsub" "example" {
 
 ### Required
 
+- `component_name` (String) Component name
 - `name` (String) PubSub name
 - `project_name` (String) Project name
 
 ### Optional
 
-- `component_name` (String) Component name
-- `create_component` (Boolean) Whether to create the component
+- `create_component` (Boolean) Create component
+- `scopes` (List of String) App IDs that can access this pubsub
 
-## Import
+### Read-Only
 
-Import is supported using the following syntax:
-
-```shell
-# using project_name/name
-terraform import catalyst_pubsub.example my-project/my-pubsub
-```
+- `status` (String) Status of the pubsub
