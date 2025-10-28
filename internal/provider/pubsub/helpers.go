@@ -79,6 +79,5 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 		return nil
 	}
 
-	result := scopes
-	return (*cloudruntime_client.DaprScopes)(&result)
+	return &scopes
 }

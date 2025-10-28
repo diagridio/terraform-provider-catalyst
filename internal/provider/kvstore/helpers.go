@@ -24,8 +24,7 @@ func toAPIScopes(ctx context.Context, scopes types.List) *cloudruntime_client.Da
 		return nil
 	}
 
-	daprScopes := scopesSlice
-	return (*cloudruntime_client.DaprScopes)(&daprScopes)
+	return &scopesSlice
 }
 
 func read(ctx context.Context,

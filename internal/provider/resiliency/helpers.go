@@ -45,7 +45,7 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 		return nil
 	}
 
-	return (*cloudruntime_client.DaprScopes)(&scopes)
+	return &scopes
 }
 
 // toAPISpec converts YAML string to DaprResiliencySpec.

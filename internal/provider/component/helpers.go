@@ -20,7 +20,7 @@ func toAPIScopes(ctx context.Context, scopesList types.List) cloudruntime_client
 
 	var scopes []string
 	scopesList.ElementsAs(ctx, &scopes, false)
-	return cloudruntime_client.DaprScopes(scopes)
+	return scopes
 }
 
 // metadataItemForYAML is a helper type for proper YAML marshaling/unmarshaling.
