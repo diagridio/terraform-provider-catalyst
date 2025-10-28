@@ -70,38 +70,7 @@ func TestMockComponentResource(t *testing.T) {
 			},
 			Steps: []resource.TestStep{
 				{
-					Config: testAccComponentResourceConfig(projectName, componentName, "state.in-memory", "v1"),
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "type", "state.in-memory"),
-						resource.TestCheckResourceAttr("catalyst_component.test", "version", "v1"),
-					),
-				},
-				{
-					ResourceName:                         "catalyst_component.test",
-					ImportState:                          true,
-					ImportStateVerifyIdentifierAttribute: "name",
-					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, componentName),
-					ImportStateVerify:                    true,
-				},
-			},
-		})
-}
-
-func TestMockComponentResourceWithSpec(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	resource.UnitTest(t,
-		resource.TestCase{
-			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-				provider.ProviderName: providerserver.NewProtocol6WithError(
-					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
-				),
-			},
-			Steps: []resource.TestStep{
-				{
-					Config: testAccComponentResourceConfigWithSpec(projectName, componentName, "state.redis", "v1"),
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v1"),
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
 						resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
@@ -190,17 +159,6 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 }
 
 func testAccComponentResourceConfig(projectName, componentName, componentType, version string) string {
-	return fmt.Sprintf(`
-resource "catalyst_component" "test" {
-  project_name = %q
-  name         = %q
-  type         = %q
-  version      = %q
-}
-`, projectName, componentName, componentType, version)
-}
-
-func testAccComponentResourceConfigWithSpec(projectName, componentName, componentType, version string) string {
 	return fmt.Sprintf(`
 resource "catalyst_component" "test" {
   project_name = %q

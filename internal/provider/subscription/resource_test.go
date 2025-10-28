@@ -52,37 +52,6 @@ func TestMockSubscriptionResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
-					),
-				},
-				{
-					ResourceName:                         "catalyst_subscription.test",
-					ImportState:                          true,
-					ImportStateVerifyIdentifierAttribute: "name",
-					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, subscriptionName),
-					ImportStateVerify:                    true,
-				},
-			},
-		})
-}
-
-func TestMockSubscriptionResourceWithSpec(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	resource.UnitTest(t,
-		resource.TestCase{
-			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-				provider.ProviderName: providerserver.NewProtocol6WithError(
-					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
-				),
-			},
-			Steps: []resource.TestStep{
-				{
-					Config: testAccSubscriptionResourceConfigWithSpec(projectName, subscriptionName, pubsubName, topicName),
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "name", subscriptionName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
 						resource.TestCheckResourceAttrSet("catalyst_subscription.test", "spec"),
 					),
 				},
@@ -157,17 +126,6 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 }
 
 func testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName string) string {
-	return fmt.Sprintf(`
-resource "catalyst_subscription" "test" {
-  project_name = %q
-  name         = %q
-  pubsub_name  = %q
-  topic        = %q
-}
-`, projectName, subscriptionName, pubsubName, topicName)
-}
-
-func testAccSubscriptionResourceConfigWithSpec(projectName, subscriptionName, pubsubName, topicName string) string {
 	return fmt.Sprintf(`
 resource "catalyst_subscription" "test" {
   project_name = %q

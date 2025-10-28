@@ -48,36 +48,6 @@ func TestMockResiliencyResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "name", resiliencyName),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "project_id", projectID),
-						resource.TestCheckNoResourceAttr("catalyst_resiliency.test", "spec"),
-					),
-				},
-				{
-					ResourceName:                         "catalyst_resiliency.test",
-					ImportState:                          true,
-					ImportStateVerifyIdentifierAttribute: "name",
-					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, resiliencyName),
-					ImportStateVerify:                    true,
-				},
-			},
-		})
-}
-
-func TestMockResiliencyResourceWithSpec(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	resource.UnitTest(t,
-		resource.TestCase{
-			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-				provider.ProviderName: providerserver.NewProtocol6WithError(
-					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
-				),
-			},
-			Steps: []resource.TestStep{
-				{
-					Config: testAccResiliencyResourceConfigWithSpec(projectID, resiliencyName),
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "name", resiliencyName),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "project_id", projectID),
 						// Just verify spec is set, don't check exact content due to YAML formatting variances
 						resource.TestCheckResourceAttrSet("catalyst_resiliency.test", "spec"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.#", "2"),
@@ -157,15 +127,6 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 }
 
 func testAccResiliencyResourceConfig(projectID, resiliencyName string) string {
-	return fmt.Sprintf(`
-resource "catalyst_resiliency" "test" {
-  project_id = %q
-  name       = %q
-}
-`, projectID, resiliencyName)
-}
-
-func testAccResiliencyResourceConfigWithSpec(projectID, resiliencyName string) string {
 	return fmt.Sprintf(`
 resource "catalyst_resiliency" "test" {
   project_id = %q

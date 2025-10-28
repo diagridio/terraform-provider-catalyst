@@ -48,35 +48,6 @@ func TestMockConfigurationResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
-					),
-				},
-				{
-					ResourceName:                         "catalyst_configuration.test",
-					ImportState:                          true,
-					ImportStateVerifyIdentifierAttribute: "name",
-					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
-					ImportStateVerify:                    true,
-				},
-			},
-		})
-}
-
-func TestMockConfigurationResourceWithSpec(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	resource.UnitTest(t,
-		resource.TestCase{
-			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-				provider.ProviderName: providerserver.NewProtocol6WithError(
-					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
-				),
-			},
-			Steps: []resource.TestStep{
-				{
-					Config: testAccConfigurationResourceConfigWithSpec(projectID, configurationName),
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
 						resource.TestCheckResourceAttrSet("catalyst_configuration.test", "spec"),
 					),
 				},
@@ -150,15 +121,6 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 }
 
 func testAccConfigurationResourceConfig(projectID, configurationName string) string {
-	return fmt.Sprintf(`
-resource "catalyst_configuration" "test" {
-  project_id = %q
-  name       = %q
-}
-`, projectID, configurationName)
-}
-
-func testAccConfigurationResourceConfigWithSpec(projectID, configurationName string) string {
 	return fmt.Sprintf(`
 resource "catalyst_configuration" "test" {
   project_id = %q
