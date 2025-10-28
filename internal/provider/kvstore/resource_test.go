@@ -97,6 +97,14 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				if !exists {
 					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
 				}
+				// Ensure status is set
+				if kvstore.Status == nil {
+					kvstore.Status = &cloudruntime_client.ProjectSubResourceStatus{}
+				}
+				if kvstore.Status.Status == nil {
+					status := "Ready"
+					kvstore.Status.Status = &status
+				}
 				return kvstore, nil
 			}).AnyTimes()
 
