@@ -6,7 +6,7 @@ resource "catalyst_project" "example" {
 resource "catalyst_configuration" "example" {
   project_id = catalyst_project.example.name
   name       = "my-configuration"
-  
+
   # Spec defines Dapr configuration as YAML
   spec = <<-EOT
     accessControl:

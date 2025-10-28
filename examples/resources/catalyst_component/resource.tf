@@ -8,7 +8,7 @@ resource "catalyst_component" "example" {
   name         = "my-component"
   type         = "state.redis"
   version      = "v1"
-  
+
   # Metadata as YAML
   spec = <<-EOT
     - name: redisHost
@@ -18,7 +18,7 @@ resource "catalyst_component" "example" {
         name: redis-secret
         key: password
   EOT
-  
+
   secret_store = "kubernetes"
   scopes       = ["app1", "app2"]
 }
