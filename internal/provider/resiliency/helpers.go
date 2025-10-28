@@ -13,7 +13,7 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// YAML-friendly types for proper marshaling/unmarshaling
+// YAML-friendly types for proper marshaling/unmarshaling.
 type resiliencySpecForYAML struct {
 	Policies *policiesForYAML `yaml:"policies,omitempty"`
 	Targets  *targetsForYAML  `yaml:"targets,omitempty"`
@@ -31,7 +31,7 @@ type targetsForYAML struct {
 	Components map[string]interface{} `yaml:"components,omitempty"`
 }
 
-// toAPIScopes converts a Terraform List to API DaprScopes
+// toAPIScopes converts a Terraform List to API DaprScopes.
 func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
@@ -45,11 +45,10 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 		return nil
 	}
 
-	result := cloudruntime_client.DaprScopes(scopes)
-	return &result
+	return (*cloudruntime_client.DaprScopes)(&scopes)
 }
 
-// toAPISpec converts YAML string to DaprResiliencySpec
+// toAPISpec converts YAML string to DaprResiliencySpec.
 func toAPISpec(ctx context.Context, specYAML types.String) (*cloudruntime_client.DaprResiliencySpec, error) {
 	if specYAML.IsNull() || specYAML.IsUnknown() {
 		return &cloudruntime_client.DaprResiliencySpec{}, nil
@@ -76,96 +75,6 @@ func toAPISpec(ctx context.Context, specYAML types.String) (*cloudruntime_client
 	}
 
 	return &apiSpec, nil
-}
-
-// specToYAML converts API resiliency spec to YAML string
-func specToYAML(spec *cloudruntime_client.DaprResiliencySpec) (string, error) {
-	if spec == nil {
-		return "", nil
-	}
-
-	yamlSpec := resiliencySpecForYAML{}
-
-	// Convert policies
-	if spec.Policies != nil {
-		policies := &policiesForYAML{}
-
-		if spec.Policies.Timeouts != nil && len(spec.Policies.Timeouts.AdditionalProperties) > 0 {
-			// Convert map[string]string to map[string]interface{}
-			policies.Timeouts = make(map[string]interface{})
-			for k, v := range spec.Policies.Timeouts.AdditionalProperties {
-				policies.Timeouts[k] = v
-			}
-		}
-
-		if spec.Policies.Retries != nil && len(spec.Policies.Retries.AdditionalProperties) > 0 {
-			// Convert map[string]RetryPolicy to map[string]interface{}
-			policies.Retries = make(map[string]interface{})
-			for k, v := range spec.Policies.Retries.AdditionalProperties {
-				policies.Retries[k] = v
-			}
-		}
-
-		if spec.Policies.CircuitBreakers != nil && len(spec.Policies.CircuitBreakers.AdditionalProperties) > 0 {
-			// Convert map[string]CircuitBreaker to map[string]interface{}
-			policies.CircuitBreakers = make(map[string]interface{})
-			for k, v := range spec.Policies.CircuitBreakers.AdditionalProperties {
-				policies.CircuitBreakers[k] = v
-			}
-		}
-
-		// Only set policies if it has content
-		if len(policies.Timeouts) > 0 || len(policies.Retries) > 0 || len(policies.CircuitBreakers) > 0 {
-			yamlSpec.Policies = policies
-		}
-	}
-
-	// Convert targets
-	if spec.Targets != nil {
-		targets := &targetsForYAML{}
-
-		if spec.Targets.Apps != nil && len(spec.Targets.Apps.AdditionalProperties) > 0 {
-			// Convert map[string]EndpointPolicyNames to map[string]interface{}
-			targets.Apps = make(map[string]interface{})
-			for k, v := range spec.Targets.Apps.AdditionalProperties {
-				targets.Apps[k] = v
-			}
-		}
-
-		if spec.Targets.Actors != nil && len(spec.Targets.Actors.AdditionalProperties) > 0 {
-			// Convert map[string]ActorPolicyNames to map[string]interface{}
-			targets.Actors = make(map[string]interface{})
-			for k, v := range spec.Targets.Actors.AdditionalProperties {
-				targets.Actors[k] = v
-			}
-		}
-
-		if spec.Targets.Components != nil && len(spec.Targets.Components.AdditionalProperties) > 0 {
-			// Convert map[string]ComponentPolicyNames to map[string]interface{}
-			targets.Components = make(map[string]interface{})
-			for k, v := range spec.Targets.Components.AdditionalProperties {
-				targets.Components[k] = v
-			}
-		}
-
-		// Only set targets if it has content
-		if len(targets.Apps) > 0 || len(targets.Actors) > 0 || len(targets.Components) > 0 {
-			yamlSpec.Targets = targets
-		}
-	}
-
-	// If both are empty, return empty string
-	if yamlSpec.Policies == nil && yamlSpec.Targets == nil {
-		return "", nil
-	}
-
-	// Marshal to YAML
-	yamlBytes, err := yaml.Marshal(yamlSpec)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal spec to YAML: %w", err)
-	}
-
-	return string(yamlBytes), nil
 }
 
 func read(ctx context.Context,

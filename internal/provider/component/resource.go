@@ -155,8 +155,7 @@ func (r *componentResource) Create(ctx context.Context,
 	// Set scopes
 	scopes := toAPIScopes(ctx, model.Scopes)
 	if len(scopes) > 0 {
-		scopesTyped := client.DaprScopes(scopes)
-		component.Scopes = &scopesTyped
+		component.Scopes = &scopes
 	}
 
 	if err := r.client.CreateComponent(ctx, model.GetProjectName(), component); err != nil {
@@ -242,7 +241,7 @@ func (r *componentResource) Update(ctx context.Context,
 	// Set scopes
 	scopes := toAPIScopes(ctx, model.Scopes)
 	if len(scopes) > 0 {
-		scopesTyped := client.DaprScopes(scopes)
+		scopesTyped := scopes
 		component.Scopes = &scopesTyped
 	}
 

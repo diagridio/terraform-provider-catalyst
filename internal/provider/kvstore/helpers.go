@@ -24,8 +24,8 @@ func toAPIScopes(ctx context.Context, scopes types.List) *cloudruntime_client.Da
 		return nil
 	}
 
-	daprScopes := cloudruntime_client.DaprScopes(scopesSlice)
-	return &daprScopes
+	daprScopes := scopesSlice
+	return (*cloudruntime_client.DaprScopes)(&daprScopes)
 }
 
 func read(ctx context.Context,
@@ -77,7 +77,7 @@ func read(ctx context.Context,
 
 	// Set status
 	if kvstore.Status != nil && kvstore.Status.Status != nil {
-		m.SetStatus(string(*kvstore.Status.Status))
+		m.SetStatus(*kvstore.Status.Status)
 	}
 
 	m.Log(ctx, "read kvstore model")

@@ -34,30 +34,6 @@ var (
 	components = make(map[string]*cloudruntime_client.DaprComponent)
 )
 
-func testSteps() []resource.TestStep {
-	return []resource.TestStep{
-		// Create and Read testing
-		{
-			Config: testAccComponentResourceConfig(projectName, componentName, componentType, componentVersion),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
-				resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
-				resource.TestCheckResourceAttr("catalyst_component.test", "type", componentType),
-				resource.TestCheckResourceAttr("catalyst_component.test", "version", componentVersion),
-			),
-		},
-		// ImportState testing
-		{
-			ResourceName:                         "catalyst_component.test",
-			ImportState:                          true,
-			ImportStateVerifyIdentifierAttribute: "name",
-			ImportStateId:                        fmt.Sprintf("%s/%s", projectName, componentName),
-			ImportStateVerify:                    true,
-		},
-		// Delete testing automatically occurs in TestCase
-	}
-}
-
 func TestMockComponentResource(t *testing.T) {
 	ctrl := gomock.NewController(t)
 

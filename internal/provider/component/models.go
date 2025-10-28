@@ -8,17 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type secretKeyRefModel struct {
-	Key  types.String `tfsdk:"key"`
-	Name types.String `tfsdk:"name"`
-}
-
-type metadataItemModel struct {
-	Name         types.String `tfsdk:"name"`
-	Value        types.String `tfsdk:"value"`
-	SecretKeyRef types.Object `tfsdk:"secret_key_ref"`
-}
-
 type model struct {
 	ProjectName types.String `tfsdk:"project_name"`
 	Name        types.String `tfsdk:"name"`

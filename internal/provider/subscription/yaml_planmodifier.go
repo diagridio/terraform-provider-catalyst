@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// yamlEquivalencePlanModifier checks if two YAML strings are semantically equivalent
+// yamlEquivalencePlanModifier checks if two YAML strings are semantically equivalent.
 type yamlEquivalencePlanModifier struct{}
 
 func YAMLEquivalence() planmodifier.String {

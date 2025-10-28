@@ -12,18 +12,18 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// toAPIScopes converts Terraform list to API scopes slice
-func toAPIScopes(ctx context.Context, scopesList types.List) []string {
+// toAPIScopes converts Terraform list to API scopes slice.
+func toAPIScopes(ctx context.Context, scopesList types.List) cloudruntime_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
 
 	var scopes []string
 	scopesList.ElementsAs(ctx, &scopes, false)
-	return scopes
+	return cloudruntime_client.DaprScopes(scopes)
 }
 
-// metadataItemForYAML is a helper type for proper YAML marshaling/unmarshaling
+// metadataItemForYAML is a helper type for proper YAML marshaling/unmarshaling.
 type metadataItemForYAML struct {
 	Name         string  `yaml:"name"`
 	Value        *string `yaml:"value,omitempty"`
@@ -33,8 +33,8 @@ type metadataItemForYAML struct {
 	} `yaml:"secretKeyRef,omitempty"`
 }
 
-// toAPISpec converts YAML string to metadata array for Component spec
-func toAPISpec(ctx context.Context, specString types.String) (*[]cloudruntime_client.DaprMetadataItem, error) {
+// toAPISpec converts YAML string to metadata array for Component spec.
+func toAPISpec(_ context.Context, specString types.String) (*[]cloudruntime_client.DaprMetadataItem, error) {
 	if specString.IsNull() || specString.IsUnknown() {
 		return nil, nil
 	}
@@ -70,7 +70,7 @@ func toAPISpec(ctx context.Context, specString types.String) (*[]cloudruntime_cl
 	return &metadata, nil
 }
 
-// toYAML converts API metadata items to YAML representation with omitempty
+// toYAML converts API metadata items to YAML representation with omitempty.
 func metadataToYAML(metadata *[]cloudruntime_client.DaprMetadataItem) (string, error) {
 	if metadata == nil || len(*metadata) == 0 {
 		return "", nil

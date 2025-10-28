@@ -12,8 +12,8 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// toAPISpec converts YAML string to DaprConfigurationSpec
-func toAPISpec(ctx context.Context, specString types.String) (*cloudruntime_client.DaprConfigurationSpec, error) {
+// toAPISpec converts YAML string to DaprConfigurationSpec.
+func toAPISpec(_ context.Context, specString types.String) (*cloudruntime_client.DaprConfigurationSpec, error) {
 	if specString.IsNull() || specString.IsUnknown() {
 		return &cloudruntime_client.DaprConfigurationSpec{}, nil
 	}

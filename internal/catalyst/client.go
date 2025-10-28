@@ -249,7 +249,7 @@ func (c *cclient) DeleteServiceAccount(ctx context.Context, serviceAccountId str
 	return nil
 }
 
-// AppId operations
+// AppId operations.
 func (c *cclient) CreateAppId(ctx context.Context, projectId string, appid *cloudruntime_client.AppIdentity) error {
 	if err := c.catalyst.CreateAppId(ctx, projectId, appid); err != nil {
 		return fmt.Errorf("error creating appid: %w", err)
@@ -279,7 +279,7 @@ func (c *cclient) DeleteAppId(ctx context.Context, projectId string, appId strin
 	return nil
 }
 
-// Component operations
+// Component operations.
 func (c *cclient) CreateComponent(ctx context.Context, projectName string, component *cloudruntime_client.DaprComponent) error {
 	if err := c.catalyst.CreateComponent(ctx, projectName, component); err != nil {
 		return fmt.Errorf("error creating component: %w", err)
@@ -309,7 +309,7 @@ func (c *cclient) DeleteComponent(ctx context.Context, projectName string, name 
 	return nil
 }
 
-// PubSub operations
+// PubSub operations.
 func (c *cclient) CreatePubSub(ctx context.Context, projectName string, pubsub *cloudruntime_client.PubSub) error {
 	if err := c.catalyst.CreatePubSub(ctx, projectName, pubsub); err != nil {
 		return fmt.Errorf("error creating pubsub: %w", err)
@@ -339,7 +339,7 @@ func (c *cclient) DeletePubSub(ctx context.Context, projectId string, pubSubId s
 	return nil
 }
 
-// KVStore operations
+// KVStore operations.
 func (c *cclient) CreateKVStore(ctx context.Context, projectName string, kvstore *cloudruntime_client.KVStore) error {
 	if err := c.catalyst.CreateKVStore(ctx, projectName, kvstore); err != nil {
 		return fmt.Errorf("error creating kvstore: %w", err)
@@ -369,7 +369,7 @@ func (c *cclient) DeleteKVStore(ctx context.Context, projectName string, kvStore
 	return nil
 }
 
-// Subscription operations
+// Subscription operations.
 func (c *cclient) CreateSubscription(ctx context.Context, projectID string, subscription *cloudruntime_client.DaprSubscription) error {
 	if err := c.catalyst.CreateSubscription(ctx, projectID, subscription); err != nil {
 		return fmt.Errorf("error creating subscription: %w", err)
@@ -399,7 +399,7 @@ func (c *cclient) DeleteSubscription(ctx context.Context, projectName string, su
 	return nil
 }
 
-// Resiliency operations
+// Resiliency operations.
 func (c *cclient) CreateResiliency(ctx context.Context, projectID string, resiliency *cloudruntime_client.DaprResiliency) error {
 	if err := c.catalyst.CreateResiliency(ctx, projectID, resiliency); err != nil {
 		return fmt.Errorf("error creating resiliency: %w", err)
@@ -429,7 +429,7 @@ func (c *cclient) DeleteResiliency(ctx context.Context, projectID string, resili
 	return nil
 }
 
-// Configuration operations
+// Configuration operations.
 func (c *cclient) CreateConfiguration(ctx context.Context, projectId string, config *cloudruntime_client.DaprConfiguration) error {
 	if err := c.catalyst.CreateConfiguration(ctx, projectId, config); err != nil {
 		return fmt.Errorf("error creating configuration: %w", err)

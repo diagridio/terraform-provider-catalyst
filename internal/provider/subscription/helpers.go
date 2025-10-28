@@ -12,7 +12,7 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// YAML-friendly types for proper marshaling/unmarshaling
+// YAML-friendly types for proper marshaling/unmarshaling.
 type subscriptionSpecForYAML struct {
 	Routes          *routesForYAML        `yaml:"routes,omitempty"`
 	BulkSubscribe   *bulkSubscribeForYAML `yaml:"bulkSubscribe,omitempty"`
@@ -37,7 +37,7 @@ type bulkSubscribeForYAML struct {
 	MaxAwaitDurationMs *int  `yaml:"maxAwaitDurationMs,omitempty"`
 }
 
-// toAPIScopes converts a Terraform List to API DaprScopes
+// toAPIScopes converts a Terraform List to API DaprScopes.
 func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
@@ -51,12 +51,11 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 		return nil
 	}
 
-	result := cloudruntime_client.DaprScopes(scopes)
-	return &result
+	return (*cloudruntime_client.DaprScopes)(&scopes)
 }
 
-// toAPISpec converts YAML string to DaprSubscriptionSpec
-func toAPISpec(ctx context.Context, specString types.String) (*cloudruntime_client.DaprSubscriptionSpec, error) {
+// toAPISpec converts YAML string to DaprSubscriptionSpec.
+func toAPISpec(_ context.Context, specString types.String) (*cloudruntime_client.DaprSubscriptionSpec, error) {
 	if specString.IsNull() || specString.IsUnknown() {
 		return &cloudruntime_client.DaprSubscriptionSpec{}, nil
 	}
@@ -120,7 +119,7 @@ func toAPISpec(ctx context.Context, specString types.String) (*cloudruntime_clie
 	return apiSpec, nil
 }
 
-// specToYAML converts API subscription spec to YAML string
+// specToYAML converts API subscription spec to YAML string.
 func specToYAML(spec *cloudruntime_client.DaprSubscriptionSpec) (string, error) {
 	if spec == nil {
 		return "", nil
