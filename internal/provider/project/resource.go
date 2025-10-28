@@ -55,6 +55,7 @@ func (p *projectResource) Schema(ctx context.Context,
 			"region": schema.StringAttribute{
 				MarkdownDescription: "Project region",
 				Optional:            true,
+				Computed:            true,
 			},
 			"grpc_endpoint": schema.StringAttribute{
 				MarkdownDescription: "gRPC endpoint",
@@ -366,10 +367,8 @@ func (p *projectResource) ImportState(ctx context.Context,
 
 	if err := read(ctx, p.client, model); err != nil {
 		if diagrid_errors.IsResourceNotFoundError(err) {
-			tflog.Debug(ctx, "project not found", map[string]interface{}{
-				"name": model.GetName(),
-			})
-
+			resp.Diagnostics.AddError("Resource Not Found",
+				fmt.Sprintf("project %s not found during import", model.GetName()))
 			return
 		}
 

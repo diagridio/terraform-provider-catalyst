@@ -99,7 +99,7 @@ func TestMockServiceAccountResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string) (catalyst.Client, error) {
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
 		c := catalyst.NewMockClient(ctrl)
 
 		c.EXPECT().

@@ -13,11 +13,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/appid"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/component"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/configuration"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/kvstore"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/organization"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/project"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/pubsub"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/region"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/resiliency"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/serviceaccount"
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/subscription"
 )
 
 // Ensure ScaffoldingProvider satisfies various provider interfaces.
@@ -34,7 +41,7 @@ const (
 	ProviderName = "catalyst"
 )
 
-type ClientFactory func(endpoint, apiKey string) (catalyst.Client, error)
+type ClientFactory func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error)
 
 type Provider interface {
 	provider.Provider
@@ -53,8 +60,9 @@ type catalystProvider struct {
 
 // catalystModel describes the provider data model.
 type catalystModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
-	APIKey   types.String `tfsdk:"api_key"`
+	Endpoint      types.String `tfsdk:"endpoint"`
+	APIKey        types.String `tfsdk:"api_key"`
+	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
 }
 
 func New(version string) Provider {
@@ -96,6 +104,10 @@ func (p *catalystProvider) Schema(ctx context.Context,
 				Optional:            true,
 				MarkdownDescription: "Endpoint is the URL of Catalyst. Alternatively, this can also be specified using the `CATALYST_API_ENDPOINT` environment variable.",
 			},
+			"tls_skip_verify": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Skip TLS certificate verification. This is useful for self-signed certificates. Alternatively, this can also be specified using the `CATALYST_TLS_SKIP_VERIFY` environment variable.",
+			},
 		},
 	}
 
@@ -113,6 +125,11 @@ func (p *catalystProvider) Configure(ctx context.Context,
 	if !ok {
 		// default to prod endpoint
 		endpoint = ProdAPIEndpoint
+	}
+
+	tlsSkipVerify := false
+	if v := os.Getenv("CATALYST_TLS_SKIP_VERIFY"); v == "true" || v == "1" {
+		tlsSkipVerify = true
 	}
 
 	var model catalystModel
@@ -133,8 +150,11 @@ func (p *catalystProvider) Configure(ctx context.Context,
 	if model.Endpoint.ValueString() != "" {
 		endpoint = model.Endpoint.ValueString()
 	}
+	if !model.TLSSkipVerify.IsNull() {
+		tlsSkipVerify = model.TLSSkipVerify.ValueBool()
+	}
 
-	c, err := p.clientFactory(endpoint, apiKey)
+	c, err := p.clientFactory(endpoint, apiKey, tlsSkipVerify)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating catalyst client",
@@ -153,18 +173,32 @@ func (p *catalystProvider) Configure(ctx context.Context,
 
 func (p *catalystProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		appid.NewResource,
+		component.NewResource,
+		configuration.NewResource,
+		kvstore.NewResource,
 		project.NewResource,
+		pubsub.NewResource,
 		region.NewResource,
+		resiliency.NewResource,
 		serviceaccount.NewResource,
+		subscription.NewResource,
 	}
 }
 
 func (p *catalystProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		appid.NewDataSource,
+		component.NewDataSource,
+		configuration.NewDataSource,
+		kvstore.NewDataSource,
 		organization.NewDataSource,
 		project.NewDataSource,
+		pubsub.NewDataSource,
 		region.NewDataSource,
+		resiliency.NewDataSource,
 		serviceaccount.NewDataSource,
+		subscription.NewDataSource,
 	}
 }
 

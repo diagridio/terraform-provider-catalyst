@@ -33,7 +33,7 @@ func TestMockOrganizationDataSource(t *testing.T) {
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
 					provider.New("test").WithClientFactory(
-						func(endpoint, apiKey string) (catalyst.Client, error) {
+						func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
 							ctrl := gomock.NewController(t)
 							c := catalyst.NewMockClient(ctrl)
 

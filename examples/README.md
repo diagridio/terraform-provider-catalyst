@@ -2,40 +2,66 @@
 
 This directory contains examples that are mostly used for documentation, but can also be run/tested manually via the Terraform CLI.
 
-The document generation tool looks for files in the following locations by default. All other *.tf files besides the ones mentioned below are ignored by the documentation tool. This is useful for creating examples that can run and/or ar testable even if some parts are not relevant for the documentation.
+The document generation tool looks for files in the following locations by default. All other *.tf files besides the ones mentioned below are ignored by the documentation tool. This is useful for creating examples that can run and/or are testable even if some parts are not relevant for the documentation.
 
-* **provider/provider.tf** example file for the provider index page
-* **data-sources/`full data source name`/data-source.tf** example file for the named data source page
-* **resources/`full resource name`/resource.tf** example file for the named resource page
+* **provider/provider.tf** - Example file for the provider index page
+* **data-sources/`full data source name`/datasource.tf** - Example file for the named data source page
+* **resources/`full resource name`/resource.tf** - Example file for the named resource page
 
 ## Available Examples
 
-### Service Account Examples
-- **resources/catalyst_service_account/** - Service account resource examples
-- **data-sources/catalyst_service_account/** - Service account data source examples
+### Resources
 
-### Comprehensive Examples
-- **comprehensive/** - Complete integration examples showing service accounts with other Catalyst resources
+- **resources/catalyst_project/** - Project resource examples
+- **resources/catalyst_region/** - Region resource examples
+- **resources/catalyst_service_account/** - Service account resource examples
+- **resources/catalyst_appid/** - App identity resource examples
+- **resources/catalyst_component/** - Dapr component resource examples
+- **resources/catalyst_pubsub/** - PubSub resource examples
+- **resources/catalyst_kvstore/** - Key-value store resource examples
+- **resources/catalyst_subscription/** - Dapr subscription resource examples
+- **resources/catalyst_resiliency/** - Dapr resiliency policy resource examples
+- **resources/catalyst_configuration/** - Dapr configuration resource examples
+
+### Data Sources
+
+- **data-sources/catalyst_organization/** - Organization data source examples
+- **data-sources/catalyst_project/** - Project data source examples
+- **data-sources/catalyst_region/** - Region data source examples
+- **data-sources/catalyst_service_account/** - Service account data source examples
+- **data-sources/catalyst_appid/** - App identity data source examples
+- **data-sources/catalyst_component/** - Dapr component data source examples
+- **data-sources/catalyst_pubsub/** - PubSub data source examples
+- **data-sources/catalyst_kvstore/** - Key-value store data source examples
+- **data-sources/catalyst_subscription/** - Dapr subscription data source examples
+- **data-sources/catalyst_resiliency/** - Dapr resiliency policy data source examples
+- **data-sources/catalyst_configuration/** - Dapr configuration data source examples
 
 ## Quick Start
 
 Each example directory contains:
-- Terraform configuration files (*.tf)
-- README.md with detailed usage instructions
-- terraform.tfvars.example with sample variable values
-- outputs.tf showing useful output patterns
+- **provider.tf** - Provider configuration
+- **resource.tf** or **datasource.tf** - Main resource/data source configuration
+- **outputs.tf** - Output values demonstrating available attributes
 
 To use any example:
 1. Navigate to the example directory
-2. Copy terraform.tfvars.example to terraform.tfvars
-3. Edit terraform.tfvars with your actual values
+2. Update the provider configuration in `provider.tf` with your credentials
+3. Modify the resource/data source configuration as needed
 4. Run `terraform init && terraform apply`
 
-## Service Account Features
+## Resource Categories
 
-The service account examples demonstrate:
-- ✅ Creating service accounts with different roles (admin/viewer)
-- ✅ Looking up existing service accounts by name or UID
-- ✅ Integration patterns with other Catalyst resources
-- ✅ Output patterns for external tool integration
-- ✅ Security best practices and role-based access
+### Infrastructure Resources
+- **Project** - Manage Catalyst projects
+- **Region** - Manage Catalyst regions
+- **Service Account** - Manage service accounts with different roles
+- **App Identity** - Manage application identities
+- **PubSub** - Manage pub/sub messaging infrastructure
+- **KVStore** - Manage key-value stores
+
+### Dapr Resources
+- **Component** - Manage Dapr components (state stores, pub/sub, etc.)
+- **Subscription** - Manage Dapr subscriptions to topics
+- **Resiliency** - Manage Dapr resiliency policies
+- **Configuration** - Manage Dapr configurations
