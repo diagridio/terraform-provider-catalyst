@@ -3,7 +3,9 @@ package configuration_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -12,6 +14,7 @@ import (
 	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -30,6 +33,7 @@ var (
 
 	mu             sync.Mutex
 	configurations = make(map[string]*cloudruntime_client.DaprConfiguration)
+	projs          = make(map[string]bool)
 )
 
 func TestMockConfigurationResource(t *testing.T) {
@@ -57,7 +61,33 @@ func TestMockConfigurationResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"spec"},
+					ImportStateVerifyIgnore:              []string{"spec", "status"},
+				},
+			},
+		})
+}
+
+func TestAccConfigurationResource(t *testing.T) {
+	resource.Test(t,
+		resource.TestCase{
+			PreCheck:                 func() { acceptance.TestAccPreCheck(t) },
+			ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccConfigurationResourceConfig(projectID, configurationName),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
+						resource.TestCheckResourceAttrSet("catalyst_configuration.test", "spec"),
+					),
+				},
+				{
+					ResourceName:                         "catalyst_configuration.test",
+					ImportState:                          true,
+					ImportStateVerifyIdentifierAttribute: "name",
+					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
+					ImportStateVerify:                    true,
+					ImportStateVerifyIgnore:              []string{"spec", "status"},
 				},
 			},
 		})
@@ -76,6 +106,60 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 					},
 				},
 			}, nil).AnyTimes()
+
+		c.EXPECT().
+			CreateProject(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, project *cloudruntime_client.Project) error {
+				mu.Lock()
+				defer mu.Unlock()
+				projs[*project.Metadata.Name] = true
+				return nil
+			}).
+			AnyTimes()
+
+		c.EXPECT().
+			GetProject(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, name string, params *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				if ok, created := projs[name]; !ok || !created {
+					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
+				}
+
+				return &cloudruntime_client.Project{
+					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
+					Kind:       lo.ToPtr(catalyst.KindProject),
+					Metadata: &cloudruntime_client.Metadata{
+						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
+						Name: lo.ToPtr(projectID),
+					},
+					Spec: &cloudruntime_client.ProjectSpec{
+						Region: lo.ToPtr("default"),
+					},
+					Status: &cloudruntime_client.ProjectStatus{
+						Status: lo.ToPtr("processing"),
+						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
+							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
+								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectID)),
+							},
+							Http: &cloudruntime_client.ProjectStatusEndpointDetails{
+								Url: lo.ToPtr(fmt.Sprintf("https://http.%s.default.example.com", projectID)),
+							},
+						},
+					},
+				}, nil
+			}).
+			AnyTimes()
+
+		c.EXPECT().
+			DeleteProject(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, name string) error {
+				mu.Lock()
+				defer mu.Unlock()
+				delete(projs, name)
+				return nil
+			}).
+			AnyTimes()
 
 		c.EXPECT().CreateConfiguration(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, projectID string, configuration *cloudruntime_client.DaprConfiguration) error {
@@ -122,9 +206,14 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccConfigurationResourceConfig(projectID, configurationName string) string {
 	return fmt.Sprintf(`
+resource "catalyst_project" "test" {
+  name           = %[1]q
+  wait_for_ready = false
+}
+
 resource "catalyst_configuration" "test" {
-  project_id = %q
-  name       = %q
+  project_id = catalyst_project.test.name
+  name       = %[2]q
   spec       = <<-EOT
     accessControl:
       defaultAction: allow

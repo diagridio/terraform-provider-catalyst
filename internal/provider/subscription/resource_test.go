@@ -12,6 +12,7 @@ import (
 	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -29,8 +30,12 @@ var (
 	subscriptionName = acctest.RandomWithPrefix("subscription")
 	pubsubName       = acctest.RandomWithPrefix("pubsub")
 	topicName        = acctest.RandomWithPrefix("topic")
+	appidName        = acctest.RandomWithPrefix("appid")
 
 	mu            sync.Mutex
+	projs         = make(map[string]bool)
+	appids        = make(map[string]*cloudruntime_client.AppIdentity)
+	pubsubs       = make(map[string]*cloudruntime_client.PubSub)
 	subscriptions = make(map[string]*cloudruntime_client.DaprSubscription)
 )
 
@@ -46,7 +51,7 @@ func TestMockSubscriptionResource(t *testing.T) {
 			},
 			Steps: []resource.TestStep{
 				{
-					Config: testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName),
+					Config: testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName, appidName),
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "name", subscriptionName),
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
@@ -68,6 +73,32 @@ func TestMockSubscriptionResource(t *testing.T) {
 		})
 }
 
+func TestAccSubscriptionResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName, appidName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "name", subscriptionName),
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
+					resource.TestCheckResourceAttrSet("catalyst_subscription.test", "spec"),
+				),
+			},
+			{
+				ResourceName:                         "catalyst_subscription.test",
+				ImportState:                          true,
+				ImportStateVerifyIdentifierAttribute: "name",
+				ImportStateId:                        fmt.Sprintf("%s/%s", projectName, subscriptionName),
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"spec"},
+			},
+		},
+	})
+}
+
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
 		c := catalyst.NewMockClient(ctrl)
@@ -81,6 +112,132 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 					},
 				},
 			}, nil).AnyTimes()
+
+		c.EXPECT().CreateProject(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, project *cloudruntime_client.Project) error {
+				mu.Lock()
+				defer mu.Unlock()
+				projs[*project.Metadata.Name] = true
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().GetProject(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, name string, params *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				if ok, created := projs[name]; !ok || !created {
+					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
+				}
+
+				return &cloudruntime_client.Project{
+					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
+					Kind:       lo.ToPtr(catalyst.KindProject),
+					Metadata: &cloudruntime_client.Metadata{
+						Uid:  lo.ToPtr(uuid.NewString()),
+						Name: lo.ToPtr(projectName),
+					},
+					Spec: &cloudruntime_client.ProjectSpec{
+						Region: lo.ToPtr("default"),
+					},
+					Status: &cloudruntime_client.ProjectStatus{
+						Status: lo.ToPtr("processing"),
+						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
+							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
+								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectName)),
+							},
+							Http: &cloudruntime_client.ProjectStatusEndpointDetails{
+								Url: lo.ToPtr(fmt.Sprintf("https://http.%s.default.example.com", projectName)),
+							},
+						},
+					},
+				}, nil
+			}).AnyTimes()
+
+		c.EXPECT().DeleteProject(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, name string) error {
+				mu.Lock()
+				defer mu.Unlock()
+				delete(projs, name)
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().CreateAppId(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName string, appId *cloudruntime_client.AppIdentity) error {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, *appId.Metadata.Name)
+				appids[key] = appId
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().GetAppId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName, name string, qp *cloudruntime_client.DescribeAppIdentityParams) (*cloudruntime_client.AppIdentity, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, name)
+				appId, exists := appids[key]
+				if !exists {
+					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
+				}
+				return appId, nil
+			}).AnyTimes()
+
+		c.EXPECT().UpdateAppId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName, name string, appId *cloudruntime_client.AppIdentity) error {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, *appId.Metadata.Name)
+				appids[key] = appId
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().DeleteAppId(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName, name string) error {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, name)
+				delete(appids, key)
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().CreatePubSub(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName string, pubsub *cloudruntime_client.PubSub) error {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, *pubsub.Metadata.Name)
+				pubsubs[key] = pubsub
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().GetPubSub(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName, name string, qp *cloudruntime_client.DescribePubSubParams) (*cloudruntime_client.PubSub, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, name)
+				pubsub, exists := pubsubs[key]
+				if !exists {
+					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
+				}
+				return pubsub, nil
+			}).AnyTimes()
+
+		c.EXPECT().UpdatePubSub(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectId, pubsubId string, pubsub *cloudruntime_client.PubSub) error {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, *pubsub.Metadata.Name)
+				pubsubs[key] = pubsub
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().DeletePubSub(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, projectName, name string) error {
+				mu.Lock()
+				defer mu.Unlock()
+				key := fmt.Sprintf("%s/%s", projectName, name)
+				delete(pubsubs, key)
+				return nil
+			}).AnyTimes()
 
 		c.EXPECT().CreateSubscription(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, projectName string, subscription *cloudruntime_client.DaprSubscription) error {
@@ -125,13 +282,32 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	}
 }
 
-func testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName string) string {
+func testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName, appidName string) string {
 	return fmt.Sprintf(`
+resource "catalyst_project" "test" {
+  name           = %[1]q
+  wait_for_ready = false
+}
+
+resource "catalyst_appid" "test_appid" {
+  project_id = catalyst_project.test.name
+  name       = %[5]q
+  protocol   = "http"
+}
+
+resource "catalyst_pubsub" "test_pubsub" {
+  project_name     = catalyst_project.test.name
+  name             = %[3]q
+  component_name   = %[3]q
+  create_component = true
+}
+
 resource "catalyst_subscription" "test" {
-  project_name = %q
-  name         = %q
-  pubsub_name  = %q
-  topic        = %q
+  project_name = catalyst_project.test.name
+  name         = %[2]q
+  pubsub_name  = catalyst_pubsub.test_pubsub.name
+  topic        = %[4]q
+  scopes       = [catalyst_appid.test_appid.name]
   spec         = <<-EOT
 routes:
     rules:
@@ -150,5 +326,5 @@ metadata:
     rawPayload: "true"
   EOT
 }
-`, projectName, subscriptionName, pubsubName, topicName)
+`, projectName, subscriptionName, pubsubName, topicName, appidName)
 }

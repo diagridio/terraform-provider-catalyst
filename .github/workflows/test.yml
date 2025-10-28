@@ -202,5 +202,4 @@ jobs:
         env:
           TF_ACC: "1"
           CATALYST_API_KEY: ${{ secrets.CATALYST_API_KEY }}
-          CATALYST_PROJECT_ID: terraform-acc
         timeout-minutes: 10

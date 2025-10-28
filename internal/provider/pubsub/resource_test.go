@@ -12,6 +12,7 @@ import (
 	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -31,6 +32,7 @@ var (
 	createComponent = true
 
 	mu      sync.Mutex
+	projs   = make(map[string]bool)
 	pubsubs = make(map[string]*cloudruntime_client.PubSub)
 )
 
@@ -60,9 +62,35 @@ func TestMockPubSubResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, pubsubName),
 					ImportStateVerify:                    true,
+					ImportStateVerifyIgnore:              []string{"component_name", "create_component"},
 				},
 			},
 		})
+}
+
+func TestAccPubSubResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPubSubResourceConfig(projectName, pubsubName, componentName, createComponent),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("catalyst_pubsub.test", "name", pubsubName),
+					resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
+					resource.TestCheckResourceAttr("catalyst_pubsub.test", "component_name", componentName),
+					resource.TestCheckResourceAttr("catalyst_pubsub.test", "create_component", "true"),
+				),
+			},
+			{
+				ResourceName:                         "catalyst_pubsub.test",
+				ImportState:                          true,
+				ImportStateVerifyIdentifierAttribute: "name",
+				ImportStateId:                        fmt.Sprintf("%s/%s", projectName, pubsubName),
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"component_name", "create_component"},
+			},
+		},
+	})
 }
 
 func TestMockPubSubDataSource(t *testing.T) {
@@ -113,6 +141,54 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				},
 			}, nil).AnyTimes()
 
+		c.EXPECT().CreateProject(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, project *cloudruntime_client.Project) error {
+				mu.Lock()
+				defer mu.Unlock()
+				projs[*project.Metadata.Name] = true
+				return nil
+			}).AnyTimes()
+
+		c.EXPECT().GetProject(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, name string, params *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				if ok, created := projs[name]; !ok || !created {
+					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
+				}
+
+				return &cloudruntime_client.Project{
+					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
+					Kind:       lo.ToPtr(catalyst.KindProject),
+					Metadata: &cloudruntime_client.Metadata{
+						Uid:  lo.ToPtr(uuid.NewString()),
+						Name: lo.ToPtr(projectName),
+					},
+					Spec: &cloudruntime_client.ProjectSpec{
+						Region: lo.ToPtr("default"),
+					},
+					Status: &cloudruntime_client.ProjectStatus{
+						Status: lo.ToPtr("processing"),
+						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
+							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
+								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectName)),
+							},
+							Http: &cloudruntime_client.ProjectStatusEndpointDetails{
+								Url: lo.ToPtr(fmt.Sprintf("https://http.%s.default.example.com", projectName)),
+							},
+						},
+					},
+				}, nil
+			}).AnyTimes()
+
+		c.EXPECT().DeleteProject(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, name string) error {
+				mu.Lock()
+				defer mu.Unlock()
+				delete(projs, name)
+				return nil
+			}).AnyTimes()
+
 		c.EXPECT().CreatePubSub(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, projectName string, pubsub *cloudruntime_client.PubSub) error {
 				mu.Lock()
@@ -158,11 +234,16 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccPubSubResourceConfig(projectName, pubsubName, componentName string, createComponent bool) string {
 	return fmt.Sprintf(`
+resource "catalyst_project" "test" {
+  name           = %[1]q
+  wait_for_ready = false
+}
+
 resource "catalyst_pubsub" "test" {
-  project_name     = %q
-  name             = %q
-  component_name   = %q
-  create_component = %t
+  project_name     = catalyst_project.test.name
+  name             = %[2]q
+  component_name   = %[3]q
+  create_component = %[4]t
 }
 `, projectName, pubsubName, componentName, createComponent)
 }
