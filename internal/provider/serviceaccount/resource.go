@@ -281,10 +281,8 @@ func (s *serviceAccountResource) ImportState(ctx context.Context,
 
 	if err := read(ctx, s.client, model); err != nil {
 		if diagrid_errors.IsResourceNotFoundError(err) {
-			tflog.Debug(ctx, "service account not found", map[string]interface{}{
-				"name": model.GetName(),
-			})
-
+			resp.Diagnostics.AddError("Resource Not Found",
+				fmt.Sprintf("service account %s not found during import", model.GetName()))
 			return
 		}
 

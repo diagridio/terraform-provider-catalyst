@@ -24,6 +24,7 @@ import (
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClientMockRecorder is the mock recorder for MockClient.
@@ -43,6 +44,62 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateAppId mocks base method.
+func (m *MockClient) CreateAppId(ctx context.Context, projectId string, appid *client.AppIdentity) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAppId", ctx, projectId, appid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateAppId indicates an expected call of CreateAppId.
+func (mr *MockClientMockRecorder) CreateAppId(ctx, projectId, appid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppId", reflect.TypeOf((*MockClient)(nil).CreateAppId), ctx, projectId, appid)
+}
+
+// CreateComponent mocks base method.
+func (m *MockClient) CreateComponent(ctx context.Context, projectName string, component *client.DaprComponent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateComponent", ctx, projectName, component)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateComponent indicates an expected call of CreateComponent.
+func (mr *MockClientMockRecorder) CreateComponent(ctx, projectName, component any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateComponent", reflect.TypeOf((*MockClient)(nil).CreateComponent), ctx, projectName, component)
+}
+
+// CreateConfiguration mocks base method.
+func (m *MockClient) CreateConfiguration(ctx context.Context, projectId string, config *client.DaprConfiguration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateConfiguration", ctx, projectId, config)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateConfiguration indicates an expected call of CreateConfiguration.
+func (mr *MockClientMockRecorder) CreateConfiguration(ctx, projectId, config any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateConfiguration", reflect.TypeOf((*MockClient)(nil).CreateConfiguration), ctx, projectId, config)
+}
+
+// CreateKVStore mocks base method.
+func (m *MockClient) CreateKVStore(ctx context.Context, projectName string, kvstore *client.KVStore) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKVStore", ctx, projectName, kvstore)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateKVStore indicates an expected call of CreateKVStore.
+func (mr *MockClientMockRecorder) CreateKVStore(ctx, projectName, kvstore any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKVStore", reflect.TypeOf((*MockClient)(nil).CreateKVStore), ctx, projectName, kvstore)
+}
+
 // CreateProject mocks base method.
 func (m *MockClient) CreateProject(ctx context.Context, project *client.Project) error {
 	m.ctrl.T.Helper()
@@ -55,6 +112,20 @@ func (m *MockClient) CreateProject(ctx context.Context, project *client.Project)
 func (mr *MockClientMockRecorder) CreateProject(ctx, project any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProject", reflect.TypeOf((*MockClient)(nil).CreateProject), ctx, project)
+}
+
+// CreatePubSub mocks base method.
+func (m *MockClient) CreatePubSub(ctx context.Context, projectName string, pubsub *client.PubSub) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePubSub", ctx, projectName, pubsub)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreatePubSub indicates an expected call of CreatePubSub.
+func (mr *MockClientMockRecorder) CreatePubSub(ctx, projectName, pubsub any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePubSub", reflect.TypeOf((*MockClient)(nil).CreatePubSub), ctx, projectName, pubsub)
 }
 
 // CreateRegion mocks base method.
@@ -72,6 +143,20 @@ func (mr *MockClientMockRecorder) CreateRegion(ctx, region any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRegion", reflect.TypeOf((*MockClient)(nil).CreateRegion), ctx, region)
 }
 
+// CreateResiliency mocks base method.
+func (m *MockClient) CreateResiliency(ctx context.Context, projectID string, resiliency *client.DaprResiliency) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateResiliency", ctx, projectID, resiliency)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateResiliency indicates an expected call of CreateResiliency.
+func (mr *MockClientMockRecorder) CreateResiliency(ctx, projectID, resiliency any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResiliency", reflect.TypeOf((*MockClient)(nil).CreateResiliency), ctx, projectID, resiliency)
+}
+
 // CreateServiceAccount mocks base method.
 func (m *MockClient) CreateServiceAccount(ctx context.Context, serviceAccount *client.ServiceAccount) error {
 	m.ctrl.T.Helper()
@@ -84,6 +169,76 @@ func (m *MockClient) CreateServiceAccount(ctx context.Context, serviceAccount *c
 func (mr *MockClientMockRecorder) CreateServiceAccount(ctx, serviceAccount any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateServiceAccount", reflect.TypeOf((*MockClient)(nil).CreateServiceAccount), ctx, serviceAccount)
+}
+
+// CreateSubscription mocks base method.
+func (m *MockClient) CreateSubscription(ctx context.Context, projectID string, subscription *client.DaprSubscription) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSubscription", ctx, projectID, subscription)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateSubscription indicates an expected call of CreateSubscription.
+func (mr *MockClientMockRecorder) CreateSubscription(ctx, projectID, subscription any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscription", reflect.TypeOf((*MockClient)(nil).CreateSubscription), ctx, projectID, subscription)
+}
+
+// DeleteAppId mocks base method.
+func (m *MockClient) DeleteAppId(ctx context.Context, projectId, appId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAppId", ctx, projectId, appId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAppId indicates an expected call of DeleteAppId.
+func (mr *MockClientMockRecorder) DeleteAppId(ctx, projectId, appId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAppId", reflect.TypeOf((*MockClient)(nil).DeleteAppId), ctx, projectId, appId)
+}
+
+// DeleteComponent mocks base method.
+func (m *MockClient) DeleteComponent(ctx context.Context, projectName, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteComponent", ctx, projectName, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteComponent indicates an expected call of DeleteComponent.
+func (mr *MockClientMockRecorder) DeleteComponent(ctx, projectName, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteComponent", reflect.TypeOf((*MockClient)(nil).DeleteComponent), ctx, projectName, name)
+}
+
+// DeleteConfiguration mocks base method.
+func (m *MockClient) DeleteConfiguration(ctx context.Context, projectId, configName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteConfiguration", ctx, projectId, configName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteConfiguration indicates an expected call of DeleteConfiguration.
+func (mr *MockClientMockRecorder) DeleteConfiguration(ctx, projectId, configName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteConfiguration", reflect.TypeOf((*MockClient)(nil).DeleteConfiguration), ctx, projectId, configName)
+}
+
+// DeleteKVStore mocks base method.
+func (m *MockClient) DeleteKVStore(ctx context.Context, projectName, kvStoreName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteKVStore", ctx, projectName, kvStoreName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteKVStore indicates an expected call of DeleteKVStore.
+func (mr *MockClientMockRecorder) DeleteKVStore(ctx, projectName, kvStoreName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKVStore", reflect.TypeOf((*MockClient)(nil).DeleteKVStore), ctx, projectName, kvStoreName)
 }
 
 // DeleteProject mocks base method.
@@ -100,6 +255,20 @@ func (mr *MockClientMockRecorder) DeleteProject(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteProject", reflect.TypeOf((*MockClient)(nil).DeleteProject), ctx, id)
 }
 
+// DeletePubSub mocks base method.
+func (m *MockClient) DeletePubSub(ctx context.Context, projectId, pubSubId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePubSub", ctx, projectId, pubSubId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePubSub indicates an expected call of DeletePubSub.
+func (mr *MockClientMockRecorder) DeletePubSub(ctx, projectId, pubSubId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePubSub", reflect.TypeOf((*MockClient)(nil).DeletePubSub), ctx, projectId, pubSubId)
+}
+
 // DeleteRegion mocks base method.
 func (m *MockClient) DeleteRegion(ctx context.Context, name string) error {
 	m.ctrl.T.Helper()
@@ -114,6 +283,20 @@ func (mr *MockClientMockRecorder) DeleteRegion(ctx, name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRegion", reflect.TypeOf((*MockClient)(nil).DeleteRegion), ctx, name)
 }
 
+// DeleteResiliency mocks base method.
+func (m *MockClient) DeleteResiliency(ctx context.Context, projectID, resiliencyName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteResiliency", ctx, projectID, resiliencyName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteResiliency indicates an expected call of DeleteResiliency.
+func (mr *MockClientMockRecorder) DeleteResiliency(ctx, projectID, resiliencyName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteResiliency", reflect.TypeOf((*MockClient)(nil).DeleteResiliency), ctx, projectID, resiliencyName)
+}
+
 // DeleteServiceAccount mocks base method.
 func (m *MockClient) DeleteServiceAccount(ctx context.Context, serviceAccountId string) error {
 	m.ctrl.T.Helper()
@@ -126,6 +309,80 @@ func (m *MockClient) DeleteServiceAccount(ctx context.Context, serviceAccountId 
 func (mr *MockClientMockRecorder) DeleteServiceAccount(ctx, serviceAccountId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteServiceAccount", reflect.TypeOf((*MockClient)(nil).DeleteServiceAccount), ctx, serviceAccountId)
+}
+
+// DeleteSubscription mocks base method.
+func (m *MockClient) DeleteSubscription(ctx context.Context, projectName, subscriptionName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSubscription", ctx, projectName, subscriptionName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSubscription indicates an expected call of DeleteSubscription.
+func (mr *MockClientMockRecorder) DeleteSubscription(ctx, projectName, subscriptionName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscription", reflect.TypeOf((*MockClient)(nil).DeleteSubscription), ctx, projectName, subscriptionName)
+}
+
+// GetAppId mocks base method.
+func (m *MockClient) GetAppId(ctx context.Context, projectId, appId string, qp *client.DescribeAppIdentityParams) (*client.AppIdentity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAppId", ctx, projectId, appId, qp)
+	ret0, _ := ret[0].(*client.AppIdentity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAppId indicates an expected call of GetAppId.
+func (mr *MockClientMockRecorder) GetAppId(ctx, projectId, appId, qp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppId", reflect.TypeOf((*MockClient)(nil).GetAppId), ctx, projectId, appId, qp)
+}
+
+// GetComponent mocks base method.
+func (m *MockClient) GetComponent(ctx context.Context, projectName, name string, qParams *client.DescribeDaprComponentParams) (*client.DaprComponent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetComponent", ctx, projectName, name, qParams)
+	ret0, _ := ret[0].(*client.DaprComponent)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetComponent indicates an expected call of GetComponent.
+func (mr *MockClientMockRecorder) GetComponent(ctx, projectName, name, qParams any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetComponent", reflect.TypeOf((*MockClient)(nil).GetComponent), ctx, projectName, name, qParams)
+}
+
+// GetConfiguration mocks base method.
+func (m *MockClient) GetConfiguration(ctx context.Context, projectId, configName string, qp *client.DescribeDaprConfigurationParams) (*client.DaprConfiguration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConfiguration", ctx, projectId, configName, qp)
+	ret0, _ := ret[0].(*client.DaprConfiguration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetConfiguration indicates an expected call of GetConfiguration.
+func (mr *MockClientMockRecorder) GetConfiguration(ctx, projectId, configName, qp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfiguration", reflect.TypeOf((*MockClient)(nil).GetConfiguration), ctx, projectId, configName, qp)
+}
+
+// GetKVStore mocks base method.
+func (m *MockClient) GetKVStore(ctx context.Context, projectName, kvStoreName string, qp *client.DescribeKVStoreParams) (*client.KVStore, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKVStore", ctx, projectName, kvStoreName, qp)
+	ret0, _ := ret[0].(*client.KVStore)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetKVStore indicates an expected call of GetKVStore.
+func (mr *MockClientMockRecorder) GetKVStore(ctx, projectName, kvStoreName, qp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKVStore", reflect.TypeOf((*MockClient)(nil).GetKVStore), ctx, projectName, kvStoreName, qp)
 }
 
 // GetProject mocks base method.
@@ -143,6 +400,21 @@ func (mr *MockClientMockRecorder) GetProject(ctx, id, qp any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProject", reflect.TypeOf((*MockClient)(nil).GetProject), ctx, id, qp)
 }
 
+// GetPubSub mocks base method.
+func (m *MockClient) GetPubSub(ctx context.Context, projectName, pubsubId string, qp *client.DescribePubSubParams) (*client.PubSub, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPubSub", ctx, projectName, pubsubId, qp)
+	ret0, _ := ret[0].(*client.PubSub)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPubSub indicates an expected call of GetPubSub.
+func (mr *MockClientMockRecorder) GetPubSub(ctx, projectName, pubsubId, qp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPubSub", reflect.TypeOf((*MockClient)(nil).GetPubSub), ctx, projectName, pubsubId, qp)
+}
+
 // GetRegion mocks base method.
 func (m *MockClient) GetRegion(ctx context.Context, name string) (*client.Region, error) {
 	m.ctrl.T.Helper()
@@ -156,6 +428,21 @@ func (m *MockClient) GetRegion(ctx context.Context, name string) (*client.Region
 func (mr *MockClientMockRecorder) GetRegion(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegion", reflect.TypeOf((*MockClient)(nil).GetRegion), ctx, name)
+}
+
+// GetResiliency mocks base method.
+func (m *MockClient) GetResiliency(ctx context.Context, projectName, resiliencyName string, qp *client.DescribeDaprResiliencyParams) (*client.DaprResiliency, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetResiliency", ctx, projectName, resiliencyName, qp)
+	ret0, _ := ret[0].(*client.DaprResiliency)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetResiliency indicates an expected call of GetResiliency.
+func (mr *MockClientMockRecorder) GetResiliency(ctx, projectName, resiliencyName, qp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResiliency", reflect.TypeOf((*MockClient)(nil).GetResiliency), ctx, projectName, resiliencyName, qp)
 }
 
 // GetServiceAccount mocks base method.
@@ -173,6 +460,21 @@ func (mr *MockClientMockRecorder) GetServiceAccount(ctx, serviceAccountId any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceAccount", reflect.TypeOf((*MockClient)(nil).GetServiceAccount), ctx, serviceAccountId)
 }
 
+// GetSubscription mocks base method.
+func (m *MockClient) GetSubscription(ctx context.Context, projectName, subscriptionName string, qp *client.DescribeDaprSubscriptionParams) (*client.DaprSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubscription", ctx, projectName, subscriptionName, qp)
+	ret0, _ := ret[0].(*client.DaprSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSubscription indicates an expected call of GetSubscription.
+func (mr *MockClientMockRecorder) GetSubscription(ctx, projectName, subscriptionName, qp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscription", reflect.TypeOf((*MockClient)(nil).GetSubscription), ctx, projectName, subscriptionName, qp)
+}
+
 // GetUserOrg mocks base method.
 func (m *MockClient) GetUserOrg(arg0 context.Context) (*client0.Organization, error) {
 	m.ctrl.T.Helper()
@@ -186,6 +488,62 @@ func (m *MockClient) GetUserOrg(arg0 context.Context) (*client0.Organization, er
 func (mr *MockClientMockRecorder) GetUserOrg(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserOrg", reflect.TypeOf((*MockClient)(nil).GetUserOrg), arg0)
+}
+
+// UpdateAppId mocks base method.
+func (m *MockClient) UpdateAppId(ctx context.Context, projectId, appId string, appid *client.AppIdentity) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAppId", ctx, projectId, appId, appid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAppId indicates an expected call of UpdateAppId.
+func (mr *MockClientMockRecorder) UpdateAppId(ctx, projectId, appId, appid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAppId", reflect.TypeOf((*MockClient)(nil).UpdateAppId), ctx, projectId, appId, appid)
+}
+
+// UpdateComponent mocks base method.
+func (m *MockClient) UpdateComponent(ctx context.Context, projectName, name string, component *client.DaprComponent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateComponent", ctx, projectName, name, component)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateComponent indicates an expected call of UpdateComponent.
+func (mr *MockClientMockRecorder) UpdateComponent(ctx, projectName, name, component any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateComponent", reflect.TypeOf((*MockClient)(nil).UpdateComponent), ctx, projectName, name, component)
+}
+
+// UpdateConfiguration mocks base method.
+func (m *MockClient) UpdateConfiguration(ctx context.Context, projectId, configName string, config *client.DaprConfiguration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfiguration", ctx, projectId, configName, config)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateConfiguration indicates an expected call of UpdateConfiguration.
+func (mr *MockClientMockRecorder) UpdateConfiguration(ctx, projectId, configName, config any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfiguration", reflect.TypeOf((*MockClient)(nil).UpdateConfiguration), ctx, projectId, configName, config)
+}
+
+// UpdateKVStore mocks base method.
+func (m *MockClient) UpdateKVStore(ctx context.Context, projectName, kvStoreName string, kvstore *client.KVStore) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKVStore", ctx, projectName, kvStoreName, kvstore)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateKVStore indicates an expected call of UpdateKVStore.
+func (mr *MockClientMockRecorder) UpdateKVStore(ctx, projectName, kvStoreName, kvstore any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKVStore", reflect.TypeOf((*MockClient)(nil).UpdateKVStore), ctx, projectName, kvStoreName, kvstore)
 }
 
 // UpdateProject mocks base method.
@@ -202,6 +560,20 @@ func (mr *MockClientMockRecorder) UpdateProject(ctx, prj any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProject", reflect.TypeOf((*MockClient)(nil).UpdateProject), ctx, prj)
 }
 
+// UpdatePubSub mocks base method.
+func (m *MockClient) UpdatePubSub(ctx context.Context, projectId, pubsubId string, pubsub *client.PubSub) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePubSub", ctx, projectId, pubsubId, pubsub)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePubSub indicates an expected call of UpdatePubSub.
+func (mr *MockClientMockRecorder) UpdatePubSub(ctx, projectId, pubsubId, pubsub any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePubSub", reflect.TypeOf((*MockClient)(nil).UpdatePubSub), ctx, projectId, pubsubId, pubsub)
+}
+
 // UpdateRegion mocks base method.
 func (m *MockClient) UpdateRegion(ctx context.Context, region *client.Region) error {
 	m.ctrl.T.Helper()
@@ -216,6 +588,20 @@ func (mr *MockClientMockRecorder) UpdateRegion(ctx, region any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRegion", reflect.TypeOf((*MockClient)(nil).UpdateRegion), ctx, region)
 }
 
+// UpdateResiliency mocks base method.
+func (m *MockClient) UpdateResiliency(ctx context.Context, projectID, resiliencyName string, resiliency *client.DaprResiliency) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateResiliency", ctx, projectID, resiliencyName, resiliency)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateResiliency indicates an expected call of UpdateResiliency.
+func (mr *MockClientMockRecorder) UpdateResiliency(ctx, projectID, resiliencyName, resiliency any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateResiliency", reflect.TypeOf((*MockClient)(nil).UpdateResiliency), ctx, projectID, resiliencyName, resiliency)
+}
+
 // UpdateServiceAccount mocks base method.
 func (m *MockClient) UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *client.ServiceAccount) error {
 	m.ctrl.T.Helper()
@@ -228,4 +614,18 @@ func (m *MockClient) UpdateServiceAccount(ctx context.Context, serviceAccountId 
 func (mr *MockClientMockRecorder) UpdateServiceAccount(ctx, serviceAccountId, serviceAccount any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateServiceAccount", reflect.TypeOf((*MockClient)(nil).UpdateServiceAccount), ctx, serviceAccountId, serviceAccount)
+}
+
+// UpdateSubscription mocks base method.
+func (m *MockClient) UpdateSubscription(ctx context.Context, projectName, subscriptionName string, subscription *client.DaprSubscription) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSubscription", ctx, projectName, subscriptionName, subscription)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSubscription indicates an expected call of UpdateSubscription.
+func (mr *MockClientMockRecorder) UpdateSubscription(ctx, projectName, subscriptionName, subscription any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubscription", reflect.TypeOf((*MockClient)(nil).UpdateSubscription), ctx, projectName, subscriptionName, subscription)
 }
