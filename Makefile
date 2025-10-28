@@ -1,6 +1,6 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 
-MOCKGEN_VERSION ?= v0.4.0
+MOCKGEN_VERSION ?= v0.6.0
 
 default: build
 
