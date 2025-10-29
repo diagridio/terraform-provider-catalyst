@@ -77,12 +77,12 @@ func normalizeYAML(yamlStr string) (string, error) {
 	if err := yaml.Unmarshal([]byte(yamlStr), &items); err != nil {
 		return "", fmt.Errorf("failed to unmarshal YAML: %w", err)
 	}
-	
+
 	normalized, err := yaml.Marshal(items)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal YAML: %w", err)
 	}
-	
+
 	return string(normalized), nil
 }
 
