@@ -207,7 +207,7 @@ func testAccAppIdResourceConfig(projectName, appidName string) string {
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
   name           = %[1]q
-  wait_for_ready = false
+  wait_for_ready = true
 }
 
 resource "catalyst_appid" "test" {
