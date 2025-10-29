@@ -15,7 +15,6 @@ Catalyst Configuration resource
 ```terraform
 resource "catalyst_project" "example" {
   name   = "example-project"
-  region = "us-east-1"
 }
 
 resource "catalyst_configuration" "example" {

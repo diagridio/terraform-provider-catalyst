@@ -235,7 +235,7 @@ resource "catalyst_component" "test" {
     - name: redisHost
       value: localhost:6379
     - name: redisPassword
-      value: "abc123"
+      value: abc123
     - name: actorStateStore
       value: "true"
   EOT

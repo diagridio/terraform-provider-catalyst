@@ -70,6 +70,22 @@ func toAPISpec(_ context.Context, specString types.String) (*[]cloudruntime_clie
 	return &metadata, nil
 }
 
+// normalizeYAML normalizes a YAML string by unmarshaling and remarshaling it.
+// This ensures consistent formatting regardless of input formatting.
+func normalizeYAML(yamlStr string) (string, error) {
+	var items []metadataItemForYAML
+	if err := yaml.Unmarshal([]byte(yamlStr), &items); err != nil {
+		return "", fmt.Errorf("failed to unmarshal YAML: %w", err)
+	}
+	
+	normalized, err := yaml.Marshal(items)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal YAML: %w", err)
+	}
+	
+	return string(normalized), nil
+}
+
 // toYAML converts API metadata items to YAML representation with omitempty.
 func metadataToYAML(metadata *[]cloudruntime_client.DaprMetadataItem) (string, error) {
 	if metadata == nil || len(*metadata) == 0 {
@@ -149,7 +165,12 @@ func read(ctx context.Context,
 				return err
 			}
 			if specYAML != "" {
-				m.SetSpec(specYAML)
+				// Normalize the YAML to ensure consistent formatting
+				normalized, err := normalizeYAML(specYAML)
+				if err != nil {
+					return fmt.Errorf("error normalizing spec YAML: %w", err)
+				}
+				m.SetSpec(normalized)
 			}
 		} else {
 			m.Spec = types.StringNull()

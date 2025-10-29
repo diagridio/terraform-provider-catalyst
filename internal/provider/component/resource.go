@@ -70,6 +70,9 @@ func (r *componentResource) Schema(ctx context.Context,
 			"spec": schema.StringAttribute{
 				MarkdownDescription: "Dapr Component Metadata in YAML format",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					YAMLSemanticEquality(),
+				},
 			},
 			"secret_store": schema.StringAttribute{
 				MarkdownDescription: "Secret store for secret reference resolution",
