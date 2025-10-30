@@ -78,7 +78,7 @@ func toAPISpec(ctx context.Context, specYAML types.String) (*cloudruntime_client
 }
 
 // fromAPISpec converts DaprResiliencySpec to YAML string.
-func fromAPISpec(ctx context.Context, apiSpec *cloudruntime_client.DaprResiliencySpec) (string, error) {
+func fromAPISpec(apiSpec *cloudruntime_client.DaprResiliencySpec) (string, error) {
 	if apiSpec == nil {
 		return "", nil
 	}
@@ -152,7 +152,7 @@ func read(ctx context.Context,
 	// Convert API spec back to YAML if present
 	// This is necessary during import when there's no prior state
 	if resiliency.Spec != nil && m.Spec.IsNull() {
-		specYAML, err := fromAPISpec(ctx, resiliency.Spec)
+		specYAML, err := fromAPISpec(resiliency.Spec)
 		if err != nil {
 			return fmt.Errorf("error converting API spec to YAML: %w", err)
 		}
