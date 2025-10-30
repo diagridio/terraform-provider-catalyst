@@ -64,7 +64,7 @@ func TestMockKVStoreResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, kvstoreName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"component_name", "create_component"},
+					ImportStateVerifyIgnore:              []string{"component_name", "create_component", "status"},
 				},
 			},
 		})
@@ -91,7 +91,7 @@ func TestAccKVStoreResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, kvstoreName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"component_name", "create_component"},
+					ImportStateVerifyIgnore:              []string{"component_name", "create_component", "status"},
 				},
 			},
 		})

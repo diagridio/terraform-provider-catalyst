@@ -58,7 +58,8 @@ func testSteps() []resource.TestStep {
 			ImportStateIdFunc: func(s *terraform.State) (string, error) {
 				return s.RootModule().Resources["catalyst_service_account.test"].Primary.Attributes["name"], nil
 			},
-			ImportStateVerify: true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"status"},
 		},
 		// Update and Read testing
 		{

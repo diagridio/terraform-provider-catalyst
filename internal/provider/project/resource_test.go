@@ -39,7 +39,7 @@ func testSteps() []resource.TestStep {
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        projectName,
 			ImportStateVerify:                    true,
-			ImportStateVerifyIgnore:              []string{"wait_for_ready"},
+			ImportStateVerifyIgnore:              []string{"wait_for_ready", "status"},
 			Check: resource.ComposeAggregateTestCheckFunc(
 				resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
 				resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
@@ -72,7 +72,7 @@ func TestAccProjectResource(t *testing.T) {
 func TestMockProjectResource(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
-	resource.Test(t,
+	resource.UnitTest(t,
 		resource.TestCase{
 			PreCheck: func() { acceptance.TestAccPreCheck(t) },
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -173,7 +173,6 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr(regionName),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),

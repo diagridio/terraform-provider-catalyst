@@ -61,10 +61,18 @@ func (r *appidResource) Schema(ctx context.Context,
 			"app_config": schema.StringAttribute{
 				MarkdownDescription: "App configuration name",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"protocol": schema.StringAttribute{
 				MarkdownDescription: "Protocol (e.g., 'http', 'grpc')",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"api_token_revision": schema.Int64Attribute{
 				MarkdownDescription: "API token revision",

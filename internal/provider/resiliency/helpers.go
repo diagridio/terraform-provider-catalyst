@@ -77,6 +77,33 @@ func toAPISpec(ctx context.Context, specYAML types.String) (*cloudruntime_client
 	return &apiSpec, nil
 }
 
+// fromAPISpec converts DaprResiliencySpec to YAML string.
+func fromAPISpec(ctx context.Context, apiSpec *cloudruntime_client.DaprResiliencySpec) (string, error) {
+	if apiSpec == nil {
+		return "", nil
+	}
+
+	// Convert API type to JSON first (it has JSON tags)
+	jsonBytes, err := json.Marshal(apiSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal API spec to JSON: %w", err)
+	}
+
+	// Unmarshal JSON into YAML-friendly type
+	var yamlSpec resiliencySpecForYAML
+	if err := json.Unmarshal(jsonBytes, &yamlSpec); err != nil {
+		return "", fmt.Errorf("failed to unmarshal JSON into YAML type: %w", err)
+	}
+
+	// Marshal to YAML
+	yamlBytes, err := yaml.Marshal(yamlSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal to YAML: %w", err)
+	}
+
+	return string(yamlBytes), nil
+}
+
 func read(ctx context.Context,
 	client catalyst.Client,
 	m *model,
@@ -122,9 +149,17 @@ func read(ctx context.Context,
 		m.Status = types.StringNull()
 	}
 
-	// Note: We intentionally DO NOT update the spec field here.
-	// The spec is set from the plan during Create/Update and preserved in state.
-	// This avoids YAML formatting differences between user input and API responses.
+	// Convert API spec back to YAML if present
+	// This is necessary during import when there's no prior state
+	if resiliency.Spec != nil && m.Spec.IsNull() {
+		specYAML, err := fromAPISpec(ctx, resiliency.Spec)
+		if err != nil {
+			return fmt.Errorf("error converting API spec to YAML: %w", err)
+		}
+		if specYAML != "" {
+			m.SetSpec(specYAML)
+		}
+	}
 
 	m.Log(ctx, "read resiliency model")
 

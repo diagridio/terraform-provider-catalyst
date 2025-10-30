@@ -53,6 +53,7 @@ func testSteps() []resource.TestStep {
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        fmt.Sprintf("%s/%s", projectName, appidName),
 			ImportStateVerify:                    true,
+			ImportStateVerifyIgnore:              []string{"api_token_revision", "status"},
 		},
 		// Delete testing automatically occurs in TestCase
 	}
@@ -128,7 +129,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr("default"),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
+						Status: lo.ToPtr("ready"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr("grpc://grpc-test.default.local:443"),

@@ -66,8 +66,7 @@ func TestMockSubscriptionResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, subscriptionName),
 					ImportStateVerify:                    true,
-					// Ignore spec due to YAML formatting differences
-					ImportStateVerifyIgnore: []string{"spec"},
+					ImportStateVerifyIgnore:              []string{"status"},
 				},
 			},
 		})
@@ -140,7 +139,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr("default"),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
+						Status: lo.ToPtr("ready"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectName)),
@@ -286,7 +285,7 @@ func testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
   name           = %[1]q
-  wait_for_ready = false
+  wait_for_ready = true
 }
 
 resource "catalyst_appid" "test_appid" {

@@ -26,6 +26,20 @@ func toAPISpec(_ context.Context, specString types.String) (*cloudruntime_client
 	return &spec, nil
 }
 
+// fromAPISpec converts DaprConfigurationSpec to YAML string.
+func fromAPISpec(_ context.Context, spec *cloudruntime_client.DaprConfigurationSpec) (string, error) {
+	if spec == nil {
+		return "", nil
+	}
+
+	yamlBytes, err := yaml.Marshal(spec)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal spec to YAML: %w", err)
+	}
+
+	return string(yamlBytes), nil
+}
+
 func read(ctx context.Context,
 	client catalyst.Client,
 	m *model,
@@ -50,9 +64,17 @@ func read(ctx context.Context,
 		m.SetName(*configuration.Metadata.Name)
 	}
 
-	// Note: We intentionally DO NOT update the spec field here.
-	// The spec is set from the plan during Create/Update and preserved in state.
-	// This avoids YAML formatting differences between user input and API responses.
+	// Convert API spec back to YAML if present
+	// This is necessary during import when there's no prior state
+	if configuration.Spec != nil && m.Spec.IsNull() {
+		specYAML, err := fromAPISpec(ctx, configuration.Spec)
+		if err != nil {
+			return fmt.Errorf("error converting API spec to YAML: %w", err)
+		}
+		if specYAML != "" {
+			m.SetSpec(specYAML)
+		}
+	}
 
 	// Set status
 	if configuration.Status != nil && configuration.Status.Status != nil {

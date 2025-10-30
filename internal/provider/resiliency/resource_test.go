@@ -65,10 +65,7 @@ func TestMockResiliencyResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, resiliencyName),
 					ImportStateVerify:                    true,
-					// Ignore spec due to YAML formatting differences (field names, null values, ordering)
-					// The spec content is functionally correct, just formatted differently
-					// Ignore status as it's a computed field that can change (processing -> ready)
-					ImportStateVerifyIgnore: []string{"spec", "status"},
+					ImportStateVerifyIgnore:              []string{"status", "spec"},
 				},
 			},
 		})
@@ -97,7 +94,7 @@ func TestAccResiliencyResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, resiliencyName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"spec", "status"},
+					ImportStateVerifyIgnore:              []string{"status", "spec"},
 				},
 			},
 		})

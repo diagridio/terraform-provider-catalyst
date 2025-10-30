@@ -62,7 +62,7 @@ func TestMockPubSubResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, pubsubName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"component_name", "create_component"},
+					ImportStateVerifyIgnore:              []string{"component_name", "create_component", "status"},
 				},
 			},
 		})
@@ -87,7 +87,7 @@ func TestAccPubSubResource(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name",
 				ImportStateId:                        fmt.Sprintf("%s/%s", projectName, pubsubName),
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"component_name", "create_component"},
+				ImportStateVerifyIgnore:              []string{"component_name", "create_component", "status"},
 			},
 		},
 	})

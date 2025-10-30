@@ -61,7 +61,7 @@ func TestMockConfigurationResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"spec", "status"},
+					ImportStateVerifyIgnore:              []string{"status", "spec"},
 				},
 			},
 		})
@@ -87,7 +87,7 @@ func TestAccConfigurationResource(t *testing.T) {
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
 					ImportStateVerify:                    true,
-					ImportStateVerifyIgnore:              []string{"spec", "status"},
+					ImportStateVerifyIgnore:              []string{"status", "spec"},
 				},
 			},
 		})
@@ -137,7 +137,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr("default"),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
+						Status: lo.ToPtr("ready"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectID)),
