@@ -74,7 +74,6 @@ func TestMockProjectResource(t *testing.T) {
 
 	resource.UnitTest(t,
 		resource.TestCase{
-			PreCheck: func() { acceptance.TestAccPreCheck(t) },
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
 					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),

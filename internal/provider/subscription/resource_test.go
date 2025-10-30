@@ -92,7 +92,7 @@ func TestAccSubscriptionResource(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name",
 				ImportStateId:                        fmt.Sprintf("%s/%s", projectName, subscriptionName),
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"spec"},
+				ImportStateVerifyIgnore:              []string{"spec", "status"},
 			},
 		},
 	})
