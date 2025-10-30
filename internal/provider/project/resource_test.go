@@ -74,6 +74,7 @@ func TestMockProjectResource(t *testing.T) {
 
 	resource.UnitTest(t,
 		resource.TestCase{
+			PreCheck: func() { acceptance.TestAccPreCheck(t) },
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
 					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
@@ -172,6 +173,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr(regionName),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
+						Status: lo.ToPtr("processing"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),
