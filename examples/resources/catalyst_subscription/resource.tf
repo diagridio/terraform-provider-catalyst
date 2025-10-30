@@ -1,5 +1,5 @@
 resource "catalyst_project" "example" {
-  name   = "example-project"
+  name = "example-project"
 }
 
 resource "catalyst_pubsub" "example" {
