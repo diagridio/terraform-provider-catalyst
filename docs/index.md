@@ -35,3 +35,4 @@ provider "catalyst" {
 
 - `api_key` (String, Sensitive) This is the Catalyst API key. Alternatively, this can also be specified using the `CATALYST_API_KEY` environment variable.
 - `endpoint` (String) Endpoint is the URL of Catalyst. Alternatively, this can also be specified using the `CATALYST_API_ENDPOINT` environment variable.
+- `tls_skip_verify` (Boolean) Skip TLS certificate verification. This is useful for self-signed certificates. Alternatively, this can also be specified using the `CATALYST_TLS_SKIP_VERIFY` environment variable.

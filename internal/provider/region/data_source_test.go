@@ -43,7 +43,7 @@ func TestMockRegionDataSource(t *testing.T) {
 }
 
 func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string) (catalyst.Client, error) {
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
 		c := catalyst.NewMockClient(ctrl)
 
 		c.EXPECT().

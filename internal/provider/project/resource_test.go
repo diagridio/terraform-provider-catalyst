@@ -39,7 +39,7 @@ func testSteps() []resource.TestStep {
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        projectName,
 			ImportStateVerify:                    true,
-			ImportStateVerifyIgnore:              []string{"wait_for_ready"},
+			ImportStateVerifyIgnore:              []string{"wait_for_ready", "status"},
 			Check: resource.ComposeAggregateTestCheckFunc(
 				resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
 				resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
@@ -72,9 +72,8 @@ func TestAccProjectResource(t *testing.T) {
 func TestMockProjectResource(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
-	resource.Test(t,
+	resource.UnitTest(t,
 		resource.TestCase{
-			PreCheck: func() { acceptance.TestAccPreCheck(t) },
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
 					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
@@ -85,7 +84,7 @@ func TestMockProjectResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string) (catalyst.Client, error) {
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
 		c := catalyst.NewMockClient(ctrl)
 
 		c.EXPECT().

@@ -21,7 +21,6 @@ resource "catalyst_region" "region1" {
 }
 
 resource "catalyst_project" "project" {
-  # region          = data.catalyst_region.onebox.name
   region = catalyst_region.region1.name
   name   = "prj1"
 }
