@@ -224,7 +224,6 @@ resource "catalyst_configuration" "test" {
 				{
 					app_id         = "app1"
 					default_action = "allow"
-					namespace      = "default"
 					trust_domain   = "public"
 					operations = [
 						{

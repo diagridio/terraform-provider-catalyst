@@ -14,8 +14,6 @@ resource "catalyst_configuration" "example" {
         {
           app_id         = "app1"
           default_action = "allow"
-          # namespace is optional and will be computed by the API if not provided
-          namespace = "default"
           operations = [
             {
               name       = "op1"
