@@ -7,35 +7,9 @@ import (
 	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"gopkg.in/yaml.v3"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
-
-// YAML-friendly types for proper marshaling/unmarshaling.
-type subscriptionSpecForYAML struct {
-	Routes          *routesForYAML        `yaml:"routes,omitempty"`
-	BulkSubscribe   *bulkSubscribeForYAML `yaml:"bulkSubscribe,omitempty"`
-	DeadLetterTopic *string               `yaml:"deadLetterTopic,omitempty"`
-	Metadata        map[string]string     `yaml:"metadata,omitempty"`
-	Dynamic         *bool                 `yaml:"dynamic,omitempty"`
-}
-
-type routesForYAML struct {
-	Rules   []ruleForYAML `yaml:"rules,omitempty"`
-	Default *string       `yaml:"default,omitempty"`
-}
-
-type ruleForYAML struct {
-	Match *string `yaml:"match,omitempty"`
-	Path  *string `yaml:"path,omitempty"`
-}
-
-type bulkSubscribeForYAML struct {
-	Enabled            *bool `yaml:"enabled,omitempty"`
-	MaxMessagesCount   *int  `yaml:"maxMessagesCount,omitempty"`
-	MaxAwaitDurationMs *int  `yaml:"maxAwaitDurationMs,omitempty"`
-}
 
 // toAPIScopes converts a Terraform List to API DaprScopes.
 func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_client.DaprScopes {
@@ -54,143 +28,329 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 	return &scopes
 }
 
-// toAPISpec converts YAML string to DaprSubscriptionSpec.
-func toAPISpec(_ context.Context, specString types.String) (*cloudruntime_client.DaprSubscriptionSpec, error) {
-	if specString.IsNull() || specString.IsUnknown() {
-		return &cloudruntime_client.DaprSubscriptionSpec{}, nil
+func expandSubscriptionSpec(ctx context.Context, model *specModel) (*cloudruntime_client.DaprSubscriptionSpec, error) {
+	if model == nil {
+		return nil, nil
 	}
 
-	// Unmarshal into YAML-friendly type
-	var yamlSpec subscriptionSpecForYAML
-	if err := yaml.Unmarshal([]byte(specString.ValueString()), &yamlSpec); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal spec YAML: %w", err)
+	spec := &cloudruntime_client.DaprSubscriptionSpec{}
+	hasData := false
+
+	if routes := expandRoutes(model.Routes); routes != nil {
+		spec.Routes = routes
+		hasData = true
 	}
 
-	// Convert to API type
-	apiSpec := &cloudruntime_client.DaprSubscriptionSpec{}
+	if bulk := expandBulkSubscribe(model.BulkSubscribe); bulk != nil {
+		spec.BulkSubscribe = bulk
+		hasData = true
+	}
 
-	if yamlSpec.Routes != nil {
-		routes := &cloudruntime_client.SubscriptionSpecRoutes{}
-		if yamlSpec.Routes.Default != nil {
-			routes.Default = yamlSpec.Routes.Default
+	if !model.DeadLetterTopic.IsNull() && !model.DeadLetterTopic.IsUnknown() {
+		if value := model.DeadLetterTopic.ValueString(); value != "" {
+			valueCopy := value
+			spec.DeadLetterTopic = &valueCopy
+			hasData = true
 		}
-		if len(yamlSpec.Routes.Rules) > 0 {
-			rules := make([]cloudruntime_client.SubscriptionRule, len(yamlSpec.Routes.Rules))
-			for i, rule := range yamlSpec.Routes.Rules {
-				rules[i] = cloudruntime_client.SubscriptionRule{
-					Match: rule.Match,
-					Path:  rule.Path,
-				}
-			}
-			routes.Rules = &rules
-		}
-		apiSpec.Routes = routes
 	}
 
-	if yamlSpec.BulkSubscribe != nil {
-		bulkSub := &cloudruntime_client.DaprSubscriptionSpecBulkSubscribe{}
-		if yamlSpec.BulkSubscribe.Enabled != nil {
-			bulkSub.Enabled = yamlSpec.BulkSubscribe.Enabled
+	if !model.Metadata.IsNull() && !model.Metadata.IsUnknown() {
+		metadata, err := mapToStringMap(ctx, model.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand metadata: %w", err)
 		}
-		if yamlSpec.BulkSubscribe.MaxMessagesCount != nil {
-			bulkSub.MaxMessagesCount = yamlSpec.BulkSubscribe.MaxMessagesCount
+		if len(metadata) > 0 {
+			spec.Metadata = &cloudruntime_client.DaprSubscriptionSpec_Metadata{AdditionalProperties: metadata}
+			hasData = true
 		}
-		if yamlSpec.BulkSubscribe.MaxAwaitDurationMs != nil {
-			bulkSub.MaxAwaitDurationMs = yamlSpec.BulkSubscribe.MaxAwaitDurationMs
-		}
-		apiSpec.BulkSubscribe = bulkSub
 	}
 
-	if yamlSpec.DeadLetterTopic != nil {
-		apiSpec.DeadLetterTopic = yamlSpec.DeadLetterTopic
+	if !model.Dynamic.IsNull() && !model.Dynamic.IsUnknown() {
+		value := model.Dynamic.ValueBool()
+		spec.Dynamic = &value
+		hasData = true
 	}
 
-	if len(yamlSpec.Metadata) > 0 {
-		metadata := &cloudruntime_client.DaprSubscriptionSpec_Metadata{
-			AdditionalProperties: yamlSpec.Metadata,
-		}
-		apiSpec.Metadata = metadata
+	if !hasData {
+		return nil, nil
 	}
 
-	if yamlSpec.Dynamic != nil {
-		apiSpec.Dynamic = yamlSpec.Dynamic
-	}
-
-	return apiSpec, nil
+	return spec, nil
 }
 
-// specToYAML converts API subscription spec to YAML string.
-func specToYAML(spec *cloudruntime_client.DaprSubscriptionSpec) (string, error) {
-	if spec == nil {
-		return "", nil
+func expandRoutes(model *routesModel) *cloudruntime_client.SubscriptionSpecRoutes {
+	if model == nil {
+		return nil
 	}
 
-	yamlSpec := subscriptionSpecForYAML{}
+	routes := &cloudruntime_client.SubscriptionSpecRoutes{}
+	hasData := false
 
-	// Convert routes
-	if spec.Routes != nil {
-		routes := &routesForYAML{}
-		if spec.Routes.Rules != nil && len(*spec.Routes.Rules) > 0 {
-			rules := make([]ruleForYAML, len(*spec.Routes.Rules))
-			for i, rule := range *spec.Routes.Rules {
-				rules[i] = ruleForYAML{
-					Match: rule.Match,
-					Path:  rule.Path,
+	if !model.Default.IsNull() && !model.Default.IsUnknown() {
+		if value := model.Default.ValueString(); value != "" {
+			valueCopy := value
+			routes.Default = &valueCopy
+			hasData = true
+		}
+	}
+
+	if len(model.Rules) > 0 {
+		rules := make([]cloudruntime_client.SubscriptionRule, 0, len(model.Rules))
+		for _, ruleModel := range model.Rules {
+			rule := cloudruntime_client.SubscriptionRule{}
+			ruleHasData := false
+
+			if !ruleModel.Match.IsNull() && !ruleModel.Match.IsUnknown() {
+				if value := ruleModel.Match.ValueString(); value != "" {
+					rule.Match = &value
+					ruleHasData = true
 				}
 			}
+
+			if !ruleModel.Path.IsNull() && !ruleModel.Path.IsUnknown() {
+				if value := ruleModel.Path.ValueString(); value != "" {
+					rule.Path = &value
+					ruleHasData = true
+				}
+			}
+
+			if ruleHasData {
+				rules = append(rules, rule)
+			}
+		}
+		if len(rules) > 0 {
+			routes.Rules = &rules
+			hasData = true
+		}
+	}
+
+	if !hasData {
+		return nil
+	}
+
+	return routes
+}
+
+func expandBulkSubscribe(model *bulkSubscribeModel) *cloudruntime_client.DaprSubscriptionSpecBulkSubscribe {
+	if model == nil {
+		return nil
+	}
+
+	bulk := &cloudruntime_client.DaprSubscriptionSpecBulkSubscribe{}
+	hasData := false
+
+	if !model.Enabled.IsNull() && !model.Enabled.IsUnknown() {
+		value := model.Enabled.ValueBool()
+		bulk.Enabled = &value
+		hasData = true
+	}
+
+	if !model.MaxMessagesCount.IsNull() && !model.MaxMessagesCount.IsUnknown() {
+		value := int(model.MaxMessagesCount.ValueInt64())
+		bulk.MaxMessagesCount = &value
+		hasData = true
+	}
+
+	if !model.MaxAwaitDurationMs.IsNull() && !model.MaxAwaitDurationMs.IsUnknown() {
+		value := int(model.MaxAwaitDurationMs.ValueInt64())
+		bulk.MaxAwaitDurationMs = &value
+		hasData = true
+	}
+
+	if !hasData {
+		return nil
+	}
+
+	return bulk
+}
+
+func flattenSubscriptionSpec(ctx context.Context, api *cloudruntime_client.DaprSubscriptionSpec) (*specModel, error) {
+	spec := &specModel{
+		DeadLetterTopic: types.StringNull(),
+		Metadata:        types.MapNull(types.StringType),
+		Dynamic:         types.BoolNull(),
+	}
+
+	if api == nil {
+		return spec, nil
+	}
+
+	if api.Routes != nil {
+		spec.Routes = flattenRoutes(api.Routes)
+	}
+
+	if api.BulkSubscribe != nil {
+		spec.BulkSubscribe = flattenBulkSubscribe(api.BulkSubscribe)
+	}
+
+	if api.DeadLetterTopic != nil && *api.DeadLetterTopic != "" {
+		spec.DeadLetterTopic = types.StringValue(*api.DeadLetterTopic)
+	}
+
+	if api.Metadata != nil && len(api.Metadata.AdditionalProperties) > 0 {
+		metadataValue, diags := types.MapValueFrom(ctx, types.StringType, api.Metadata.AdditionalProperties)
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to flatten metadata: %v", diags.Errors())
+		}
+		spec.Metadata = metadataValue
+	}
+
+	if api.Dynamic != nil {
+		spec.Dynamic = types.BoolValue(*api.Dynamic)
+	}
+
+	return spec, nil
+}
+
+func flattenRoutes(api *cloudruntime_client.SubscriptionSpecRoutes) *routesModel {
+	if api == nil {
+		return nil
+	}
+
+	routes := &routesModel{
+		Default: types.StringNull(),
+	}
+	hasData := false
+
+	if api.Default != nil && *api.Default != "" {
+		routes.Default = types.StringValue(*api.Default)
+		hasData = true
+	}
+
+	if api.Rules != nil && len(*api.Rules) > 0 {
+		rules := make([]routeRuleModel, 0, len(*api.Rules))
+		for _, rule := range *api.Rules {
+			model := routeRuleModel{
+				Match: types.StringNull(),
+				Path:  types.StringNull(),
+			}
+			ruleHasData := false
+
+			if rule.Match != nil && *rule.Match != "" {
+				model.Match = types.StringValue(*rule.Match)
+				ruleHasData = true
+			}
+
+			if rule.Path != nil && *rule.Path != "" {
+				model.Path = types.StringValue(*rule.Path)
+				ruleHasData = true
+			}
+
+			if ruleHasData {
+				rules = append(rules, model)
+			}
+		}
+		if len(rules) > 0 {
 			routes.Rules = rules
-		}
-		if spec.Routes.Default != nil {
-			routes.Default = spec.Routes.Default
-		}
-		if len(routes.Rules) > 0 || routes.Default != nil {
-			yamlSpec.Routes = routes
+			hasData = true
 		}
 	}
 
-	// Convert bulk subscribe
+	if !hasData {
+		return nil
+	}
+
+	return routes
+}
+
+func flattenBulkSubscribe(api *cloudruntime_client.DaprSubscriptionSpecBulkSubscribe) *bulkSubscribeModel {
+	if api == nil {
+		return nil
+	}
+
+	model := &bulkSubscribeModel{
+		Enabled:            types.BoolNull(),
+		MaxMessagesCount:   types.Int64Null(),
+		MaxAwaitDurationMs: types.Int64Null(),
+	}
+	hasData := false
+
+	if api.Enabled != nil {
+		model.Enabled = types.BoolValue(*api.Enabled)
+		hasData = true
+	}
+
+	if api.MaxMessagesCount != nil {
+		model.MaxMessagesCount = types.Int64Value(int64(*api.MaxMessagesCount))
+		hasData = true
+	}
+
+	if api.MaxAwaitDurationMs != nil {
+		model.MaxAwaitDurationMs = types.Int64Value(int64(*api.MaxAwaitDurationMs))
+		hasData = true
+	}
+
+	if !hasData {
+		return nil
+	}
+
+	return model
+}
+
+func mapToStringMap(ctx context.Context, m types.Map) (map[string]string, error) {
+	if m.IsNull() || m.IsUnknown() {
+		return map[string]string{}, nil
+	}
+
+	values := make(map[string]string)
+	if diags := m.ElementsAs(ctx, &values, false); diags.HasError() {
+		return nil, fmt.Errorf("failed to parse map: %v", diags.Errors())
+	}
+	return values, nil
+}
+
+func specModelIsEmpty(spec *specModel) bool {
+	if spec == nil {
+		return true
+	}
+
+	if spec.Routes != nil {
+		return false
+	}
+
 	if spec.BulkSubscribe != nil {
-		bulkSub := &bulkSubscribeForYAML{}
-		if spec.BulkSubscribe.Enabled != nil {
-			bulkSub.Enabled = spec.BulkSubscribe.Enabled
-		}
-		if spec.BulkSubscribe.MaxMessagesCount != nil {
-			bulkSub.MaxMessagesCount = spec.BulkSubscribe.MaxMessagesCount
-		}
-		if spec.BulkSubscribe.MaxAwaitDurationMs != nil {
-			bulkSub.MaxAwaitDurationMs = spec.BulkSubscribe.MaxAwaitDurationMs
-		}
-		if bulkSub.Enabled != nil || bulkSub.MaxMessagesCount != nil || bulkSub.MaxAwaitDurationMs != nil {
-			yamlSpec.BulkSubscribe = bulkSub
-		}
+		return false
 	}
 
-	// Convert metadata - preserve order from input if possible
-	if spec.Metadata != nil && len(spec.Metadata.AdditionalProperties) > 0 {
-		yamlSpec.Metadata = spec.Metadata.AdditionalProperties
+	if !spec.DeadLetterTopic.IsNull() && !spec.DeadLetterTopic.IsUnknown() && spec.DeadLetterTopic.ValueString() != "" {
+		return false
 	}
 
-	// Convert other fields
-	if spec.DeadLetterTopic != nil {
-		yamlSpec.DeadLetterTopic = spec.DeadLetterTopic
-	}
-	if spec.Dynamic != nil {
-		yamlSpec.Dynamic = spec.Dynamic
+	if !spec.Metadata.IsNull() && !spec.Metadata.IsUnknown() {
+		return false
 	}
 
-	// If everything is empty, return empty string
-	if yamlSpec.Routes == nil && yamlSpec.BulkSubscribe == nil && yamlSpec.DeadLetterTopic == nil &&
-		len(yamlSpec.Metadata) == 0 && yamlSpec.Dynamic == nil {
-		return "", nil
+	if !spec.Dynamic.IsNull() && !spec.Dynamic.IsUnknown() {
+		return false
 	}
 
-	// Marshal to YAML with 4-space indentation to match input format
-	yamlBytes, err := yaml.Marshal(yamlSpec)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal spec to YAML: %w", err)
+	return true
+}
+
+func applyExpandedSpec(target *cloudruntime_client.DaprSubscriptionSpec, extras *cloudruntime_client.DaprSubscriptionSpec) {
+	if target == nil || extras == nil {
+		return
 	}
 
-	return string(yamlBytes), nil
+	if extras.Routes != nil {
+		target.Routes = extras.Routes
+	}
+
+	if extras.BulkSubscribe != nil {
+		target.BulkSubscribe = extras.BulkSubscribe
+	}
+
+	if extras.DeadLetterTopic != nil {
+		target.DeadLetterTopic = extras.DeadLetterTopic
+	}
+
+	if extras.Metadata != nil {
+		target.Metadata = extras.Metadata
+	}
+
+	if extras.Dynamic != nil {
+		target.Dynamic = extras.Dynamic
+	}
 }
 
 func read(ctx context.Context,
@@ -225,22 +385,17 @@ func read(ctx context.Context,
 			m.SetTopic(*subscription.Spec.Topic)
 		}
 
-		// Convert spec fields (routes, bulk_subscribe, metadata, etc.) to YAML
-		// We only marshal the parts that aren't basic required fields (pubsubname/topic)
-		if subscription.Spec.Routes != nil || subscription.Spec.DeadLetterTopic != nil ||
-			subscription.Spec.BulkSubscribe != nil || subscription.Spec.Metadata != nil ||
-			subscription.Spec.Dynamic != nil {
-
-			specYAML, err := specToYAML(subscription.Spec)
-			if err != nil {
-				return err
-			}
-			if specYAML != "" {
-				m.SetSpec(specYAML)
-			}
-		} else {
-			m.Spec = types.StringNull()
+		spec, err := flattenSubscriptionSpec(ctx, subscription.Spec)
+		if err != nil {
+			return err
 		}
+		if specModelIsEmpty(spec) {
+			m.Spec = nil
+		} else {
+			m.Spec = spec
+		}
+	} else {
+		m.Spec = nil
 	}
 
 	// Set scopes (at DaprSubscription level, not Spec)

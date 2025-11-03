@@ -21,32 +21,44 @@ resource "catalyst_configuration" "example" {
   project_id = catalyst_project.example.name
   name       = "my-configuration"
 
-  # Spec defines Dapr configuration as YAML
-  spec = <<-EOT
-    accessControl:
-      defaultAction: deny
-      policies:
-      - appId: app1
-        defaultAction: allow
-        namespace: default
-      - appId: app2
-        defaultAction: deny
-        namespace: default
-    api:
-      allowed:
-      - name: "GET /healthz"
-        protocol: "http"
-    tracing:
-      samplingRate: "1"
-      zipkin:
-        endpointAddress: "http://zipkin.default.svc.cluster.local:9411/api/v2/spans"
-    metrics:
-      enabled: true
-    secrets:
-      scopes:
-      - storeName: "local-secret-store"
-        defaultAccess: "allow"
-  EOT
+  spec = {
+    access_control = {
+      default_action = "allow"
+      trust_domain   = "public"
+      policies = [
+        {
+          app_id         = "app1"
+          default_action = "allow"
+          # Note: namespace is computed by the API and does not need to be specified
+          operations = [
+            {
+              name       = "op1"
+              action     = "allow"
+              http_verbs = ["GET", "POST"]
+            }
+          ]
+        }
+      ]
+    }
+
+    app_http_pipeline = {
+      handlers = [
+        {
+          name = "oauth2"
+          type = "middleware.http.oauth2"
+        }
+      ]
+    }
+
+    http_pipeline = {
+      handlers = [
+        {
+          name = "ratelimit"
+          type = "middleware.http.ratelimit"
+        }
+      ]
+    }
+  }
 }
 ```
 
@@ -57,8 +69,204 @@ resource "catalyst_configuration" "example" {
 
 - `name` (String) Configuration name
 - `project_id` (String) Project ID
-- `spec` (String) Dapr Configuration spec in YAML format
+- `spec` (Attributes) Dapr configuration spec (see [below for nested schema](#nestedatt--spec))
 
 ### Read-Only
 
 - `status` (String) Status
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Optional:
+
+- `access_control` (Attributes) Access control configuration (see [below for nested schema](#nestedatt--spec--access_control))
+- `api` (Attributes) API allow list configuration (see [below for nested schema](#nestedatt--spec--api))
+- `app_http_pipeline` (Attributes) Application HTTP pipeline handlers (see [below for nested schema](#nestedatt--spec--app_http_pipeline))
+- `components` (Attributes) Component-level controls (see [below for nested schema](#nestedatt--spec--components))
+- `http_pipeline` (Attributes) Global HTTP pipeline handlers (see [below for nested schema](#nestedatt--spec--http_pipeline))
+- `metrics` (Attributes) Metrics configuration (see [below for nested schema](#nestedatt--spec--metrics))
+- `name_resolution` (Attributes) Service name resolution configuration (see [below for nested schema](#nestedatt--spec--name_resolution))
+- `secrets` (Attributes) Secret store configuration (see [below for nested schema](#nestedatt--spec--secrets))
+- `tracing` (Attributes) Tracing configuration (see [below for nested schema](#nestedatt--spec--tracing))
+
+<a id="nestedatt--spec--access_control"></a>
+### Nested Schema for `spec.access_control`
+
+Optional:
+
+- `default_action` (String) Default action when no policy matches
+- `policies` (Attributes List) Access control policies (see [below for nested schema](#nestedatt--spec--access_control--policies))
+- `trust_domain` (String) Trust domain for access control
+
+<a id="nestedatt--spec--access_control--policies"></a>
+### Nested Schema for `spec.access_control.policies`
+
+Optional:
+
+- `app_id` (String) Application ID this policy applies to
+- `default_action` (String) Default action for the policy
+- `operations` (Attributes List) Operations governed by the policy (see [below for nested schema](#nestedatt--spec--access_control--policies--operations))
+- `trust_domain` (String) Policy-specific trust domain
+
+Read-Only:
+
+- `namespace` (String) Namespace constraint for the policy (computed by API)
+
+<a id="nestedatt--spec--access_control--policies--operations"></a>
+### Nested Schema for `spec.access_control.policies.operations`
+
+Optional:
+
+- `action` (String) Action applied to the operation
+- `http_verbs` (List of String) Allowed HTTP verbs
+- `name` (String) Operation name
+
+
+
+
+<a id="nestedatt--spec--api"></a>
+### Nested Schema for `spec.api`
+
+Optional:
+
+- `allowed` (Attributes List) Allowed API operations (see [below for nested schema](#nestedatt--spec--api--allowed))
+
+<a id="nestedatt--spec--api--allowed"></a>
+### Nested Schema for `spec.api.allowed`
+
+Optional:
+
+- `name` (String) API name
+- `protocol` (String) API protocol
+- `version` (String) API version
+
+
+
+<a id="nestedatt--spec--app_http_pipeline"></a>
+### Nested Schema for `spec.app_http_pipeline`
+
+Optional:
+
+- `handlers` (Attributes List) Handlers executed for app HTTP traffic (see [below for nested schema](#nestedatt--spec--app_http_pipeline--handlers))
+
+<a id="nestedatt--spec--app_http_pipeline--handlers"></a>
+### Nested Schema for `spec.app_http_pipeline.handlers`
+
+Optional:
+
+- `name` (String) Handler name
+- `type` (String) Handler type
+
+
+
+<a id="nestedatt--spec--components"></a>
+### Nested Schema for `spec.components`
+
+Optional:
+
+- `deny` (List of String) Denied components
+
+
+<a id="nestedatt--spec--http_pipeline"></a>
+### Nested Schema for `spec.http_pipeline`
+
+Optional:
+
+- `handlers` (Attributes List) Handlers executed for ingress HTTP traffic (see [below for nested schema](#nestedatt--spec--http_pipeline--handlers))
+
+<a id="nestedatt--spec--http_pipeline--handlers"></a>
+### Nested Schema for `spec.http_pipeline.handlers`
+
+Optional:
+
+- `name` (String) Handler name
+- `type` (String) Handler type
+
+
+
+<a id="nestedatt--spec--metrics"></a>
+### Nested Schema for `spec.metrics`
+
+Optional:
+
+- `enabled` (Boolean) Enable metrics emission
+- `http` (Attributes) HTTP metrics configuration (see [below for nested schema](#nestedatt--spec--metrics--http))
+- `latency_distribution_buckets` (List of Number) Latency histogram buckets
+- `record_error_codes` (Boolean) Record error codes in metrics
+- `rules` (Attributes List) Custom metrics rules (see [below for nested schema](#nestedatt--spec--metrics--rules))
+
+<a id="nestedatt--spec--metrics--http"></a>
+### Nested Schema for `spec.metrics.http`
+
+Optional:
+
+- `exclude_verbs` (Boolean) Exclude HTTP verbs from metrics
+- `increased_cardinality` (Boolean) Enable increased cardinality metrics
+- `path_matching` (List of String) HTTP paths to match
+
+
+<a id="nestedatt--spec--metrics--rules"></a>
+### Nested Schema for `spec.metrics.rules`
+
+Optional:
+
+- `labels` (Attributes List) Rule labels (see [below for nested schema](#nestedatt--spec--metrics--rules--labels))
+- `name` (String) Rule name
+
+<a id="nestedatt--spec--metrics--rules--labels"></a>
+### Nested Schema for `spec.metrics.rules.labels`
+
+Optional:
+
+- `name` (String) Label name
+- `regex` (Map of String) Label regex configuration
+
+
+
+
+<a id="nestedatt--spec--name_resolution"></a>
+### Nested Schema for `spec.name_resolution`
+
+Optional:
+
+- `component` (String) Resolver component name
+- `configuration` (Map of String) Resolver configuration values
+- `version` (String) Resolver version
+
+
+<a id="nestedatt--spec--secrets"></a>
+### Nested Schema for `spec.secrets`
+
+Optional:
+
+- `scopes` (Attributes List) Secret store scopes (see [below for nested schema](#nestedatt--spec--secrets--scopes))
+
+<a id="nestedatt--spec--secrets--scopes"></a>
+### Nested Schema for `spec.secrets.scopes`
+
+Optional:
+
+- `default_access` (String) Default access level
+- `denied_secrets` (List of String) Secrets denied for this scope
+- `store_name` (String) Secret store name
+
+
+
+<a id="nestedatt--spec--tracing"></a>
+### Nested Schema for `spec.tracing`
+
+Optional:
+
+- `otel` (Attributes) OpenTelemetry exporter configuration (see [below for nested schema](#nestedatt--spec--tracing--otel))
+- `sampling_rate` (String) Sampling rate for tracing
+- `stdout` (Boolean) Emit traces to stdout
+
+<a id="nestedatt--spec--tracing--otel"></a>
+### Nested Schema for `spec.tracing.otel`
+
+Optional:
+
+- `endpoint_address` (String) Exporter endpoint address
+- `is_secure` (Boolean) Use secure communication
+- `protocol` (String) Exporter protocol

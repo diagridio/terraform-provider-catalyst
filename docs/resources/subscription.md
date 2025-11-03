@@ -32,19 +32,30 @@ resource "catalyst_subscription" "example" {
 
   scopes = ["app1"]
 
-  # Spec defines Dapr Subscription as YAML
-  spec = <<-EOT
-    routes:
-      default: /orders
-      rules:
-      - match: event.type == "premium"
-        path: /premium-orders
-    bulkSubscribe:
-      enabled: true
-      maxMessagesCount: 100
-      maxAwaitDurationMs: 1000
-    deadLetterTopic: orders-dlq
-  EOT
+  # Spec defines the Dapr subscription structure using nested attributes
+  spec = {
+    routes = {
+      default = "/orders"
+      rules = [
+        {
+          match = "event.type == \"premium\""
+          path  = "/premium-orders"
+        }
+      ]
+    }
+
+    bulk_subscribe = {
+      enabled               = true
+      max_messages_count    = 100
+      max_await_duration_ms = 1000
+    }
+
+    dead_letter_topic = "orders-dlq"
+
+    metadata = {
+      rawPayload = "true"
+    }
+  }
 }
 ```
 
@@ -61,8 +72,45 @@ resource "catalyst_subscription" "example" {
 ### Optional
 
 - `scopes` (List of String) Scopes
-- `spec` (String) Dapr Subscription spec in YAML format
+- `spec` (Attributes) Dapr subscription spec (see [below for nested schema](#nestedatt--spec))
 
 ### Read-Only
 
 - `status` (String) Status
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Optional:
+
+- `bulk_subscribe` (Attributes) Bulk subscribe configuration (see [below for nested schema](#nestedatt--spec--bulk_subscribe))
+- `dead_letter_topic` (String) Dead letter topic
+- `dynamic` (Boolean) Dynamic subscription
+- `metadata` (Map of String) Metadata entries
+- `routes` (Attributes) Routes configuration (see [below for nested schema](#nestedatt--spec--routes))
+
+<a id="nestedatt--spec--bulk_subscribe"></a>
+### Nested Schema for `spec.bulk_subscribe`
+
+Optional:
+
+- `enabled` (Boolean) Enable bulk subscribe
+- `max_await_duration_ms` (Number) Maximum await duration in milliseconds
+- `max_messages_count` (Number) Maximum messages count
+
+
+<a id="nestedatt--spec--routes"></a>
+### Nested Schema for `spec.routes`
+
+Optional:
+
+- `default` (String) Default route path
+- `rules` (Attributes List) Routing rules (see [below for nested schema](#nestedatt--spec--routes--rules))
+
+<a id="nestedatt--spec--routes--rules"></a>
+### Nested Schema for `spec.routes.rules`
+
+Optional:
+
+- `match` (String) Match expression
+- `path` (String) Route path

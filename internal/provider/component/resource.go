@@ -18,7 +18,6 @@ import (
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
-	yamlhelpers "github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers/yaml"
 )
 
 var _ resource.Resource = &componentResource{}
@@ -60,24 +59,59 @@ func (r *componentResource) Schema(ctx context.Context,
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"type": schema.StringAttribute{
-				MarkdownDescription: "Component type",
+			"spec": schema.SingleNestedAttribute{
+				MarkdownDescription: "Dapr component spec",
 				Required:            true,
-			},
-			"version": schema.StringAttribute{
-				MarkdownDescription: "Component version",
-				Required:            true,
-			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Dapr Component Metadata in YAML format",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					yamlhelpers.SemanticEquivalenceModifier(),
+				Attributes: map[string]schema.Attribute{
+					"type": schema.StringAttribute{
+						MarkdownDescription: "Component type",
+						Required:            true,
+					},
+					"version": schema.StringAttribute{
+						MarkdownDescription: "Component version",
+						Optional:            true,
+					},
+					"metadata": schema.ListNestedAttribute{
+						MarkdownDescription: "Metadata entries passed to the component",
+						Optional:            true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Metadata key",
+									Required:            true,
+								},
+								"value": schema.StringAttribute{
+									MarkdownDescription: "Metadata value",
+									Optional:            true,
+								},
+								"secret_key_ref": schema.SingleNestedAttribute{
+									MarkdownDescription: "Secret reference for the metadata value",
+									Optional:            true,
+									Attributes: map[string]schema.Attribute{
+										"name": schema.StringAttribute{
+											MarkdownDescription: "Secret name",
+											Required:            true,
+										},
+										"key": schema.StringAttribute{
+											MarkdownDescription: "Secret key",
+											Required:            true,
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
-			"secret_store": schema.StringAttribute{
-				MarkdownDescription: "Secret store for secret reference resolution",
+			"auth": schema.SingleNestedAttribute{
+				MarkdownDescription: "Authentication settings",
 				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"secret_store": schema.StringAttribute{
+						MarkdownDescription: "Secret store for secret reference resolution",
+						Optional:            true,
+					},
+				},
 			},
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "App IDs that can access this component",
@@ -126,36 +160,26 @@ func (r *componentResource) Create(ctx context.Context,
 
 	model.Log(ctx, "creating component")
 
-	// Store the original spec from the plan to preserve formatting
-	originalSpec := model.Spec
-
 	component := &client.DaprComponent{
 		ApiVersion: lo.ToPtr("dapr.io/v1alpha1"),
 		Kind:       lo.ToPtr("Component"),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
-		Spec: &client.DaprComponentSpec{
-			Type:    lo.ToPtr(model.GetType()),
-			Version: lo.ToPtr(model.GetVersion()),
-		},
 	}
+	model.ensureSpec()
 
-	// Convert YAML spec to API metadata array
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		metadata, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		component.Spec.Metadata = metadata
+	spec, err := expandComponentSpec(model.Spec)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec", err.Error())
+		return
 	}
+	component.Spec = spec
 
-	// Set auth (secret_store)
-	if !model.SecretStore.IsNull() && !model.SecretStore.IsUnknown() {
-		component.Auth = &client.DaprComponentAuth{
-			SecretStore: lo.ToPtr(model.GetSecretStore()),
+	if model.Auth != nil && !model.Auth.SecretStore.IsNull() && !model.Auth.SecretStore.IsUnknown() {
+		secretStore := model.Auth.SecretStore.ValueString()
+		if secretStore != "" {
+			component.Auth = &client.DaprComponentAuth{SecretStore: &secretStore}
 		}
 	}
 
@@ -175,15 +199,6 @@ func (r *componentResource) Create(ctx context.Context,
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading component after create: %s", err))
 		return
-	}
-
-	// Preserve original spec formatting if semantically equal
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() && !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		normalizedOriginal, err1 := normalizeYAML(originalSpec.ValueString())
-		normalizedCurrent, err2 := normalizeYAML(model.Spec.ValueString())
-		if err1 == nil && err2 == nil && normalizedOriginal == normalizedCurrent {
-			model.Spec = originalSpec
-		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -226,34 +241,26 @@ func (r *componentResource) Update(ctx context.Context,
 
 	model.Log(ctx, "updating component")
 
-	// Store the original spec from the plan to preserve formatting
-	originalSpec := model.Spec
-
 	component := &client.DaprComponent{
+		ApiVersion: lo.ToPtr("dapr.io/v1alpha1"),
+		Kind:       lo.ToPtr("Component"),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
-		Spec: &client.DaprComponentSpec{
-			Type:    lo.ToPtr(model.GetType()),
-			Version: lo.ToPtr(model.GetVersion()),
-		},
 	}
+	model.ensureSpec()
 
-	// Convert YAML spec to API metadata array
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		metadata, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		component.Spec.Metadata = metadata
+	spec, err := expandComponentSpec(model.Spec)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec", err.Error())
+		return
 	}
+	component.Spec = spec
 
-	// Set auth (secret_store)
-	if !model.SecretStore.IsNull() && !model.SecretStore.IsUnknown() {
-		component.Auth = &client.DaprComponentAuth{
-			SecretStore: lo.ToPtr(model.GetSecretStore()),
+	if model.Auth != nil && !model.Auth.SecretStore.IsNull() && !model.Auth.SecretStore.IsUnknown() {
+		secretStore := model.Auth.SecretStore.ValueString()
+		if secretStore != "" {
+			component.Auth = &client.DaprComponentAuth{SecretStore: &secretStore}
 		}
 	}
 
@@ -274,15 +281,6 @@ func (r *componentResource) Update(ctx context.Context,
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading component after update: %s", err))
 		return
-	}
-
-	// Preserve original spec formatting if semantically equal
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() && !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		normalizedOriginal, err1 := normalizeYAML(originalSpec.ValueString())
-		normalizedCurrent, err2 := normalizeYAML(model.Spec.ValueString())
-		if err1 == nil && err2 == nil && normalizedOriginal == normalizedCurrent {
-			model.Spec = originalSpec
-		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

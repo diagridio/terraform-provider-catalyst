@@ -23,5 +23,104 @@ Resiliency data source
 ### Read-Only
 
 - `scopes` (List of String) Scopes
-- `spec` (String) Resiliency spec as YAML string
+- `spec` (Attributes) Dapr resiliency spec (see [below for nested schema](#nestedatt--spec))
 - `status` (String) Status
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Read-Only:
+
+- `policies` (Attributes) Resiliency policy definitions (see [below for nested schema](#nestedatt--spec--policies))
+- `targets` (Attributes) Target assignments for policies (see [below for nested schema](#nestedatt--spec--targets))
+
+<a id="nestedatt--spec--policies"></a>
+### Nested Schema for `spec.policies`
+
+Read-Only:
+
+- `circuit_breakers` (Attributes Map) Circuit breaker policies keyed by name (see [below for nested schema](#nestedatt--spec--policies--circuit_breakers))
+- `retries` (Attributes Map) Retry policies keyed by name (see [below for nested schema](#nestedatt--spec--policies--retries))
+- `timeouts` (Map of String) Timeout policies keyed by name
+
+<a id="nestedatt--spec--policies--circuit_breakers"></a>
+### Nested Schema for `spec.policies.circuit_breakers`
+
+Read-Only:
+
+- `interval` (String) Time window used to calculate statistics
+- `max_requests` (Number) Maximum requests allowed in half-open state
+- `timeout` (String) Duration the circuit remains open
+- `trip` (String) Condition that opens the circuit
+
+
+<a id="nestedatt--spec--policies--retries"></a>
+### Nested Schema for `spec.policies.retries`
+
+Read-Only:
+
+- `duration` (String) Delay between retries (e.g. 5s)
+- `max_interval` (String) Maximum backoff interval
+- `max_retries` (Number) Maximum retry attempts (-1 for infinite)
+- `policy` (String) Retry policy type (constant or exponential)
+
+
+
+<a id="nestedatt--spec--targets"></a>
+### Nested Schema for `spec.targets`
+
+Read-Only:
+
+- `actors` (Attributes Map) Actor policy bindings keyed by actor type (see [below for nested schema](#nestedatt--spec--targets--actors))
+- `apps` (Attributes Map) Application policy bindings keyed by app ID (see [below for nested schema](#nestedatt--spec--targets--apps))
+- `components` (Attributes Map) Component policy bindings keyed by component name (see [below for nested schema](#nestedatt--spec--targets--components))
+
+<a id="nestedatt--spec--targets--actors"></a>
+### Nested Schema for `spec.targets.actors`
+
+Read-Only:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `circuit_breaker_cache_size` (Number) Size of the circuit breaker cache
+- `circuit_breaker_scope` (String) Scope used for the circuit breaker
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name
+
+
+<a id="nestedatt--spec--targets--apps"></a>
+### Nested Schema for `spec.targets.apps`
+
+Read-Only:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `circuit_breaker_cache_size` (Number) Size of the circuit breaker cache
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name
+
+
+<a id="nestedatt--spec--targets--components"></a>
+### Nested Schema for `spec.targets.components`
+
+Read-Only:
+
+- `inbound` (Attributes) Policies applied to inbound operations (see [below for nested schema](#nestedatt--spec--targets--components--inbound))
+- `outbound` (Attributes) Policies applied to outbound operations (see [below for nested schema](#nestedatt--spec--targets--components--outbound))
+
+<a id="nestedatt--spec--targets--components--inbound"></a>
+### Nested Schema for `spec.targets.components.inbound`
+
+Read-Only:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name
+
+
+<a id="nestedatt--spec--targets--components--outbound"></a>
+### Nested Schema for `spec.targets.components.outbound`
+
+Read-Only:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name

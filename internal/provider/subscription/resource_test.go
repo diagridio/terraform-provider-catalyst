@@ -57,7 +57,13 @@ func TestMockSubscriptionResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
 						resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
-						resource.TestCheckResourceAttrSet("catalyst_subscription.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.default", "/orders/default"),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.#", "2"),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.0.match", "event.type == \"order.created\""),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.enabled", "true"),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.max_messages_count", "100"),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.dead_letter_topic", "orders-deadletter"),
+						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.metadata.maxConcurrentHandlers", "10"),
 					),
 				},
 				{
@@ -83,7 +89,9 @@ func TestAccSubscriptionResource(t *testing.T) {
 					resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
 					resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
 					resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
-					resource.TestCheckResourceAttrSet("catalyst_subscription.test", "spec"),
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.#", "2"),
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.max_await_duration_ms", "1000"),
+					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.dynamic", "true"),
 				),
 			},
 			{
@@ -307,23 +315,36 @@ resource "catalyst_subscription" "test" {
   pubsub_name  = catalyst_pubsub.test_pubsub.name
   topic        = %[4]q
   scopes       = [catalyst_appid.test_appid.name]
-  spec         = <<-EOT
-routes:
-    rules:
-        - match: event.type == "order.created"
-          path: /orders/created
-        - match: event.type == "order.updated"
-          path: /orders/updated
-    default: /orders/default
-bulkSubscribe:
-    enabled: true
-    maxMessagesCount: 100
-    maxAwaitDurationMs: 1000
-deadLetterTopic: orders-deadletter
-metadata:
-    maxConcurrentHandlers: "10"
-    rawPayload: "true"
-  EOT
+	spec = {
+		routes = {
+			rules = [
+				{
+					match = "event.type == \"order.created\""
+					path  = "/orders/created"
+				},
+				{
+					match = "event.type == \"order.updated\""
+					path  = "/orders/updated"
+				}
+			]
+			default = "/orders/default"
+		}
+
+		bulk_subscribe = {
+			enabled               = true
+			max_messages_count    = 100
+			max_await_duration_ms = 1000
+		}
+
+		dead_letter_topic = "orders-deadletter"
+
+		metadata = {
+			maxConcurrentHandlers = "10"
+			rawPayload            = "true"
+		}
+
+		dynamic = true
+	}
 }
 `, projectName, subscriptionName, pubsubName, topicName, appidName)
 }

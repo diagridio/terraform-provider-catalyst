@@ -18,7 +18,6 @@ import (
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
-	yamlhelpers "github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers/yaml"
 )
 
 var _ resource.Resource = &subscriptionResource{}
@@ -68,13 +67,7 @@ func (r *subscriptionResource) Schema(ctx context.Context,
 				MarkdownDescription: "Topic name",
 				Required:            true,
 			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Dapr Subscription spec in YAML format",
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					yamlhelpers.SemanticEquivalenceModifier(),
-				},
-			},
+			"spec": subscriptionSpecAttribute(false, false),
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "Scopes",
 				Optional:            true,
@@ -134,31 +127,13 @@ func (r *subscriptionResource) Create(ctx context.Context,
 		},
 	}
 
-	// Convert YAML spec to API spec (merges with existing spec)
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		specFromYAML, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		// Merge YAML spec fields with base spec (pubsubname and topic already set)
-		if specFromYAML.Routes != nil {
-			subscription.Spec.Routes = specFromYAML.Routes
-		}
-		if specFromYAML.DeadLetterTopic != nil {
-			subscription.Spec.DeadLetterTopic = specFromYAML.DeadLetterTopic
-		}
-		if specFromYAML.BulkSubscribe != nil {
-			subscription.Spec.BulkSubscribe = specFromYAML.BulkSubscribe
-		}
-		if specFromYAML.Metadata != nil {
-			subscription.Spec.Metadata = specFromYAML.Metadata
-		}
-		if specFromYAML.Dynamic != nil {
-			subscription.Spec.Dynamic = specFromYAML.Dynamic
-		}
+	extras, err := expandSubscriptionSpec(ctx, model.Spec)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec",
+			fmt.Sprintf("error constructing spec: %s", err))
+		return
 	}
+	applyExpandedSpec(subscription.Spec, extras)
 
 	// Set scopes
 	subscription.Scopes = toAPIScopes(ctx, model.Scopes)
@@ -169,18 +144,10 @@ func (r *subscriptionResource) Create(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from the plan before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading subscription after create: %s", err))
 		return
-	}
-
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -197,9 +164,6 @@ func (r *subscriptionResource) Read(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from state before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		if diagrid_errors.IsResourceNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
@@ -208,11 +172,6 @@ func (r *subscriptionResource) Read(ctx context.Context,
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading subscription: %s", err))
 		return
-	}
-
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -232,6 +191,8 @@ func (r *subscriptionResource) Update(ctx context.Context,
 	model.Log(ctx, "updating subscription")
 
 	subscription := &client.DaprSubscription{
+		ApiVersion: lo.ToPtr("dapr.io/v2alpha1"),
+		Kind:       lo.ToPtr("Subscription"),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
@@ -241,31 +202,13 @@ func (r *subscriptionResource) Update(ctx context.Context,
 		},
 	}
 
-	// Convert YAML spec to API spec (merges with existing spec)
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		specFromYAML, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		// Merge YAML spec fields with base spec
-		if specFromYAML.Routes != nil {
-			subscription.Spec.Routes = specFromYAML.Routes
-		}
-		if specFromYAML.DeadLetterTopic != nil {
-			subscription.Spec.DeadLetterTopic = specFromYAML.DeadLetterTopic
-		}
-		if specFromYAML.BulkSubscribe != nil {
-			subscription.Spec.BulkSubscribe = specFromYAML.BulkSubscribe
-		}
-		if specFromYAML.Metadata != nil {
-			subscription.Spec.Metadata = specFromYAML.Metadata
-		}
-		if specFromYAML.Dynamic != nil {
-			subscription.Spec.Dynamic = specFromYAML.Dynamic
-		}
+	extras, err := expandSubscriptionSpec(ctx, model.Spec)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec",
+			fmt.Sprintf("error constructing spec: %s", err))
+		return
 	}
+	applyExpandedSpec(subscription.Spec, extras)
 
 	// Set scopes
 	subscription.Scopes = toAPIScopes(ctx, model.Scopes)
@@ -276,18 +219,10 @@ func (r *subscriptionResource) Update(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from the plan before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading subscription after update: %s", err))
 		return
-	}
-
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

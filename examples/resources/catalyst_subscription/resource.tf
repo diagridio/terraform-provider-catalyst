@@ -17,17 +17,28 @@ resource "catalyst_subscription" "example" {
 
   scopes = ["app1"]
 
-  # Spec defines Dapr Subscription as YAML
-  spec = <<-EOT
-    routes:
-      default: /orders
-      rules:
-      - match: event.type == "premium"
-        path: /premium-orders
-    bulkSubscribe:
-      enabled: true
-      maxMessagesCount: 100
-      maxAwaitDurationMs: 1000
-    deadLetterTopic: orders-dlq
-  EOT
+  # Spec defines the Dapr subscription structure using nested attributes
+  spec = {
+    routes = {
+      default = "/orders"
+      rules = [
+        {
+          match = "event.type == \"premium\""
+          path  = "/premium-orders"
+        }
+      ]
+    }
+
+    bulk_subscribe = {
+      enabled               = true
+      max_messages_count    = 100
+      max_await_duration_ms = 1000
+    }
+
+    dead_letter_topic = "orders-dlq"
+
+    metadata = {
+      rawPayload = "true"
+    }
+  }
 }

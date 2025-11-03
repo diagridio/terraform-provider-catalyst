@@ -44,10 +44,7 @@ func (d *configurationDataSource) Schema(ctx context.Context,
 				MarkdownDescription: "Configuration name",
 				Required:            true,
 			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Configuration spec as YAML string",
-				Computed:            true,
-			},
+			"spec": configurationSpecAttribute(false, true),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Status",
 				Computed:            true,

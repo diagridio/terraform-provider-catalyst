@@ -24,34 +24,56 @@ resource "catalyst_resiliency" "example" {
   # Scopes define which apps use this resiliency policy
   scopes = ["app1", "app2"]
 
-  # Spec defines Dapr Resiliency as YAML
-  spec = <<-EOT
-    policies:
-      retries:
-        DefaultRetryPolicy:
-          policy: constant
-          duration: 5s
-          maxRetries: 10
-      timeouts:
-        DefaultTimeoutPolicy: 60s
-      circuitBreakers:
-        DefaultCircuitBreakerPolicy:
-          maxRequests: 1
-          interval: 30s
-          timeout: 60s
-          trip: consecutiveFailures > 5
-    targets:
-      apps:
-        app1:
-          retry: DefaultRetryPolicy
-          timeout: DefaultTimeoutPolicy
-          circuitBreaker: DefaultCircuitBreakerPolicy
-      components:
-        statestore:
-          outbound:
-            retry: DefaultRetryPolicy
-            timeout: DefaultTimeoutPolicy
-  EOT
+  # Spec defines the Dapr resiliency structure using nested attributes
+  spec = {
+    policies = {
+      retries = {
+        DefaultRetryPolicy = {
+          policy      = "constant"
+          duration    = "5s"
+          max_retries = 10
+        }
+      }
+
+      timeouts = {
+        DefaultTimeoutPolicy = "60s"
+      }
+
+      circuit_breakers = {
+        DefaultCircuitBreakerPolicy = {
+          max_requests = 1
+          interval     = "30s"
+          timeout      = "60s"
+          trip         = "consecutiveFailures > 5"
+        }
+      }
+    }
+
+    targets = {
+      apps = {
+        app1 = {
+          retry           = "DefaultRetryPolicy"
+          timeout         = "DefaultTimeoutPolicy"
+          circuit_breaker = "DefaultCircuitBreakerPolicy"
+        }
+
+        app2 = {
+          retry           = "DefaultRetryPolicy"
+          timeout         = "DefaultTimeoutPolicy"
+          circuit_breaker = "DefaultCircuitBreakerPolicy"
+        }
+      }
+
+      components = {
+        statestore = {
+          outbound = {
+            retry   = "DefaultRetryPolicy"
+            timeout = "DefaultTimeoutPolicy"
+          }
+        }
+      }
+    }
+  }
 }
 ```
 
@@ -62,7 +84,7 @@ resource "catalyst_resiliency" "example" {
 
 - `name` (String) Resiliency name
 - `project_id` (String) Project ID
-- `spec` (String) Dapr Resiliency spec in YAML format
+- `spec` (Attributes) Dapr resiliency spec (see [below for nested schema](#nestedatt--spec))
 
 ### Optional
 
@@ -71,3 +93,102 @@ resource "catalyst_resiliency" "example" {
 ### Read-Only
 
 - `status` (String) Status
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Optional:
+
+- `policies` (Attributes) Resiliency policy definitions (see [below for nested schema](#nestedatt--spec--policies))
+- `targets` (Attributes) Target assignments for policies (see [below for nested schema](#nestedatt--spec--targets))
+
+<a id="nestedatt--spec--policies"></a>
+### Nested Schema for `spec.policies`
+
+Optional:
+
+- `circuit_breakers` (Attributes Map) Circuit breaker policies keyed by name (see [below for nested schema](#nestedatt--spec--policies--circuit_breakers))
+- `retries` (Attributes Map) Retry policies keyed by name (see [below for nested schema](#nestedatt--spec--policies--retries))
+- `timeouts` (Map of String) Timeout policies keyed by name
+
+<a id="nestedatt--spec--policies--circuit_breakers"></a>
+### Nested Schema for `spec.policies.circuit_breakers`
+
+Optional:
+
+- `interval` (String) Time window used to calculate statistics
+- `max_requests` (Number) Maximum requests allowed in half-open state
+- `timeout` (String) Duration the circuit remains open
+- `trip` (String) Condition that opens the circuit
+
+
+<a id="nestedatt--spec--policies--retries"></a>
+### Nested Schema for `spec.policies.retries`
+
+Optional:
+
+- `duration` (String) Delay between retries (e.g. 5s)
+- `max_interval` (String) Maximum backoff interval
+- `max_retries` (Number) Maximum retry attempts (-1 for infinite)
+- `policy` (String) Retry policy type (constant or exponential)
+
+
+
+<a id="nestedatt--spec--targets"></a>
+### Nested Schema for `spec.targets`
+
+Optional:
+
+- `actors` (Attributes Map) Actor policy bindings keyed by actor type (see [below for nested schema](#nestedatt--spec--targets--actors))
+- `apps` (Attributes Map) Application policy bindings keyed by app ID (see [below for nested schema](#nestedatt--spec--targets--apps))
+- `components` (Attributes Map) Component policy bindings keyed by component name (see [below for nested schema](#nestedatt--spec--targets--components))
+
+<a id="nestedatt--spec--targets--actors"></a>
+### Nested Schema for `spec.targets.actors`
+
+Optional:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `circuit_breaker_cache_size` (Number) Size of the circuit breaker cache
+- `circuit_breaker_scope` (String) Scope used for the circuit breaker
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name
+
+
+<a id="nestedatt--spec--targets--apps"></a>
+### Nested Schema for `spec.targets.apps`
+
+Optional:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `circuit_breaker_cache_size` (Number) Size of the circuit breaker cache
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name
+
+
+<a id="nestedatt--spec--targets--components"></a>
+### Nested Schema for `spec.targets.components`
+
+Optional:
+
+- `inbound` (Attributes) Policies applied to inbound operations (see [below for nested schema](#nestedatt--spec--targets--components--inbound))
+- `outbound` (Attributes) Policies applied to outbound operations (see [below for nested schema](#nestedatt--spec--targets--components--outbound))
+
+<a id="nestedatt--spec--targets--components--inbound"></a>
+### Nested Schema for `spec.targets.components.inbound`
+
+Optional:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name
+
+
+<a id="nestedatt--spec--targets--components--outbound"></a>
+### Nested Schema for `spec.targets.components.outbound`
+
+Optional:
+
+- `circuit_breaker` (String) Circuit breaker policy name
+- `retry` (String) Retry policy name
+- `timeout` (String) Timeout policy name

@@ -20,20 +20,29 @@ resource "catalyst_project" "example" {
 resource "catalyst_component" "example" {
   project_name = catalyst_project.example.name
   name         = "my-component"
-  type         = "state.redis"
-  version      = "v1"
+  spec = {
+    type    = "state.redis"
+    version = "v1"
 
-  # Metadata as YAML
-  spec = <<-EOT
-    - name: redisHost
-      value: "redis:6379"
-    - name: redisPassword
-      secretKeyRef:
-        name: redis-secret
-        key: password
-  EOT
+    metadata = [
+      {
+        name  = "redisHost"
+        value = "redis:6379"
+      },
+      {
+        name = "redisPassword"
+        secret_key_ref = {
+          name = "redis-secret"
+          key  = "password"
+        }
+      }
+    ]
+  }
 
-  secret_store = "kubernetes"
+  auth = {
+    secret_store = "kubernetes"
+  }
+
   scopes       = ["app1", "app2"]
 }
 ```
@@ -45,15 +54,55 @@ resource "catalyst_component" "example" {
 
 - `name` (String) Component name
 - `project_name` (String) Project name
-- `spec` (String) Dapr Component Metadata in YAML format
-- `type` (String) Component type
-- `version` (String) Component version
+- `spec` (Attributes) Dapr component spec (see [below for nested schema](#nestedatt--spec))
 
 ### Optional
 
+- `auth` (Attributes) Authentication settings (see [below for nested schema](#nestedatt--auth))
 - `scopes` (List of String) App IDs that can access this component
-- `secret_store` (String) Secret store for secret reference resolution
 
 ### Read-Only
 
 - `status` (String) Status of the component
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Required:
+
+- `type` (String) Component type
+
+Optional:
+
+- `metadata` (Attributes List) Metadata entries passed to the component (see [below for nested schema](#nestedatt--spec--metadata))
+- `version` (String) Component version
+
+<a id="nestedatt--spec--metadata"></a>
+### Nested Schema for `spec.metadata`
+
+Required:
+
+- `name` (String) Metadata key
+
+Optional:
+
+- `secret_key_ref` (Attributes) Secret reference for the metadata value (see [below for nested schema](#nestedatt--spec--metadata--secret_key_ref))
+- `value` (String) Metadata value
+
+<a id="nestedatt--spec--metadata--secret_key_ref"></a>
+### Nested Schema for `spec.metadata.secret_key_ref`
+
+Required:
+
+- `key` (String) Secret key
+- `name` (String) Secret name
+
+
+
+
+<a id="nestedatt--auth"></a>
+### Nested Schema for `auth`
+
+Optional:
+
+- `secret_store` (String) Secret store for secret reference resolution

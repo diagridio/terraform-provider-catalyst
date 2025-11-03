@@ -28,8 +28,8 @@ func TestMockComponentDataSource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
 						resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "type", componentType),
-						resource.TestCheckResourceAttr("catalyst_component.test", "version", componentVersion),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.type", componentType),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.version", componentVersion),
 					),
 				},
 				// Read Component datasource
@@ -39,8 +39,8 @@ func TestMockComponentDataSource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("data.catalyst_component.test", "name", componentName),
 						resource.TestCheckResourceAttr("data.catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("data.catalyst_component.test", "type", componentType),
-						resource.TestCheckResourceAttr("data.catalyst_component.test", "version", componentVersion),
+						resource.TestCheckResourceAttr("data.catalyst_component.test", "spec.type", componentType),
+						resource.TestCheckResourceAttr("data.catalyst_component.test", "spec.version", componentVersion),
 					),
 				},
 			},

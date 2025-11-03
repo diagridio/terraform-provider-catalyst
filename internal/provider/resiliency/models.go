@@ -11,9 +11,66 @@ import (
 type model struct {
 	ProjectID types.String `tfsdk:"project_id"`
 	Name      types.String `tfsdk:"name"`
-	Spec      types.String `tfsdk:"spec"`
+	Spec      *specModel   `tfsdk:"spec"`
 	Scopes    types.List   `tfsdk:"scopes"`
 	Status    types.String `tfsdk:"status"`
+}
+
+type specModel struct {
+	Policies *policiesModel `tfsdk:"policies"`
+	Targets  *targetsModel  `tfsdk:"targets"`
+}
+
+type policiesModel struct {
+	Timeouts        types.Map                      `tfsdk:"timeouts"`
+	Retries         map[string]retryPolicyModel    `tfsdk:"retries"`
+	CircuitBreakers map[string]circuitBreakerModel `tfsdk:"circuit_breakers"`
+}
+
+type retryPolicyModel struct {
+	Duration    types.String `tfsdk:"duration"`
+	MaxInterval types.String `tfsdk:"max_interval"`
+	MaxRetries  types.Int64  `tfsdk:"max_retries"`
+	Policy      types.String `tfsdk:"policy"`
+}
+
+type circuitBreakerModel struct {
+	Interval    types.String `tfsdk:"interval"`
+	MaxRequests types.Int64  `tfsdk:"max_requests"`
+	Timeout     types.String `tfsdk:"timeout"`
+	Trip        types.String `tfsdk:"trip"`
+}
+
+type targetsModel struct {
+	Apps       map[string]endpointPolicyModel  `tfsdk:"apps"`
+	Actors     map[string]actorPolicyModel     `tfsdk:"actors"`
+	Components map[string]componentPolicyModel `tfsdk:"components"`
+}
+
+type endpointPolicyModel struct {
+	CircuitBreaker          types.String `tfsdk:"circuit_breaker"`
+	CircuitBreakerCacheSize types.Int64  `tfsdk:"circuit_breaker_cache_size"`
+	Retry                   types.String `tfsdk:"retry"`
+	Timeout                 types.String `tfsdk:"timeout"`
+}
+
+type actorPolicyModel struct {
+	CircuitBreaker          types.String `tfsdk:"circuit_breaker"`
+	CircuitBreakerCacheSize types.Int64  `tfsdk:"circuit_breaker_cache_size"`
+	CircuitBreakerScope     types.String `tfsdk:"circuit_breaker_scope"`
+	Retry                   types.String `tfsdk:"retry"`
+	Timeout                 types.String `tfsdk:"timeout"`
+}
+
+type componentPolicyModel struct {
+	Inbound  *componentDirectionPolicyModel `tfsdk:"inbound"`
+	Outbound *componentDirectionPolicyModel `tfsdk:"outbound"`
+}
+
+type componentDirectionPolicyModel struct {
+	CircuitBreaker types.String `tfsdk:"circuit_breaker"`
+	Retry          types.String `tfsdk:"retry"`
+	Timeout        types.String `tfsdk:"timeout"`
 }
 
 func NewModel() *model {
@@ -54,13 +111,16 @@ func (m *model) GetStatus() string {
 }
 
 func (m *model) SetStatus(status string) {
+	if status == "" {
+		m.Status = types.StringNull()
+		return
+	}
 	m.Status = types.StringValue(status)
 }
 
-func (m *model) GetSpec() string {
-	return m.Spec.ValueString()
-}
-
-func (m *model) SetSpec(spec string) {
-	m.Spec = types.StringValue(spec)
+func (m *model) ensureSpec() *specModel {
+	if m.Spec == nil {
+		m.Spec = &specModel{}
+	}
+	return m.Spec
 }
