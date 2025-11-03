@@ -169,6 +169,10 @@ func (r *appidResource) Create(ctx context.Context,
 
 	model.Log(ctx, "creating appid")
 
+	// Store original plan values for optional computed fields
+	originalProtocol := model.Protocol
+	originalAppConfig := model.AppConfig
+
 	appid := &client.AppIdentity{
 		ApiVersion: lo.ToPtr("cra.diagrid.io/v1beta1"),
 		Kind:       lo.ToPtr("AppIdentity"),
@@ -208,6 +212,14 @@ func (r *appidResource) Create(ctx context.Context,
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading appid after create: %s", err))
 		return
+	}
+
+	// Preserve null state for optional computed fields if they weren't explicitly set
+	if originalProtocol.IsNull() {
+		model.Protocol = originalProtocol
+	}
+	if originalAppConfig.IsNull() {
+		model.AppConfig = originalAppConfig
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -250,6 +262,10 @@ func (r *appidResource) Update(ctx context.Context,
 
 	model.Log(ctx, "updating appid")
 
+	// Store original plan values for optional computed fields
+	originalProtocol := model.Protocol
+	originalAppConfig := model.AppConfig
+
 	appid := &client.AppIdentity{
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
@@ -287,6 +303,14 @@ func (r *appidResource) Update(ctx context.Context,
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading appid after update: %s", err))
 		return
+	}
+
+	// Preserve null state for optional computed fields if they weren't explicitly set
+	if originalProtocol.IsNull() {
+		model.Protocol = originalProtocol
+	}
+	if originalAppConfig.IsNull() {
+		model.AppConfig = originalAppConfig
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

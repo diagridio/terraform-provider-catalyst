@@ -17,6 +17,7 @@ import (
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	yamlhelpers "github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers/yaml"
 )
 
 var _ resource.Resource = &configurationResource{}
@@ -62,7 +63,7 @@ func (r *configurationResource) Schema(ctx context.Context,
 				MarkdownDescription: "Dapr Configuration spec in YAML format",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
-					YAMLEquivalence(),
+					yamlhelpers.SemanticEquivalenceModifier(),
 				},
 			},
 			"status": schema.StringAttribute{

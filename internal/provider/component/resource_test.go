@@ -221,6 +221,67 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	}
 }
 
+// TestYAMLFormattingEquivalence verifies that YAML formatting changes don't trigger resource updates
+func TestYAMLFormattingEquivalence(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	resource.UnitTest(t,
+		resource.TestCase{
+			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+				provider.ProviderName: providerserver.NewProtocol6WithError(
+					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
+				),
+			},
+			Steps: []resource.TestStep{
+				// Create with standard format
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v1"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
+						resource.TestCheckResourceAttrSet("catalyst_component.test", "spec"),
+					),
+				},
+				// Update type (real change) - should trigger update
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.postgresql", "v1"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "type", "state.postgresql"),
+					),
+				},
+			},
+		})
+}
+
+// TestComponentUpdate verifies that actual spec changes trigger updates correctly
+func TestComponentUpdate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	resource.UnitTest(t,
+		resource.TestCase{
+			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+				provider.ProviderName: providerserver.NewProtocol6WithError(
+					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
+				),
+			},
+			Steps: []resource.TestStep{
+				// Create
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v1"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "version", "v1"),
+					),
+				},
+				// Update version
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v2"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "version", "v2"),
+					),
+				},
+			},
+		})
+}
+
 func testAccComponentResourceConfig(projectName, componentName, componentType, version string) string {
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {

@@ -18,6 +18,7 @@ import (
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	yamlhelpers "github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers/yaml"
 )
 
 var _ resource.Resource = &componentResource{}
@@ -71,7 +72,7 @@ func (r *componentResource) Schema(ctx context.Context,
 				MarkdownDescription: "Dapr Component Metadata in YAML format",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
-					YAMLSemanticEquality(),
+					yamlhelpers.SemanticEquivalenceModifier(),
 				},
 			},
 			"secret_store": schema.StringAttribute{
@@ -125,6 +126,9 @@ func (r *componentResource) Create(ctx context.Context,
 
 	model.Log(ctx, "creating component")
 
+	// Store the original spec from the plan to preserve formatting
+	originalSpec := model.Spec
+
 	component := &client.DaprComponent{
 		ApiVersion: lo.ToPtr("dapr.io/v1alpha1"),
 		Kind:       lo.ToPtr("Component"),
@@ -173,6 +177,15 @@ func (r *componentResource) Create(ctx context.Context,
 		return
 	}
 
+	// Preserve original spec formatting if semantically equal
+	if !originalSpec.IsNull() && !originalSpec.IsUnknown() && !model.Spec.IsNull() && !model.Spec.IsUnknown() {
+		normalizedOriginal, err1 := normalizeYAML(originalSpec.ValueString())
+		normalizedCurrent, err2 := normalizeYAML(model.Spec.ValueString())
+		if err1 == nil && err2 == nil && normalizedOriginal == normalizedCurrent {
+			model.Spec = originalSpec
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -212,6 +225,9 @@ func (r *componentResource) Update(ctx context.Context,
 	}
 
 	model.Log(ctx, "updating component")
+
+	// Store the original spec from the plan to preserve formatting
+	originalSpec := model.Spec
 
 	component := &client.DaprComponent{
 		Metadata: &client.Metadata{
@@ -258,6 +274,15 @@ func (r *componentResource) Update(ctx context.Context,
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading component after update: %s", err))
 		return
+	}
+
+	// Preserve original spec formatting if semantically equal
+	if !originalSpec.IsNull() && !originalSpec.IsUnknown() && !model.Spec.IsNull() && !model.Spec.IsUnknown() {
+		normalizedOriginal, err1 := normalizeYAML(originalSpec.ValueString())
+		normalizedCurrent, err2 := normalizeYAML(model.Spec.ValueString())
+		if err1 == nil && err2 == nil && normalizedOriginal == normalizedCurrent {
+			model.Spec = originalSpec
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

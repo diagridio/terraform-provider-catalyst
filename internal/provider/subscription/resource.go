@@ -18,6 +18,7 @@ import (
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	yamlhelpers "github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers/yaml"
 )
 
 var _ resource.Resource = &subscriptionResource{}
@@ -71,7 +72,7 @@ func (r *subscriptionResource) Schema(ctx context.Context,
 				MarkdownDescription: "Dapr Subscription spec in YAML format",
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
-					YAMLEquivalence(),
+					yamlhelpers.SemanticEquivalenceModifier(),
 				},
 			},
 			"scopes": schema.ListAttribute{

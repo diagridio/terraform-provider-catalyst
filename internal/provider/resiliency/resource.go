@@ -18,6 +18,7 @@ import (
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	yamlhelpers "github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers/yaml"
 )
 
 var _ resource.Resource = &resiliencyResource{}
@@ -63,7 +64,7 @@ func (r *resiliencyResource) Schema(ctx context.Context,
 				MarkdownDescription: "Dapr Resiliency spec in YAML format",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
-					YAMLEquivalence(),
+					yamlhelpers.SemanticEquivalenceModifier(),
 				},
 			},
 			"scopes": schema.ListAttribute{
