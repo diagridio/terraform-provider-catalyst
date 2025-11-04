@@ -3,7 +3,7 @@ module github.com/diagridio/terraform-provider-catalyst
 go 1.25
 
 require (
-	github.com/diagridio/diagrid-cloud-go v0.0.0-20250915171924-6b452b2947fd
+	github.com/diagridio/diagrid-cloud-go v0.0.0-20251104145555-220f25a91f75
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-docs v0.19.4
 	github.com/hashicorp/terraform-plugin-framework v1.15.1
@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.13.3
 	github.com/samber/lo v1.51.0
 	go.uber.org/mock v0.6.0
+	k8s.io/utils v0.0.0-20240921022957-49e7df575cb6
 )
 
 require (
