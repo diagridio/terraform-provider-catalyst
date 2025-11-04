@@ -38,7 +38,6 @@ resource "catalyst_project" "project" {
 - `grpc_endpoint` (String) gRPC endpoint
 - `http_endpoint` (String) HTTP endpoint
 - `region` (String) Project region
-- `wait_for_ready` (Boolean) Wait for the project to be in ready state before returning
 
 ## Import
 

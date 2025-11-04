@@ -13,7 +13,6 @@ type model struct {
 	Region       types.String `tfsdk:"region"`
 	GRPCEndpoint types.String `tfsdk:"grpc_endpoint"`
 	HTTPEndpoint types.String `tfsdk:"http_endpoint"`
-	WaitForReady types.Bool   `tfsdk:"wait_for_ready"`
 }
 
 func NewModel() *model {

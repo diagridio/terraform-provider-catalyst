@@ -320,7 +320,6 @@ func testAccComponentResourceConfig(projectName, componentName, componentType, v
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
 	name           = %q
-	wait_for_ready = true
 }
 
 resource "catalyst_component" "test" {

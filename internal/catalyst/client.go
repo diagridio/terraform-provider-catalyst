@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
 	"github.com/diagridio/diagrid-cloud-go/management"
 	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
@@ -193,7 +195,11 @@ func (c *cclient) GetProject(ctx context.Context, id string, qp *cloudruntime_cl
 }
 
 func (c *cclient) CreateProject(ctx context.Context, project *cloudruntime_client.Project) error {
-	if err := c.catalyst.CreateProject(ctx, project); err != nil {
+	if err := c.catalyst.CreateProject(ctx, project, &cloudruntime_client.CreateProjectParams{
+		// We always set wait for ready to true as this ensures we
+		// can more safely create sub-resources immediately after.
+		WaitForReady: ptr.To(true),
+	}); err != nil {
 		return fmt.Errorf("error creating project: %w", err)
 	}
 
