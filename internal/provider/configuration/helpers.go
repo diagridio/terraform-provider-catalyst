@@ -388,38 +388,6 @@ func listToStringSlice(ctx context.Context, list types.List) ([]string, error) {
 	return values, nil
 }
 
-func mapToStringMap(ctx context.Context, m types.Map) (map[string]string, error) {
-	if m.IsNull() || m.IsUnknown() {
-		return map[string]string{}, nil
-	}
-
-	values := make(map[string]string)
-	diags := m.ElementsAs(ctx, &values, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to parse map: %v", diags.Errors())
-	}
-	return values, nil
-}
-
-func mapToInterfaceMap(ctx context.Context, m types.Map) (map[string]interface{}, error) {
-	if m.IsNull() || m.IsUnknown() {
-		return map[string]interface{}{}, nil
-	}
-
-	raw := make(map[string]string)
-	diags := m.ElementsAs(ctx, &raw, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to parse map: %v", diags.Errors())
-	}
-
-	result := make(map[string]interface{}, len(raw))
-	for key, value := range raw {
-		result[key] = value
-	}
-
-	return result, nil
-}
-
 func newStringListValue(ctx context.Context, values *[]string) (types.List, error) {
 	if values == nil {
 		return types.ListNull(types.StringType), nil

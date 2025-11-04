@@ -23,19 +23,6 @@ func stringAttrComputed(desc string) schema.StringAttribute {
 	}
 }
 
-func boolAttr(desc string, required, computed bool) schema.BoolAttribute {
-	attr := schema.BoolAttribute{MarkdownDescription: desc}
-	switch {
-	case required:
-		attr.Required = true
-	case computed:
-		attr.Computed = true
-	default:
-		attr.Optional = true
-	}
-	return attr
-}
-
 func listAttr(desc string, elemType attr.Type, required, computed bool) schema.ListAttribute {
 	attr := schema.ListAttribute{
 		MarkdownDescription: desc,
