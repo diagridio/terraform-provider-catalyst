@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func stringAttr(desc string, required, computed bool) schema.StringAttribute {
-	req, opt, comp := attributeModes(required, computed)
+func stringAttr(desc string, computed bool) schema.StringAttribute {
+	req, opt, comp := attributeModes(false, computed)
 	return schema.StringAttribute{
 		MarkdownDescription: desc,
 		Required:            req,
@@ -15,18 +15,8 @@ func stringAttr(desc string, required, computed bool) schema.StringAttribute {
 	}
 }
 
-func boolAttr(desc string, required, computed bool) schema.BoolAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.BoolAttribute{
-		MarkdownDescription: desc,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func int64Attr(desc string, required, computed bool) schema.Int64Attribute {
-	req, opt, comp := attributeModes(required, computed)
+func int64Attr(desc string, computed bool) schema.Int64Attribute {
+	req, opt, comp := attributeModes(false, computed)
 	return schema.Int64Attribute{
 		MarkdownDescription: desc,
 		Required:            req,
@@ -46,21 +36,8 @@ func mapStringAttr(desc string, required, computed bool) schema.MapAttribute {
 	}
 }
 
-func listNestedAttr(desc string, required, computed bool, attrs map[string]schema.Attribute) schema.ListNestedAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.ListNestedAttribute{
-		MarkdownDescription: desc,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: attrs,
-		},
-		Required: req,
-		Optional: opt,
-		Computed: comp,
-	}
-}
-
-func mapNestedAttr(desc string, required, computed bool, attrs map[string]schema.Attribute) schema.MapNestedAttribute {
-	req, opt, comp := attributeModes(required, computed)
+func mapNestedAttr(desc string, computed bool, attrs map[string]schema.Attribute) schema.MapNestedAttribute {
+	req, opt, comp := attributeModes(false, computed)
 	return schema.MapNestedAttribute{
 		MarkdownDescription: desc,
 		NestedObject: schema.NestedAttributeObject{
@@ -122,13 +99,12 @@ func resiliencyPoliciesAttribute(computed bool) schema.SingleNestedAttribute {
 func resiliencyRetryPoliciesAttribute(computed bool) schema.MapNestedAttribute {
 	return mapNestedAttr(
 		"Retry policies keyed by name",
-		false,
 		computed,
 		map[string]schema.Attribute{
-			"duration":     stringAttr("Delay between retries (e.g. 5s)", false, computed),
-			"max_interval": stringAttr("Maximum backoff interval", false, computed),
-			"max_retries":  int64Attr("Maximum retry attempts (-1 for infinite)", false, computed),
-			"policy":       stringAttr("Retry policy type (constant or exponential)", false, computed),
+			"duration":     stringAttr("Delay between retries (e.g. 5s)", computed),
+			"max_interval": stringAttr("Maximum backoff interval", computed),
+			"max_retries":  int64Attr("Maximum retry attempts (-1 for infinite)", computed),
+			"policy":       stringAttr("Retry policy type (constant or exponential)", computed),
 		},
 	)
 }
@@ -136,13 +112,12 @@ func resiliencyRetryPoliciesAttribute(computed bool) schema.MapNestedAttribute {
 func resiliencyCircuitBreakerPoliciesAttribute(computed bool) schema.MapNestedAttribute {
 	return mapNestedAttr(
 		"Circuit breaker policies keyed by name",
-		false,
 		computed,
 		map[string]schema.Attribute{
-			"interval":     stringAttr("Time window used to calculate statistics", false, computed),
-			"max_requests": int64Attr("Maximum requests allowed in half-open state", false, computed),
-			"timeout":      stringAttr("Duration the circuit remains open", false, computed),
-			"trip":         stringAttr("Condition that opens the circuit", false, computed),
+			"interval":     stringAttr("Time window used to calculate statistics", computed),
+			"max_requests": int64Attr("Maximum requests allowed in half-open state", computed),
+			"timeout":      stringAttr("Duration the circuit remains open", computed),
+			"trip":         stringAttr("Condition that opens the circuit", computed),
 		},
 	)
 }
@@ -163,13 +138,12 @@ func resiliencyTargetsAttribute(computed bool) schema.SingleNestedAttribute {
 func resiliencyTargetAppsAttribute(computed bool) schema.MapNestedAttribute {
 	return mapNestedAttr(
 		"Application policy bindings keyed by app ID",
-		false,
 		computed,
 		map[string]schema.Attribute{
-			"circuit_breaker":            stringAttr("Circuit breaker policy name", false, computed),
-			"circuit_breaker_cache_size": int64Attr("Size of the circuit breaker cache", false, computed),
-			"retry":                      stringAttr("Retry policy name", false, computed),
-			"timeout":                    stringAttr("Timeout policy name", false, computed),
+			"circuit_breaker":            stringAttr("Circuit breaker policy name", computed),
+			"circuit_breaker_cache_size": int64Attr("Size of the circuit breaker cache", computed),
+			"retry":                      stringAttr("Retry policy name", computed),
+			"timeout":                    stringAttr("Timeout policy name", computed),
 		},
 	)
 }
@@ -177,14 +151,13 @@ func resiliencyTargetAppsAttribute(computed bool) schema.MapNestedAttribute {
 func resiliencyTargetActorsAttribute(computed bool) schema.MapNestedAttribute {
 	return mapNestedAttr(
 		"Actor policy bindings keyed by actor type",
-		false,
 		computed,
 		map[string]schema.Attribute{
-			"circuit_breaker":            stringAttr("Circuit breaker policy name", false, computed),
-			"circuit_breaker_cache_size": int64Attr("Size of the circuit breaker cache", false, computed),
-			"circuit_breaker_scope":      stringAttr("Scope used for the circuit breaker", false, computed),
-			"retry":                      stringAttr("Retry policy name", false, computed),
-			"timeout":                    stringAttr("Timeout policy name", false, computed),
+			"circuit_breaker":            stringAttr("Circuit breaker policy name", computed),
+			"circuit_breaker_cache_size": int64Attr("Size of the circuit breaker cache", computed),
+			"circuit_breaker_scope":      stringAttr("Scope used for the circuit breaker", computed),
+			"retry":                      stringAttr("Retry policy name", computed),
+			"timeout":                    stringAttr("Timeout policy name", computed),
 		},
 	)
 }
@@ -192,7 +165,6 @@ func resiliencyTargetActorsAttribute(computed bool) schema.MapNestedAttribute {
 func resiliencyTargetComponentsAttribute(computed bool) schema.MapNestedAttribute {
 	return mapNestedAttr(
 		"Component policy bindings keyed by component name",
-		false,
 		computed,
 		map[string]schema.Attribute{
 			"inbound":  resiliencyComponentDirectionAttribute("Policies applied to inbound operations", computed),
@@ -207,9 +179,9 @@ func resiliencyComponentDirectionAttribute(desc string, computed bool) schema.Si
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"circuit_breaker": stringAttr("Circuit breaker policy name", false, computed),
-			"retry":           stringAttr("Retry policy name", false, computed),
-			"timeout":         stringAttr("Timeout policy name", false, computed),
+			"circuit_breaker": stringAttr("Circuit breaker policy name", computed),
+			"retry":           stringAttr("Retry policy name", computed),
+			"timeout":         stringAttr("Timeout policy name", computed),
 		},
 	)
 }

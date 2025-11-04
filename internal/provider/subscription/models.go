@@ -106,19 +106,3 @@ func (m *model) SetStatus(status string) {
 	}
 	m.Status = types.StringValue(status)
 }
-
-func (m *model) ensureSpec() *specModel {
-	if m.Spec == nil {
-		m.Spec = &specModel{}
-	}
-	if m.Spec.Metadata.IsNull() || m.Spec.Metadata.IsUnknown() {
-		m.Spec.Metadata = types.MapNull(types.StringType)
-	}
-	if m.Spec.DeadLetterTopic.IsNull() || m.Spec.DeadLetterTopic.IsUnknown() {
-		m.Spec.DeadLetterTopic = types.StringNull()
-	}
-	if m.Spec.Dynamic.IsNull() || m.Spec.Dynamic.IsUnknown() {
-		m.Spec.Dynamic = types.BoolNull()
-	}
-	return m.Spec
-}

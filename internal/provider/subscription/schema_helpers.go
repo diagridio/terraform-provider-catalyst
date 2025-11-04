@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func stringAttr(desc string, required, computed bool) schema.StringAttribute {
-	req, opt, comp := attributeModes(required, computed)
+func stringAttr(desc string, computed bool) schema.StringAttribute {
+	req, opt, comp := attributeModes(false, computed)
 	return schema.StringAttribute{
 		MarkdownDescription: desc,
 		Required:            req,
@@ -89,7 +89,7 @@ func subscriptionSpecAttribute(required, computed bool) schema.SingleNestedAttri
 		map[string]schema.Attribute{
 			"routes":            subscriptionRoutesAttribute(computed),
 			"bulk_subscribe":    subscriptionBulkSubscribeAttribute(computed),
-			"dead_letter_topic": stringAttr("Dead letter topic", false, computed),
+			"dead_letter_topic": stringAttr("Dead letter topic", computed),
 			"metadata":          mapStringAttr("Metadata entries", false, computed),
 			"dynamic":           boolAttr("Dynamic subscription", false, computed),
 		},
@@ -102,7 +102,7 @@ func subscriptionRoutesAttribute(computed bool) schema.SingleNestedAttribute {
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"default": stringAttr("Default route path", false, computed),
+			"default": stringAttr("Default route path", computed),
 			"rules":   subscriptionRouteRulesAttribute(computed),
 		},
 	)
@@ -114,8 +114,8 @@ func subscriptionRouteRulesAttribute(computed bool) schema.ListNestedAttribute {
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"match": stringAttr("Match expression", false, computed),
-			"path":  stringAttr("Route path", false, computed),
+			"match": stringAttr("Match expression", computed),
+			"path":  stringAttr("Route path", computed),
 		},
 	)
 }

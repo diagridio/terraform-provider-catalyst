@@ -267,7 +267,7 @@ func TestComponentMetadataUpdate(t *testing.T) {
 		})
 }
 
-// TestComponentUpdate verifies that actual spec changes trigger updates correctly
+// TestComponentUpdate verifies that actual spec changes trigger updates correctly.
 func TestComponentUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 

@@ -44,10 +44,7 @@ func expandResiliencySpec(ctx context.Context, model *specModel) (*cloudruntime_
 	}
 
 	if model.Targets != nil {
-		targets, err := expandResiliencyTargets(model.Targets)
-		if err != nil {
-			return nil, err
-		}
+		targets := expandResiliencyTargets(model.Targets)
 		api.Targets = targets
 	}
 
@@ -180,9 +177,9 @@ func expandCircuitBreaker(model circuitBreakerModel) (cloudruntime_client.Resili
 	return cb, hasValue
 }
 
-func expandResiliencyTargets(model *targetsModel) (*cloudruntime_client.ResiliencySpecTargets, error) {
+func expandResiliencyTargets(model *targetsModel) *cloudruntime_client.ResiliencySpecTargets {
 	if model == nil {
-		return nil, nil
+		return nil
 	}
 
 	targets := &cloudruntime_client.ResiliencySpecTargets{}
@@ -228,10 +225,10 @@ func expandResiliencyTargets(model *targetsModel) (*cloudruntime_client.Resilien
 	}
 
 	if !hasData {
-		return nil, nil
+		return nil
 	}
 
-	return targets, nil
+	return targets
 }
 
 func expandEndpointPolicy(model endpointPolicyModel) (cloudruntime_client.ResiliencySpecTargetsEndpointPolicyNames, bool) {
@@ -387,10 +384,7 @@ func flattenResiliencySpec(ctx context.Context, api *cloudruntime_client.DaprRes
 	}
 
 	if api.Targets != nil {
-		targets, err := flattenResiliencyTargets(api.Targets)
-		if err != nil {
-			return nil, err
-		}
+		targets := flattenResiliencyTargets(api.Targets)
 		model.Targets = targets
 	}
 
@@ -513,9 +507,9 @@ func flattenCircuitBreaker(api cloudruntime_client.ResiliencySpecPoliciesCircuit
 	return model, hasValue
 }
 
-func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) (*targetsModel, error) {
+func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) *targetsModel {
 	if api == nil {
-		return nil, nil
+		return nil
 	}
 
 	model := &targetsModel{}
@@ -561,10 +555,10 @@ func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) (*
 	}
 
 	if !hasData {
-		return nil, nil
+		return nil
 	}
 
-	return model, nil
+	return model
 }
 
 func flattenEndpointPolicy(api cloudruntime_client.ResiliencySpecTargetsEndpointPolicyNames) (endpointPolicyModel, bool) {

@@ -27,20 +27,14 @@ func expandConfigurationSpec(ctx context.Context, spec *specModel) (*cloudruntim
 	}
 
 	if spec.AppHTTPPipeline != nil {
-		handlers, err := expandHandlers(spec.AppHTTPPipeline)
-		if err != nil {
-			return nil, err
-		}
+		handlers := expandHandlers(spec.AppHTTPPipeline)
 		if handlers != nil {
 			apiSpec.AppHttpPipeline = &cloudruntime_client.ConfigurationSpecAppHttpPipeline{Handlers: handlers}
 		}
 	}
 
 	if spec.HttpPipeline != nil {
-		handlers, err := expandHandlers(spec.HttpPipeline)
-		if err != nil {
-			return nil, err
-		}
+		handlers := expandHandlers(spec.HttpPipeline)
 		if handlers != nil {
 			apiSpec.HttpPipeline = &cloudruntime_client.ConfigurationSpecHttpPipeline{Handlers: handlers}
 		}
@@ -153,14 +147,14 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloud
 	return ac, nil
 }
 
-func expandHandlers(model *pipelineModel) (*[]cloudruntime_client.ConfigurationSpecHandler, error) {
+func expandHandlers(model *pipelineModel) *[]cloudruntime_client.ConfigurationSpecHandler {
 	if model == nil {
-		return nil, nil
+		return nil
 	}
 
 	if len(model.Handlers) == 0 {
 		empty := []cloudruntime_client.ConfigurationSpecHandler{}
-		return &empty, nil
+		return &empty
 	}
 
 	handlers := make([]cloudruntime_client.ConfigurationSpecHandler, 0, len(model.Handlers))
@@ -184,7 +178,7 @@ func expandHandlers(model *pipelineModel) (*[]cloudruntime_client.ConfigurationS
 		handlers = append(handlers, h)
 	}
 
-	return &handlers, nil
+	return &handlers
 }
 
 func flattenConfigurationSpec(ctx context.Context, apiSpec *cloudruntime_client.DaprConfigurationSpec) (*specModel, error) {
