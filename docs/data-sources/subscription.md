@@ -35,7 +35,6 @@ Read-Only:
 
 - `bulk_subscribe` (Attributes) Bulk subscribe configuration (see [below for nested schema](#nestedatt--spec--bulk_subscribe))
 - `dead_letter_topic` (String) Dead letter topic
-- `dynamic` (Boolean) Dynamic subscription
 - `metadata` (Map of String) Metadata entries
 - `routes` (Attributes) Routes configuration (see [below for nested schema](#nestedatt--spec--routes))
 

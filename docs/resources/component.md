@@ -43,7 +43,7 @@ resource "catalyst_component" "example" {
     secret_store = "kubernetes"
   }
 
-  scopes       = ["app1", "app2"]
+  scopes = ["app1", "app2"]
 }
 ```
 
