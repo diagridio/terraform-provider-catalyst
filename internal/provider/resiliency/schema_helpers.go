@@ -1,78 +1,12 @@
 package resiliency
 
 import (
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func stringAttr(desc string, computed bool) schema.StringAttribute {
-	req, opt, comp := attributeModes(false, computed)
-	return schema.StringAttribute{
-		MarkdownDescription: desc,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func int64Attr(desc string, computed bool) schema.Int64Attribute {
-	req, opt, comp := attributeModes(false, computed)
-	return schema.Int64Attribute{
-		MarkdownDescription: desc,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func mapStringAttr(desc string, required, computed bool) schema.MapAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.MapAttribute{
-		MarkdownDescription: desc,
-		ElementType:         types.StringType,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func mapNestedAttr(desc string, computed bool, attrs map[string]schema.Attribute) schema.MapNestedAttribute {
-	req, opt, comp := attributeModes(false, computed)
-	return schema.MapNestedAttribute{
-		MarkdownDescription: desc,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: attrs,
-		},
-		Required: req,
-		Optional: opt,
-		Computed: comp,
-	}
-}
-
-func singleNestedAttr(desc string, required, computed bool, attrs map[string]schema.Attribute) schema.SingleNestedAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.SingleNestedAttribute{
-		MarkdownDescription: desc,
-		Attributes:          attrs,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func attributeModes(required, computed bool) (req, opt, comp bool) {
-	switch {
-	case required:
-		return true, false, false
-	case computed:
-		return false, false, true
-	default:
-		return false, true, false
-	}
-}
-
 func resiliencySpecAttribute(required, computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		"Dapr resiliency spec",
 		required,
 		computed,
@@ -84,12 +18,12 @@ func resiliencySpecAttribute(required, computed bool) schema.SingleNestedAttribu
 }
 
 func resiliencyPoliciesAttribute(computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		"Resiliency policy definitions",
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"timeouts":         mapStringAttr("Timeout policies keyed by name", false, computed),
+			"timeouts":         helpers.MapStringAttr("Timeout policies keyed by name", false, computed),
 			"retries":          resiliencyRetryPoliciesAttribute(computed),
 			"circuit_breakers": resiliencyCircuitBreakerPoliciesAttribute(computed),
 		},
@@ -97,33 +31,35 @@ func resiliencyPoliciesAttribute(computed bool) schema.SingleNestedAttribute {
 }
 
 func resiliencyRetryPoliciesAttribute(computed bool) schema.MapNestedAttribute {
-	return mapNestedAttr(
+	return helpers.MapNestedAttr(
 		"Retry policies keyed by name",
+		false,
 		computed,
 		map[string]schema.Attribute{
-			"duration":     stringAttr("Delay between retries (e.g. 5s)", computed),
-			"max_interval": stringAttr("Maximum backoff interval", computed),
-			"max_retries":  int64Attr("Maximum retry attempts (-1 for infinite)", computed),
-			"policy":       stringAttr("Retry policy type (constant or exponential)", computed),
+			"duration":     helpers.StringAttr("Delay between retries (e.g. 5s)", computed),
+			"max_interval": helpers.StringAttr("Maximum backoff interval", computed),
+			"max_retries":  helpers.Int64Attr("Maximum retry attempts (-1 for infinite)", false, computed),
+			"policy":       helpers.StringAttr("Retry policy type (constant or exponential)", computed),
 		},
 	)
 }
 
 func resiliencyCircuitBreakerPoliciesAttribute(computed bool) schema.MapNestedAttribute {
-	return mapNestedAttr(
+	return helpers.MapNestedAttr(
 		"Circuit breaker policies keyed by name",
+		false,
 		computed,
 		map[string]schema.Attribute{
-			"interval":     stringAttr("Time window used to calculate statistics", computed),
-			"max_requests": int64Attr("Maximum requests allowed in half-open state", computed),
-			"timeout":      stringAttr("Duration the circuit remains open", computed),
-			"trip":         stringAttr("Condition that opens the circuit", computed),
+			"interval":     helpers.StringAttr("Time window used to calculate statistics", computed),
+			"max_requests": helpers.Int64Attr("Maximum requests allowed in half-open state", false, computed),
+			"timeout":      helpers.StringAttr("Duration the circuit remains open", computed),
+			"trip":         helpers.StringAttr("Condition that opens the circuit", computed),
 		},
 	)
 }
 
 func resiliencyTargetsAttribute(computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		"Target assignments for policies",
 		false,
 		computed,
@@ -136,35 +72,38 @@ func resiliencyTargetsAttribute(computed bool) schema.SingleNestedAttribute {
 }
 
 func resiliencyTargetAppsAttribute(computed bool) schema.MapNestedAttribute {
-	return mapNestedAttr(
+	return helpers.MapNestedAttr(
 		"Application policy bindings keyed by app ID",
+		false,
 		computed,
 		map[string]schema.Attribute{
-			"circuit_breaker":            stringAttr("Circuit breaker policy name", computed),
-			"circuit_breaker_cache_size": int64Attr("Size of the circuit breaker cache", computed),
-			"retry":                      stringAttr("Retry policy name", computed),
-			"timeout":                    stringAttr("Timeout policy name", computed),
+			"circuit_breaker":            helpers.StringAttr("Circuit breaker policy name", computed),
+			"circuit_breaker_cache_size": helpers.Int64Attr("Size of the circuit breaker cache", false, computed),
+			"retry":                      helpers.StringAttr("Retry policy name", computed),
+			"timeout":                    helpers.StringAttr("Timeout policy name", computed),
 		},
 	)
 }
 
 func resiliencyTargetActorsAttribute(computed bool) schema.MapNestedAttribute {
-	return mapNestedAttr(
+	return helpers.MapNestedAttr(
 		"Actor policy bindings keyed by actor type",
+		false,
 		computed,
 		map[string]schema.Attribute{
-			"circuit_breaker":            stringAttr("Circuit breaker policy name", computed),
-			"circuit_breaker_cache_size": int64Attr("Size of the circuit breaker cache", computed),
-			"circuit_breaker_scope":      stringAttr("Scope used for the circuit breaker", computed),
-			"retry":                      stringAttr("Retry policy name", computed),
-			"timeout":                    stringAttr("Timeout policy name", computed),
+			"circuit_breaker":            helpers.StringAttr("Circuit breaker policy name", computed),
+			"circuit_breaker_cache_size": helpers.Int64Attr("Size of the circuit breaker cache", false, computed),
+			"circuit_breaker_scope":      helpers.StringAttr("Scope used for the circuit breaker", computed),
+			"retry":                      helpers.StringAttr("Retry policy name", computed),
+			"timeout":                    helpers.StringAttr("Timeout policy name", computed),
 		},
 	)
 }
 
 func resiliencyTargetComponentsAttribute(computed bool) schema.MapNestedAttribute {
-	return mapNestedAttr(
+	return helpers.MapNestedAttr(
 		"Component policy bindings keyed by component name",
+		false,
 		computed,
 		map[string]schema.Attribute{
 			"inbound":  resiliencyComponentDirectionAttribute("Policies applied to inbound operations", computed),
@@ -174,14 +113,14 @@ func resiliencyTargetComponentsAttribute(computed bool) schema.MapNestedAttribut
 }
 
 func resiliencyComponentDirectionAttribute(desc string, computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		desc,
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"circuit_breaker": stringAttr("Circuit breaker policy name", computed),
-			"retry":           stringAttr("Retry policy name", computed),
-			"timeout":         stringAttr("Timeout policy name", computed),
+			"circuit_breaker": helpers.StringAttr("Circuit breaker policy name", computed),
+			"retry":           helpers.StringAttr("Retry policy name", computed),
+			"timeout":         helpers.StringAttr("Timeout policy name", computed),
 		},
 	)
 }

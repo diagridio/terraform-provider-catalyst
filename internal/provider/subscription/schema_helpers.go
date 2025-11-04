@@ -1,133 +1,57 @@
 package subscription
 
 import (
+	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func stringAttr(desc string, computed bool) schema.StringAttribute {
-	req, opt, comp := attributeModes(false, computed)
-	return schema.StringAttribute{
-		MarkdownDescription: desc,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func boolAttr(desc string, required, computed bool) schema.BoolAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.BoolAttribute{
-		MarkdownDescription: desc,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func int64Attr(desc string, required, computed bool) schema.Int64Attribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.Int64Attribute{
-		MarkdownDescription: desc,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func mapStringAttr(desc string, required, computed bool) schema.MapAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.MapAttribute{
-		MarkdownDescription: desc,
-		ElementType:         types.StringType,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func listNestedAttr(desc string, required, computed bool, attrs map[string]schema.Attribute) schema.ListNestedAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.ListNestedAttribute{
-		MarkdownDescription: desc,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: attrs,
-		},
-		Required: req,
-		Optional: opt,
-		Computed: comp,
-	}
-}
-
-func singleNestedAttr(desc string, required, computed bool, attrs map[string]schema.Attribute) schema.SingleNestedAttribute {
-	req, opt, comp := attributeModes(required, computed)
-	return schema.SingleNestedAttribute{
-		MarkdownDescription: desc,
-		Attributes:          attrs,
-		Required:            req,
-		Optional:            opt,
-		Computed:            comp,
-	}
-}
-
-func attributeModes(required, computed bool) (req, opt, comp bool) {
-	switch {
-	case required:
-		return true, false, false
-	case computed:
-		return false, false, true
-	default:
-		return false, true, false
-	}
-}
-
 func subscriptionSpecAttribute(required, computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		"Dapr subscription spec",
 		required,
 		computed,
 		map[string]schema.Attribute{
 			"routes":            subscriptionRoutesAttribute(computed),
 			"bulk_subscribe":    subscriptionBulkSubscribeAttribute(computed),
-			"dead_letter_topic": stringAttr("Dead letter topic", computed),
-			"metadata":          mapStringAttr("Metadata entries", false, computed),
+			"dead_letter_topic": helpers.StringAttr("Dead letter topic", computed),
+			"metadata":          helpers.MapStringAttr("Metadata entries", false, computed),
 		},
 	)
 }
 
 func subscriptionRoutesAttribute(computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		"Routes configuration",
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"default": stringAttr("Default route path", computed),
+			"default": helpers.StringAttr("Default route path", computed),
 			"rules":   subscriptionRouteRulesAttribute(computed),
 		},
 	)
 }
 
 func subscriptionRouteRulesAttribute(computed bool) schema.ListNestedAttribute {
-	return listNestedAttr(
+	return helpers.ListNestedAttr(
 		"Routing rules",
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"match": stringAttr("Match expression", computed),
-			"path":  stringAttr("Route path", computed),
+			"match": helpers.StringAttr("Match expression", computed),
+			"path":  helpers.StringAttr("Route path", computed),
 		},
 	)
 }
 
 func subscriptionBulkSubscribeAttribute(computed bool) schema.SingleNestedAttribute {
-	return singleNestedAttr(
+	return helpers.SingleNestedAttr(
 		"Bulk subscribe configuration",
 		false,
 		computed,
 		map[string]schema.Attribute{
-			"enabled":               boolAttr("Enable bulk subscribe", false, computed),
-			"max_messages_count":    int64Attr("Maximum messages count", false, computed),
-			"max_await_duration_ms": int64Attr("Maximum await duration in milliseconds", false, computed),
+			"enabled":               helpers.BoolAttr("Enable bulk subscribe", false, computed),
+			"max_messages_count":    helpers.Int64Attr("Maximum messages count", false, computed),
+			"max_await_duration_ms": helpers.Int64Attr("Maximum await duration in milliseconds", false, computed),
 		},
 	)
 }

@@ -53,7 +53,7 @@ func TestMockConfigurationResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.tracing.sampling_rate", "1"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.app_http_pipeline.handlers.#", "1"),
 					),
 				},
 				{
@@ -80,7 +80,7 @@ func TestAccConfigurationResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.metrics.enabled", "true"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.http_pipeline.handlers.#", "1"),
 					),
 				},
 				{
