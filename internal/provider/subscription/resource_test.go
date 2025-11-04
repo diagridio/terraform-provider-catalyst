@@ -91,7 +91,6 @@ func TestAccSubscriptionResource(t *testing.T) {
 					resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
 					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.#", "2"),
 					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.max_await_duration_ms", "1000"),
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.dynamic", "true"),
 				),
 			},
 			{
@@ -342,8 +341,6 @@ resource "catalyst_subscription" "test" {
 			maxConcurrentHandlers = "10"
 			rawPayload            = "true"
 		}
-
-		dynamic = true
 	}
 }
 `, projectName, subscriptionName, pubsubName, topicName, appidName)

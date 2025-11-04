@@ -91,7 +91,6 @@ func subscriptionSpecAttribute(required, computed bool) schema.SingleNestedAttri
 			"bulk_subscribe":    subscriptionBulkSubscribeAttribute(computed),
 			"dead_letter_topic": stringAttr("Dead letter topic", computed),
 			"metadata":          mapStringAttr("Metadata entries", false, computed),
-			"dynamic":           boolAttr("Dynamic subscription", false, computed),
 		},
 	)
 }

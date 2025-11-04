@@ -23,7 +23,6 @@ type specModel struct {
 	BulkSubscribe   *bulkSubscribeModel `tfsdk:"bulk_subscribe"`
 	DeadLetterTopic types.String        `tfsdk:"dead_letter_topic"`
 	Metadata        types.Map           `tfsdk:"metadata"`
-	Dynamic         types.Bool          `tfsdk:"dynamic"`
 }
 
 type routesModel struct {

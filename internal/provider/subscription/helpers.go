@@ -65,12 +65,6 @@ func expandSubscriptionSpec(ctx context.Context, model *specModel) (*cloudruntim
 		}
 	}
 
-	if !model.Dynamic.IsNull() && !model.Dynamic.IsUnknown() {
-		value := model.Dynamic.ValueBool()
-		spec.Dynamic = &value
-		hasData = true
-	}
-
 	if !hasData {
 		return nil, nil
 	}
@@ -168,7 +162,6 @@ func flattenSubscriptionSpec(ctx context.Context, api *cloudruntime_client.DaprS
 	spec := &specModel{
 		DeadLetterTopic: types.StringNull(),
 		Metadata:        types.MapNull(types.StringType),
-		Dynamic:         types.BoolNull(),
 	}
 
 	if api == nil {
@@ -193,10 +186,6 @@ func flattenSubscriptionSpec(ctx context.Context, api *cloudruntime_client.DaprS
 			return nil, fmt.Errorf("failed to flatten metadata: %v", diags.Errors())
 		}
 		spec.Metadata = metadataValue
-	}
-
-	if api.Dynamic != nil {
-		spec.Dynamic = types.BoolValue(*api.Dynamic)
 	}
 
 	return spec, nil
@@ -312,15 +301,11 @@ func specModelIsEmpty(spec *specModel) bool {
 		return false
 	}
 
-	if !spec.DeadLetterTopic.IsNull() && !spec.DeadLetterTopic.IsUnknown() && spec.DeadLetterTopic.ValueString() != "" {
+	if !spec.DeadLetterTopic.IsNull() && !spec.DeadLetterTopic.IsUnknown() {
 		return false
 	}
 
 	if !spec.Metadata.IsNull() && !spec.Metadata.IsUnknown() {
-		return false
-	}
-
-	if !spec.Dynamic.IsNull() && !spec.Dynamic.IsUnknown() {
 		return false
 	}
 
@@ -346,10 +331,6 @@ func applyExpandedSpec(target *cloudruntime_client.DaprSubscriptionSpec, extras 
 
 	if extras.Metadata != nil {
 		target.Metadata = extras.Metadata
-	}
-
-	if extras.Dynamic != nil {
-		target.Dynamic = extras.Dynamic
 	}
 }
 
