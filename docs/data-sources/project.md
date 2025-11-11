@@ -21,4 +21,3 @@ Project data source
 - `http_endpoint` (String) HTTP endpoint
 - `name` (String) Project name
 - `region` (String) Region
-- `wait_for_ready` (Boolean) Wait for the project to be in ready state before returning

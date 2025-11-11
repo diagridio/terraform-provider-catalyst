@@ -171,7 +171,7 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 						Region: lo.ToPtr(regionName),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
+						Status: lo.ToPtr("ready"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),

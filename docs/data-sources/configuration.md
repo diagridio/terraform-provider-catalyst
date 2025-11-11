@@ -22,5 +22,78 @@ Configuration data source
 
 ### Read-Only
 
-- `spec` (String) Configuration spec as YAML string
+- `spec` (Attributes) Dapr configuration spec (see [below for nested schema](#nestedatt--spec))
 - `status` (String) Status
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Read-Only:
+
+- `access_control` (Attributes) Access control configuration (see [below for nested schema](#nestedatt--spec--access_control))
+- `app_http_pipeline` (Attributes) Application HTTP pipeline handlers (see [below for nested schema](#nestedatt--spec--app_http_pipeline))
+- `http_pipeline` (Attributes) Global HTTP pipeline handlers (see [below for nested schema](#nestedatt--spec--http_pipeline))
+
+<a id="nestedatt--spec--access_control"></a>
+### Nested Schema for `spec.access_control`
+
+Read-Only:
+
+- `default_action` (String) Default action when no policy matches
+- `policies` (Attributes List) Access control policies (see [below for nested schema](#nestedatt--spec--access_control--policies))
+- `trust_domain` (String) Trust domain for access control
+
+<a id="nestedatt--spec--access_control--policies"></a>
+### Nested Schema for `spec.access_control.policies`
+
+Read-Only:
+
+- `app_id` (String) Application ID this policy applies to
+- `default_action` (String) Default action for the policy
+- `namespace` (String) Namespace constraint for the policy (computed by API)
+- `operations` (Attributes List) Operations governed by the policy (see [below for nested schema](#nestedatt--spec--access_control--policies--operations))
+- `trust_domain` (String) Policy-specific trust domain
+
+<a id="nestedatt--spec--access_control--policies--operations"></a>
+### Nested Schema for `spec.access_control.policies.operations`
+
+Read-Only:
+
+- `action` (String) Action applied to the operation
+- `http_verbs` (List of String) Allowed HTTP verbs
+- `name` (String) Operation name
+
+
+
+
+<a id="nestedatt--spec--app_http_pipeline"></a>
+### Nested Schema for `spec.app_http_pipeline`
+
+Read-Only:
+
+- `handlers` (Attributes List) Handlers executed for app HTTP traffic (see [below for nested schema](#nestedatt--spec--app_http_pipeline--handlers))
+
+<a id="nestedatt--spec--app_http_pipeline--handlers"></a>
+### Nested Schema for `spec.app_http_pipeline.handlers`
+
+Read-Only:
+
+- `name` (String) Handler name
+- `type` (String) Handler type
+
+
+
+<a id="nestedatt--spec--http_pipeline"></a>
+### Nested Schema for `spec.http_pipeline`
+
+Read-Only:
+
+- `handlers` (Attributes List) Handlers executed for ingress HTTP traffic (see [below for nested schema](#nestedatt--spec--http_pipeline--handlers))
+
+<a id="nestedatt--spec--http_pipeline--handlers"></a>
+### Nested Schema for `spec.http_pipeline.handlers`
+
+Read-Only:
+
+- `name` (String) Handler name
+- `type` (String) Handler type

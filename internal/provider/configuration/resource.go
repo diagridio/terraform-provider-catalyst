@@ -58,13 +58,7 @@ func (r *configurationResource) Schema(ctx context.Context,
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Dapr Configuration spec in YAML format",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					YAMLEquivalence(),
-				},
-			},
+			"spec": configurationSpecAttribute(true, false),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Status",
 				Computed:            true,
@@ -107,6 +101,9 @@ func (r *configurationResource) Create(ctx context.Context,
 
 	model.Log(ctx, "creating configuration")
 
+	// Save the planned spec to preserve user-specified values
+	plannedSpec := model.Spec
+
 	configuration := &client.DaprConfiguration{
 		ApiVersion: lo.ToPtr("dapr.io/v1alpha1"),
 		Kind:       lo.ToPtr("Configuration"),
@@ -115,18 +112,13 @@ func (r *configurationResource) Create(ctx context.Context,
 		},
 	}
 
-	// Convert YAML spec to API struct
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		spec, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		configuration.Spec = spec
-	} else {
-		configuration.Spec = &client.DaprConfigurationSpec{}
+	spec, err := expandConfigurationSpec(ctx, model.ensureSpec())
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec",
+			fmt.Sprintf("error constructing spec: %s", err))
+		return
 	}
+	configuration.Spec = spec
 
 	if err := r.client.CreateConfiguration(ctx, model.GetProjectID(), configuration); err != nil {
 		resp.Diagnostics.AddError("Client Error",
@@ -134,19 +126,14 @@ func (r *configurationResource) Create(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from the plan before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading configuration after create: %s", err))
 		return
 	}
 
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
-	}
+	// Merge planned spec values with read values to preserve user configuration
+	mergeSpecWithPlanned(model.Spec, plannedSpec)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
@@ -188,24 +175,24 @@ func (r *configurationResource) Update(ctx context.Context,
 
 	model.Log(ctx, "updating configuration")
 
+	// Save the planned spec to preserve user-specified values
+	plannedSpec := model.Spec
+
 	configuration := &client.DaprConfiguration{
+		ApiVersion: lo.ToPtr("dapr.io/v1alpha1"),
+		Kind:       lo.ToPtr("Configuration"),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
 	}
 
-	// Convert YAML spec to API struct
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		spec, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		configuration.Spec = spec
-	} else {
-		configuration.Spec = &client.DaprConfigurationSpec{}
+	spec, err := expandConfigurationSpec(ctx, model.ensureSpec())
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec",
+			fmt.Sprintf("error constructing spec: %s", err))
+		return
 	}
+	configuration.Spec = spec
 
 	if err := r.client.UpdateConfiguration(ctx, model.GetProjectID(), model.GetName(), configuration); err != nil {
 		resp.Diagnostics.AddError("Client Error",
@@ -213,19 +200,14 @@ func (r *configurationResource) Update(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from the plan before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading configuration after update: %s", err))
 		return
 	}
 
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
-	}
+	// Merge planned spec values with read values to preserve user configuration
+	mergeSpecWithPlanned(model.Spec, plannedSpec)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

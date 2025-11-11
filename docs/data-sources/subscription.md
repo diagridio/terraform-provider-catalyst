@@ -22,18 +22,24 @@ Subscription data source
 
 ### Read-Only
 
-- `bulk_subscribe` (Attributes) Bulk subscribe configuration (see [below for nested schema](#nestedatt--bulk_subscribe))
-- `dead_letter_topic` (String) Dead letter topic
-- `dynamic` (Boolean) Dynamic subscription
-- `metadata` (Map of String) Metadata
 - `pubsub_name` (String) PubSub name
-- `routes` (Attributes) Routes configuration (see [below for nested schema](#nestedatt--routes))
 - `scopes` (List of String) Scopes
+- `spec` (Attributes) Dapr subscription spec (see [below for nested schema](#nestedatt--spec))
 - `status` (String) Status
 - `topic` (String) Topic name
 
-<a id="nestedatt--bulk_subscribe"></a>
-### Nested Schema for `bulk_subscribe`
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Read-Only:
+
+- `bulk_subscribe` (Attributes) Bulk subscribe configuration (see [below for nested schema](#nestedatt--spec--bulk_subscribe))
+- `dead_letter_topic` (String) Dead letter topic
+- `metadata` (Map of String) Metadata entries
+- `routes` (Attributes) Routes configuration (see [below for nested schema](#nestedatt--spec--routes))
+
+<a id="nestedatt--spec--bulk_subscribe"></a>
+### Nested Schema for `spec.bulk_subscribe`
 
 Read-Only:
 
@@ -42,16 +48,16 @@ Read-Only:
 - `max_messages_count` (Number) Maximum messages count
 
 
-<a id="nestedatt--routes"></a>
-### Nested Schema for `routes`
+<a id="nestedatt--spec--routes"></a>
+### Nested Schema for `spec.routes`
 
 Read-Only:
 
 - `default` (String) Default route path
-- `rules` (Attributes List) Routing rules (see [below for nested schema](#nestedatt--routes--rules))
+- `rules` (Attributes List) Routing rules (see [below for nested schema](#nestedatt--spec--routes--rules))
 
-<a id="nestedatt--routes--rules"></a>
-### Nested Schema for `routes.rules`
+<a id="nestedatt--spec--routes--rules"></a>
+### Nested Schema for `spec.routes.rules`
 
 Read-Only:
 

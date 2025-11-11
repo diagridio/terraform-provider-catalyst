@@ -45,10 +45,7 @@ func (d *resiliencyDataSource) Schema(ctx context.Context,
 				MarkdownDescription: "Resiliency name",
 				Required:            true,
 			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Resiliency spec as YAML string",
-				Computed:            true,
-			},
+			"spec": resiliencySpecAttribute(false, true),
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "Scopes",
 				Computed:            true,

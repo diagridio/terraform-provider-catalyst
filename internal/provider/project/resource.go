@@ -6,9 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/samber/lo"
 
@@ -66,15 +63,6 @@ func (p *projectResource) Schema(ctx context.Context,
 				MarkdownDescription: "HTTP endpoint",
 				Optional:            true,
 				Computed:            true,
-			},
-			"wait_for_ready": schema.BoolAttribute{
-				MarkdownDescription: "Wait for the project to be in ready state before returning",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
 			},
 		},
 	}
@@ -145,15 +133,10 @@ func (p *projectResource) Create(ctx context.Context,
 			return false, fmt.Errorf("error getting project: %w", err)
 		}
 
-		expectedStatus := "processing"
-		if model.WaitForReady.ValueBool() {
-			expectedStatus = "ready"
-		}
-
 		if project.Status != nil &&
 			project.Status.Status != nil {
 			switch *project.Status.Status {
-			case expectedStatus:
+			case "ready":
 				return true, nil
 			case "error":
 				return false, fmt.Errorf("project in error state")
@@ -163,7 +146,7 @@ func (p *projectResource) Create(ctx context.Context,
 		tflog.Debug(ctx, "project status still not at expected value",
 			map[string]interface{}{
 				"name":     model.GetName(),
-				"expected": expectedStatus,
+				"expected": "ready",
 			})
 
 		return false, nil
@@ -262,15 +245,10 @@ func (p *projectResource) Update(ctx context.Context,
 			return false, fmt.Errorf("error getting project: %w", err)
 		}
 
-		expectedStatus := "processing"
-		if model.WaitForReady.ValueBool() {
-			expectedStatus = "ready"
-		}
-
 		if project.Status != nil &&
 			project.Status.Status != nil {
 			switch *project.Status.Status {
-			case expectedStatus:
+			case "ready":
 				return true, nil
 			case "error":
 				return false, fmt.Errorf("project in error state")
@@ -280,7 +258,7 @@ func (p *projectResource) Update(ctx context.Context,
 		tflog.Debug(ctx, "project status still not at expected value",
 			map[string]interface{}{
 				"name":     model.GetName(),
-				"expected": expectedStatus,
+				"expected": "ready",
 			})
 
 		return false, nil

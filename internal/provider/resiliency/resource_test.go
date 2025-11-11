@@ -52,8 +52,9 @@ func TestMockResiliencyResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "name", resiliencyName),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "project_id", projectID),
-						// Just verify spec is set, don't check exact content due to YAML formatting variances
-						resource.TestCheckResourceAttrSet("catalyst_resiliency.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.policies.timeouts.general", "5s"),
+						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.policies.retries.retryForever.max_retries", "-1"),
+						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.targets.apps.app1.circuit_breaker", "simpleCB"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.#", "2"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.0", "app1"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.1", "app2"),
@@ -82,7 +83,8 @@ func TestAccResiliencyResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "name", resiliencyName),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "project_id", projectID),
-						resource.TestCheckResourceAttrSet("catalyst_resiliency.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.policies.timeouts.general", "5s"),
+						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.targets.apps.app2.retry", "important"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.#", "2"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.0", "app1"),
 						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.1", "app2"),
@@ -144,7 +146,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr("default"),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
+						Status: lo.ToPtr("ready"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectID)),
@@ -214,44 +216,59 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 func testAccResiliencyResourceConfig(projectID, resiliencyName string) string {
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
-  name           = %[1]q
-  wait_for_ready = false
+	name           = %[1]q
 }
 
 resource "catalyst_resiliency" "test" {
-  project_id = catalyst_project.test.name
-  name       = %[2]q
-  scopes     = ["app1", "app2"]
-  spec       = <<-EOT
-policies:
-    timeouts:
-        general: 5s
-        important: 60s
-    retries:
-        retryForever:
-            policy: constant
-            duration: 5s
-            maxRetries: -1
-        important:
-            policy: exponential
-            maxInterval: 60s
-            maxRetries: 30
-    circuitBreakers:
-        simpleCB:
-            maxRequests: 1
-            timeout: 30s
-            trip: consecutiveFailures >= 5
-targets:
-    apps:
-        app1:
-            timeout: general
-            retry: retryForever
-            circuitBreaker: simpleCB
-        app2:
-            timeout: important
-            retry: important
-            circuitBreaker: simpleCB
-  EOT
+	project_id = catalyst_project.test.name
+	name       = %[2]q
+	scopes     = ["app1", "app2"]
+	spec = {
+		policies = {
+			timeouts = {
+				general   = "5s"
+				important = "60s"
+			}
+
+			retries = {
+				retryForever = {
+					policy      = "constant"
+					duration    = "5s"
+					max_retries = -1
+				}
+
+				important = {
+					policy       = "exponential"
+					max_interval = "60s"
+					max_retries  = 30
+				}
+			}
+
+			circuit_breakers = {
+				simpleCB = {
+					max_requests = 1
+					timeout      = "30s"
+					trip         = "consecutiveFailures >= 5"
+				}
+			}
+		}
+
+		targets = {
+			apps = {
+				app1 = {
+					timeout         = "general"
+					retry           = "retryForever"
+					circuit_breaker = "simpleCB"
+				}
+
+				app2 = {
+					timeout         = "important"
+					retry           = "important"
+					circuit_breaker = "simpleCB"
+				}
+			}
+		}
+	}
 }
 `, projectID, resiliencyName)
 }

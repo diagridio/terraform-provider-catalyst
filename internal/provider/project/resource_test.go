@@ -39,7 +39,7 @@ func testSteps() []resource.TestStep {
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        projectName,
 			ImportStateVerify:                    true,
-			ImportStateVerifyIgnore:              []string{"wait_for_ready", "status"},
+			ImportStateVerifyIgnore:              []string{"status"},
 			Check: resource.ComposeAggregateTestCheckFunc(
 				resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
 				resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
@@ -172,7 +172,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Region: lo.ToPtr(regionName),
 					},
 					Status: &cloudruntime_client.ProjectStatus{
-						Status: lo.ToPtr("processing"),
+						Status: lo.ToPtr("ready"),
 						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
 							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),
@@ -213,7 +213,6 @@ resource "catalyst_region" "test" {
 resource "catalyst_project" "test" {
   region = catalyst_region.test.name
   name = %q
-  wait_for_ready = false
 }
 `, regionName, regionIngress, regionHost, regionLocation, name)
 }

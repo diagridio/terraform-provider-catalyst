@@ -54,9 +54,10 @@ func TestMockComponentResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
 						resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "type", "state.redis"),
-						resource.TestCheckResourceAttr("catalyst_component.test", "version", "v1"),
-						resource.TestCheckResourceAttrSet("catalyst_component.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.type", "state.redis"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.version", "v1"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.metadata.#", "3"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.metadata.0.name", "redisHost"),
 					),
 				},
 				{
@@ -82,9 +83,9 @@ func TestAccComponentResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
 						resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "type", "state.redis"),
-						resource.TestCheckResourceAttr("catalyst_component.test", "version", "v1"),
-						resource.TestCheckResourceAttrSet("catalyst_component.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.type", "state.redis"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.version", "v1"),
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.metadata.#", "3"),
 					),
 				},
 				{
@@ -221,26 +222,115 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	}
 }
 
-func testAccComponentResourceConfig(projectName, componentName, componentType, version string) string {
+func TestComponentMetadataUpdate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	resource.UnitTest(t,
+		resource.TestCase{
+			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+				provider.ProviderName: providerserver.NewProtocol6WithError(
+					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
+				),
+			},
+			Steps: []resource.TestStep{
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v1"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.metadata.1.value", "abc123"),
+					),
+				},
+				{
+					Config: testAccComponentResourceConfig(
+						projectName,
+						componentName,
+						"state.redis",
+						"v1",
+						`[
+					    {
+					      name  = "redisHost"
+					      value = "localhost:6379"
+					    },
+					    {
+					      name  = "redisPassword"
+					      value = "xyz987"
+					    },
+					    {
+					      name  = "actorStateStore"
+					      value = "true"
+					    }
+					  ]`),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.metadata.1.value", "xyz987"),
+					),
+				},
+			},
+		})
+}
+
+// TestComponentUpdate verifies that actual spec changes trigger updates correctly.
+func TestComponentUpdate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	resource.UnitTest(t,
+		resource.TestCase{
+			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+				provider.ProviderName: providerserver.NewProtocol6WithError(
+					provider.New("test").WithClientFactory(mockResourceClientFactory(ctrl)),
+				),
+			},
+			Steps: []resource.TestStep{
+				// Create
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v1"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.version", "v1"),
+					),
+				},
+				// Update version
+				{
+					Config: testAccComponentResourceConfig(projectName, componentName, "state.redis", "v2"),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_component.test", "spec.version", "v2"),
+					),
+				},
+			},
+		})
+}
+
+func testAccComponentResourceConfig(projectName, componentName, componentType, version string, metadataOverride ...string) string {
+	metadata := `[
+		{
+			name  = "redisHost"
+			value = "localhost:6379"
+		},
+		{
+			name  = "redisPassword"
+			value = "abc123"
+		},
+		{
+			name  = "actorStateStore"
+			value = "true"
+		}
+	]`
+
+	if len(metadataOverride) > 0 {
+		metadata = metadataOverride[0]
+	}
+
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
-  name           = %[1]q
-  wait_for_ready = true
+	name           = %q
 }
 
 resource "catalyst_component" "test" {
-  project_name = catalyst_project.test.name
-  name         = %[2]q
-  type         = %[3]q
-  version      = %[4]q
-  spec         = <<-EOT
-    - name: redisHost
-      value: localhost:6379
-    - name: redisPassword
-      value: abc123
-    - name: actorStateStore
-      value: "true"
-  EOT
+	project_name = catalyst_project.test.name
+	name         = %q
+
+	spec = {
+		type    = %q
+		version = %q
+		metadata = %s
+	}
 }
-`, projectName, componentName, componentType, version)
+`, projectName, componentName, componentType, version, metadata)
 }

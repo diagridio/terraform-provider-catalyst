@@ -22,9 +22,41 @@ Component data source
 
 ### Read-Only
 
+- `auth` (Attributes) Authentication settings (see [below for nested schema](#nestedatt--auth))
 - `scopes` (List of String) App IDs that can access this component
-- `secret_store` (String) Secret store for component authentication
-- `spec` (String) Component metadata as YAML string
+- `spec` (Attributes) Dapr component spec (see [below for nested schema](#nestedatt--spec))
 - `status` (String) Status of the component
+
+<a id="nestedatt--auth"></a>
+### Nested Schema for `auth`
+
+Read-Only:
+
+- `secret_store` (String) Secret store for component authentication
+
+
+<a id="nestedatt--spec"></a>
+### Nested Schema for `spec`
+
+Read-Only:
+
+- `metadata` (Attributes List) Metadata entries passed to the component (see [below for nested schema](#nestedatt--spec--metadata))
 - `type` (String) Component type
 - `version` (String) Component version
+
+<a id="nestedatt--spec--metadata"></a>
+### Nested Schema for `spec.metadata`
+
+Read-Only:
+
+- `name` (String) Metadata key
+- `secret_key_ref` (Attributes) Secret reference for the metadata value (see [below for nested schema](#nestedatt--spec--metadata--secret_key_ref))
+- `value` (String) Metadata value
+
+<a id="nestedatt--spec--metadata--secret_key_ref"></a>
+### Nested Schema for `spec.metadata.secret_key_ref`
+
+Read-Only:
+
+- `key` (String) Secret key
+- `name` (String) Secret name

@@ -53,68 +53,12 @@ func (d *subscriptionDataSource) Schema(ctx context.Context,
 				MarkdownDescription: "Topic name",
 				Computed:            true,
 			},
-			"dead_letter_topic": schema.StringAttribute{
-				MarkdownDescription: "Dead letter topic",
-				Computed:            true,
-			},
-			"dynamic": schema.BoolAttribute{
-				MarkdownDescription: "Dynamic subscription",
-				Computed:            true,
-			},
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "Scopes",
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
-			"metadata": schema.MapAttribute{
-				MarkdownDescription: "Metadata",
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
-			"routes": schema.SingleNestedAttribute{
-				MarkdownDescription: "Routes configuration",
-				Computed:            true,
-				Attributes: map[string]schema.Attribute{
-					"default": schema.StringAttribute{
-						MarkdownDescription: "Default route path",
-						Computed:            true,
-					},
-					"rules": schema.ListNestedAttribute{
-						MarkdownDescription: "Routing rules",
-						Computed:            true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"match": schema.StringAttribute{
-									MarkdownDescription: "Match expression",
-									Computed:            true,
-								},
-								"path": schema.StringAttribute{
-									MarkdownDescription: "Route path",
-									Computed:            true,
-								},
-							},
-						},
-					},
-				},
-			},
-			"bulk_subscribe": schema.SingleNestedAttribute{
-				MarkdownDescription: "Bulk subscribe configuration",
-				Computed:            true,
-				Attributes: map[string]schema.Attribute{
-					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Enable bulk subscribe",
-						Computed:            true,
-					},
-					"max_await_duration_ms": schema.Int64Attribute{
-						MarkdownDescription: "Maximum await duration in milliseconds",
-						Computed:            true,
-					},
-					"max_messages_count": schema.Int64Attribute{
-						MarkdownDescription: "Maximum messages count",
-						Computed:            true,
-					},
-				},
-			},
+			"spec": subscriptionSpecAttribute(false, true),
 			"status": schema.StringAttribute{
 				MarkdownDescription: "Status",
 				Computed:            true,

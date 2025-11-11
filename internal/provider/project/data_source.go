@@ -56,11 +56,6 @@ func (d *projectDataSource) Schema(ctx context.Context,
 				Optional:            true,
 				Computed:            true,
 			},
-			"wait_for_ready": schema.BoolAttribute{
-				MarkdownDescription: "Wait for the project to be in ready state before returning",
-				Optional:            true,
-				Computed:            true,
-			},
 		},
 	}
 }

@@ -45,21 +45,59 @@ func (d *componentDataSource) Schema(ctx context.Context,
 				MarkdownDescription: "Component name",
 				Required:            true,
 			},
-			"type": schema.StringAttribute{
-				MarkdownDescription: "Component type",
+			"spec": schema.SingleNestedAttribute{
+				MarkdownDescription: "Dapr component spec",
 				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"type": schema.StringAttribute{
+						MarkdownDescription: "Component type",
+						Computed:            true,
+					},
+					"version": schema.StringAttribute{
+						MarkdownDescription: "Component version",
+						Computed:            true,
+					},
+					"metadata": schema.ListNestedAttribute{
+						MarkdownDescription: "Metadata entries passed to the component",
+						Computed:            true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Metadata key",
+									Computed:            true,
+								},
+								"value": schema.StringAttribute{
+									MarkdownDescription: "Metadata value",
+									Computed:            true,
+								},
+								"secret_key_ref": schema.SingleNestedAttribute{
+									MarkdownDescription: "Secret reference for the metadata value",
+									Computed:            true,
+									Attributes: map[string]schema.Attribute{
+										"name": schema.StringAttribute{
+											MarkdownDescription: "Secret name",
+											Computed:            true,
+										},
+										"key": schema.StringAttribute{
+											MarkdownDescription: "Secret key",
+											Computed:            true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
-			"version": schema.StringAttribute{
-				MarkdownDescription: "Component version",
+			"auth": schema.SingleNestedAttribute{
+				MarkdownDescription: "Authentication settings",
 				Computed:            true,
-			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Component metadata as YAML string",
-				Computed:            true,
-			},
-			"secret_store": schema.StringAttribute{
-				MarkdownDescription: "Secret store for component authentication",
-				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"secret_store": schema.StringAttribute{
+						MarkdownDescription: "Secret store for component authentication",
+						Computed:            true,
+					},
+				},
 			},
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "App IDs that can access this component",

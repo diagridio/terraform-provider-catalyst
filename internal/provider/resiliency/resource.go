@@ -59,13 +59,7 @@ func (r *resiliencyResource) Schema(ctx context.Context,
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"spec": schema.StringAttribute{
-				MarkdownDescription: "Dapr Resiliency spec in YAML format",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					YAMLEquivalence(),
-				},
-			},
+			"spec": resiliencySpecAttribute(true, false),
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "Scopes",
 				Optional:            true,
@@ -124,18 +118,13 @@ func (r *resiliencyResource) Create(ctx context.Context,
 	// Set scopes
 	resiliency.Scopes = toAPIScopes(ctx, model.Scopes)
 
-	// Convert YAML spec to API struct
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		spec, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		resiliency.Spec = spec
-	} else {
-		resiliency.Spec = &client.DaprResiliencySpec{}
+	spec, err := expandResiliencySpec(ctx, model.ensureSpec())
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec",
+			fmt.Sprintf("error constructing spec: %s", err))
+		return
 	}
+	resiliency.Spec = spec
 
 	if err := r.client.CreateResiliency(ctx, model.GetProjectID(), resiliency); err != nil {
 		resp.Diagnostics.AddError("Client Error",
@@ -143,18 +132,10 @@ func (r *resiliencyResource) Create(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from the plan before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading resiliency after create: %s", err))
 		return
-	}
-
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -198,6 +179,8 @@ func (r *resiliencyResource) Update(ctx context.Context,
 	model.Log(ctx, "updating resiliency")
 
 	resiliency := &client.DaprResiliency{
+		ApiVersion: lo.ToPtr("dapr.io/v1alpha1"),
+		Kind:       lo.ToPtr("Resiliency"),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
@@ -206,18 +189,13 @@ func (r *resiliencyResource) Update(ctx context.Context,
 	// Set scopes
 	resiliency.Scopes = toAPIScopes(ctx, model.Scopes)
 
-	// Convert YAML spec to API struct
-	if !model.Spec.IsNull() && !model.Spec.IsUnknown() {
-		spec, err := toAPISpec(ctx, model.Spec)
-		if err != nil {
-			resp.Diagnostics.AddError("Invalid Spec",
-				fmt.Sprintf("error parsing spec YAML: %s", err))
-			return
-		}
-		resiliency.Spec = spec
-	} else {
-		resiliency.Spec = &client.DaprResiliencySpec{}
+	spec, err := expandResiliencySpec(ctx, model.ensureSpec())
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid Spec",
+			fmt.Sprintf("error constructing spec: %s", err))
+		return
 	}
+	resiliency.Spec = spec
 
 	if err := r.client.UpdateResiliency(ctx, model.GetProjectID(), model.GetName(), resiliency); err != nil {
 		resp.Diagnostics.AddError("Client Error",
@@ -225,18 +203,10 @@ func (r *resiliencyResource) Update(ctx context.Context,
 		return
 	}
 
-	// Save the original spec YAML from the plan before reading
-	originalSpec := model.Spec
-
 	if err := read(ctx, r.client, model); err != nil {
 		resp.Diagnostics.AddError("Client Error",
 			fmt.Sprintf("error reading resiliency after update: %s", err))
 		return
-	}
-
-	// Restore the original spec YAML to avoid formatting differences
-	if !originalSpec.IsNull() && !originalSpec.IsUnknown() {
-		model.Spec = originalSpec
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)

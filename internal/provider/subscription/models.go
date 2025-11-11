@@ -13,9 +13,32 @@ type model struct {
 	Name        types.String `tfsdk:"name"`
 	PubsubName  types.String `tfsdk:"pubsub_name"`
 	Topic       types.String `tfsdk:"topic"`
-	Spec        types.String `tfsdk:"spec"`
+	Spec        *specModel   `tfsdk:"spec"`
 	Scopes      types.List   `tfsdk:"scopes"`
 	Status      types.String `tfsdk:"status"`
+}
+
+type specModel struct {
+	Routes          *routesModel        `tfsdk:"routes"`
+	BulkSubscribe   *bulkSubscribeModel `tfsdk:"bulk_subscribe"`
+	DeadLetterTopic types.String        `tfsdk:"dead_letter_topic"`
+	Metadata        types.Map           `tfsdk:"metadata"`
+}
+
+type routesModel struct {
+	Default types.String     `tfsdk:"default"`
+	Rules   []routeRuleModel `tfsdk:"rules"`
+}
+
+type routeRuleModel struct {
+	Match types.String `tfsdk:"match"`
+	Path  types.String `tfsdk:"path"`
+}
+
+type bulkSubscribeModel struct {
+	Enabled            types.Bool  `tfsdk:"enabled"`
+	MaxMessagesCount   types.Int64 `tfsdk:"max_messages_count"`
+	MaxAwaitDurationMs types.Int64 `tfsdk:"max_await_duration_ms"`
 }
 
 func NewModel() *model {
@@ -71,18 +94,14 @@ func (m *model) SetTopic(topic string) {
 	m.Topic = types.StringValue(topic)
 }
 
-func (m *model) GetSpec() types.String {
-	return m.Spec
-}
-
-func (m *model) SetSpec(spec string) {
-	m.Spec = types.StringValue(spec)
-}
-
 func (m *model) GetStatus() string {
 	return m.Status.ValueString()
 }
 
 func (m *model) SetStatus(status string) {
+	if status == "" {
+		m.Status = types.StringNull()
+		return
+	}
 	m.Status = types.StringValue(status)
 }

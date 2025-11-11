@@ -7,37 +7,327 @@ import (
 	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"gopkg.in/yaml.v3"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// toAPISpec converts YAML string to DaprConfigurationSpec.
-func toAPISpec(_ context.Context, specString types.String) (*cloudruntime_client.DaprConfigurationSpec, error) {
-	if specString.IsNull() || specString.IsUnknown() {
+func expandConfigurationSpec(ctx context.Context, spec *specModel) (*cloudruntime_client.DaprConfigurationSpec, error) {
+	if spec == nil {
 		return &cloudruntime_client.DaprConfigurationSpec{}, nil
 	}
 
-	var spec cloudruntime_client.DaprConfigurationSpec
-	if err := yaml.Unmarshal([]byte(specString.ValueString()), &spec); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal spec YAML: %w", err)
+	apiSpec := &cloudruntime_client.DaprConfigurationSpec{}
+
+	if spec.AccessControl != nil {
+		ac, err := expandAccessControl(ctx, spec.AccessControl)
+		if err != nil {
+			return nil, err
+		}
+		apiSpec.AccessControl = ac
 	}
 
-	return &spec, nil
+	if spec.AppHTTPPipeline != nil {
+		handlers := expandHandlers(spec.AppHTTPPipeline)
+		if handlers != nil {
+			apiSpec.AppHttpPipeline = &cloudruntime_client.ConfigurationSpecAppHttpPipeline{Handlers: handlers}
+		}
+	}
+
+	if spec.HttpPipeline != nil {
+		handlers := expandHandlers(spec.HttpPipeline)
+		if handlers != nil {
+			apiSpec.HttpPipeline = &cloudruntime_client.ConfigurationSpecHttpPipeline{Handlers: handlers}
+		}
+	}
+
+	return apiSpec, nil
 }
 
-// fromAPISpec converts DaprConfigurationSpec to YAML string.
-func fromAPISpec(spec *cloudruntime_client.DaprConfigurationSpec) (string, error) {
-	if spec == nil {
-		return "", nil
+func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloudruntime_client.ConfigurationSpecAccessControl, error) {
+	if model == nil {
+		return nil, nil
 	}
 
-	yamlBytes, err := yaml.Marshal(spec)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal spec to YAML: %w", err)
+	ac := &cloudruntime_client.ConfigurationSpecAccessControl{}
+
+	if !model.DefaultAction.IsNull() && !model.DefaultAction.IsUnknown() {
+		action := cloudruntime_client.ConfigurationSpecAccessControlDefaultAction(model.DefaultAction.ValueString())
+		if action != "" {
+			ac.DefaultAction = &action
+		}
 	}
 
-	return string(yamlBytes), nil
+	if !model.TrustDomain.IsNull() && !model.TrustDomain.IsUnknown() {
+		trustDomain := model.TrustDomain.ValueString()
+		if trustDomain != "" {
+			ac.TrustDomain = &trustDomain
+		}
+	}
+
+	if len(model.Policies) > 0 {
+		policies := make([]cloudruntime_client.ConfigurationSpecAccessControlPolicy, 0, len(model.Policies))
+		for _, policy := range model.Policies {
+			p := cloudruntime_client.ConfigurationSpecAccessControlPolicy{}
+
+			if !policy.AppID.IsNull() && !policy.AppID.IsUnknown() {
+				appID := policy.AppID.ValueString()
+				if appID != "" {
+					p.AppId = &appID
+				}
+			}
+
+			if !policy.DefaultAction.IsNull() && !policy.DefaultAction.IsUnknown() {
+				action := cloudruntime_client.ConfigurationSpecAccessControlPolicyDefaultAction(policy.DefaultAction.ValueString())
+				if string(action) != "" {
+					p.DefaultAction = &action
+				}
+			}
+
+			// Note: Namespace is not sent to the API as it's computed by the API itself
+
+			if !policy.TrustDomain.IsNull() && !policy.TrustDomain.IsUnknown() {
+				trustDomain := policy.TrustDomain.ValueString()
+				if trustDomain != "" {
+					p.TrustDomain = &trustDomain
+				}
+			}
+
+			if len(policy.Operations) > 0 {
+				operations := make([]struct {
+					Action   *cloudruntime_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
+					HttpVerb *[]string                                                                 `json:"httpVerb,omitempty"`
+					Name     *string                                                                   `json:"name,omitempty"`
+				}, 0, len(policy.Operations))
+
+				for _, op := range policy.Operations {
+					operation := struct {
+						Action   *cloudruntime_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
+						HttpVerb *[]string                                                                 `json:"httpVerb,omitempty"`
+						Name     *string                                                                   `json:"name,omitempty"`
+					}{}
+
+					if !op.Name.IsNull() && !op.Name.IsUnknown() {
+						name := op.Name.ValueString()
+						if name != "" {
+							operation.Name = &name
+						}
+					}
+
+					if !op.Action.IsNull() && !op.Action.IsUnknown() {
+						action := cloudruntime_client.ConfigurationSpecAccessControlPolicyOperationsAction(op.Action.ValueString())
+						if string(action) != "" {
+							operation.Action = &action
+						}
+					}
+
+					httpVerbs, err := listToStringSlice(ctx, op.HTTPVerbs)
+					if err != nil {
+						return nil, err
+					}
+					if len(httpVerbs) > 0 {
+						operation.HttpVerb = &httpVerbs
+					}
+
+					operations = append(operations, operation)
+				}
+
+				p.Operations = &operations
+			}
+
+			policies = append(policies, p)
+		}
+
+		ac.Policies = &policies
+	}
+
+	if ac.DefaultAction == nil && ac.Policies == nil && ac.TrustDomain == nil {
+		return nil, nil
+	}
+
+	return ac, nil
+}
+
+func expandHandlers(model *pipelineModel) *[]cloudruntime_client.ConfigurationSpecHandler {
+	if model == nil {
+		return nil
+	}
+
+	if len(model.Handlers) == 0 {
+		empty := []cloudruntime_client.ConfigurationSpecHandler{}
+		return &empty
+	}
+
+	handlers := make([]cloudruntime_client.ConfigurationSpecHandler, 0, len(model.Handlers))
+	for _, handler := range model.Handlers {
+		h := cloudruntime_client.ConfigurationSpecHandler{}
+
+		if !handler.Name.IsNull() && !handler.Name.IsUnknown() {
+			name := handler.Name.ValueString()
+			if name != "" {
+				h.Name = &name
+			}
+		}
+
+		if !handler.Type.IsNull() && !handler.Type.IsUnknown() {
+			typ := handler.Type.ValueString()
+			if typ != "" {
+				h.Type = &typ
+			}
+		}
+
+		handlers = append(handlers, h)
+	}
+
+	return &handlers
+}
+
+func flattenConfigurationSpec(ctx context.Context, apiSpec *cloudruntime_client.DaprConfigurationSpec) (*specModel, error) {
+	spec := &specModel{}
+	if apiSpec == nil {
+		return spec, nil
+	}
+
+	if apiSpec.AccessControl != nil {
+		ac, err := flattenAccessControl(ctx, apiSpec.AccessControl)
+		if err != nil {
+			return nil, err
+		}
+		spec.AccessControl = ac
+	}
+
+	if apiSpec.AppHttpPipeline != nil {
+		spec.AppHTTPPipeline = flattenAppPipeline(apiSpec.AppHttpPipeline)
+	}
+
+	if apiSpec.HttpPipeline != nil {
+		spec.HttpPipeline = flattenHTTPPipeline(apiSpec.HttpPipeline)
+	}
+
+	return spec, nil
+}
+
+func flattenAccessControl(ctx context.Context, api *cloudruntime_client.ConfigurationSpecAccessControl) (*accessControlModel, error) {
+	if api == nil {
+		return nil, nil
+	}
+
+	model := &accessControlModel{
+		DefaultAction: types.StringNull(),
+		TrustDomain:   types.StringNull(),
+	}
+
+	if api.DefaultAction != nil && string(*api.DefaultAction) != "" {
+		model.DefaultAction = types.StringValue(string(*api.DefaultAction))
+	}
+
+	if api.TrustDomain != nil && *api.TrustDomain != "" {
+		model.TrustDomain = types.StringValue(*api.TrustDomain)
+	}
+
+	if api.Policies != nil {
+		for _, policy := range *api.Policies {
+			p := accessControlPolicy{
+				AppID:         types.StringNull(),
+				DefaultAction: types.StringNull(),
+				Namespace:     types.StringNull(),
+				TrustDomain:   types.StringNull(),
+			}
+
+			if policy.AppId != nil && *policy.AppId != "" {
+				p.AppID = types.StringValue(*policy.AppId)
+			}
+
+			if policy.DefaultAction != nil && string(*policy.DefaultAction) != "" {
+				p.DefaultAction = types.StringValue(string(*policy.DefaultAction))
+			}
+
+			if policy.Namespace != nil && *policy.Namespace != "" {
+				p.Namespace = types.StringValue(*policy.Namespace)
+			}
+
+			if policy.TrustDomain != nil && *policy.TrustDomain != "" {
+				p.TrustDomain = types.StringValue(*policy.TrustDomain)
+			}
+
+			if policy.Operations != nil {
+				for _, operation := range *policy.Operations {
+					op := accessControlOperation{
+						Name:      types.StringNull(),
+						Action:    types.StringNull(),
+						HTTPVerbs: types.ListNull(types.StringType),
+					}
+
+					if operation.Name != nil && *operation.Name != "" {
+						op.Name = types.StringValue(*operation.Name)
+					}
+
+					if operation.Action != nil && string(*operation.Action) != "" {
+						op.Action = types.StringValue(string(*operation.Action))
+					}
+
+					listValue, err := newStringListValue(ctx, operation.HttpVerb)
+					if err != nil {
+						return nil, err
+					}
+					op.HTTPVerbs = listValue
+
+					p.Operations = append(p.Operations, op)
+				}
+			}
+
+			model.Policies = append(model.Policies, p)
+		}
+	}
+
+	if model.DefaultAction.IsNull() && model.TrustDomain.IsNull() && len(model.Policies) == 0 {
+		return nil, nil
+	}
+
+	return model, nil
+}
+
+func flattenAppPipeline(api *cloudruntime_client.ConfigurationSpecAppHttpPipeline) *pipelineModel {
+	if api == nil {
+		return nil
+	}
+	return flattenHandlers(api.Handlers)
+}
+
+func flattenHTTPPipeline(api *cloudruntime_client.ConfigurationSpecHttpPipeline) *pipelineModel {
+	if api == nil {
+		return nil
+	}
+	return flattenHandlers(api.Handlers)
+}
+
+func flattenHandlers(handlers *[]cloudruntime_client.ConfigurationSpecHandler) *pipelineModel {
+	if handlers == nil {
+		return nil
+	}
+
+	model := &pipelineModel{}
+	for _, handler := range *handlers {
+		h := handlerModel{
+			Name: types.StringNull(),
+			Type: types.StringNull(),
+		}
+
+		if handler.Name != nil && *handler.Name != "" {
+			h.Name = types.StringValue(*handler.Name)
+		}
+
+		if handler.Type != nil && *handler.Type != "" {
+			h.Type = types.StringValue(*handler.Type)
+		}
+
+		model.Handlers = append(model.Handlers, h)
+	}
+
+	if len(model.Handlers) == 0 {
+		return nil
+	}
+
+	return model
 }
 
 func read(ctx context.Context,
@@ -64,26 +354,73 @@ func read(ctx context.Context,
 		m.SetName(*configuration.Metadata.Name)
 	}
 
-	// Convert API spec back to YAML if present
-	// This is necessary during import when there's no prior state
-	if configuration.Spec != nil && m.Spec.IsNull() {
-		specYAML, err := fromAPISpec(configuration.Spec)
+	if configuration.Spec != nil {
+		spec, err := flattenConfigurationSpec(ctx, configuration.Spec)
 		if err != nil {
-			return fmt.Errorf("error converting API spec to YAML: %w", err)
+			return fmt.Errorf("error flattening configuration spec: %w", err)
 		}
-		if specYAML != "" {
-			m.SetSpec(specYAML)
-		}
+		m.Spec = spec
+	} else {
+		m.Spec = &specModel{}
 	}
 
-	// Set status
 	if configuration.Status != nil && configuration.Status.Status != nil {
 		m.SetStatus(*configuration.Status.Status)
 	} else {
-		m.Status = types.StringNull()
+		m.SetStatus("")
 	}
 
 	m.Log(ctx, "read configuration model")
 
 	return nil
+}
+
+func listToStringSlice(ctx context.Context, list types.List) ([]string, error) {
+	if list.IsNull() || list.IsUnknown() {
+		return nil, nil
+	}
+
+	var values []string
+	diags := list.ElementsAs(ctx, &values, false)
+	if diags.HasError() {
+		return nil, fmt.Errorf("failed to parse string list: %v", diags.Errors())
+	}
+	return values, nil
+}
+
+func newStringListValue(ctx context.Context, values *[]string) (types.List, error) {
+	if values == nil {
+		return types.ListNull(types.StringType), nil
+	}
+
+	list, diags := types.ListValueFrom(ctx, types.StringType, *values)
+	if diags.HasError() {
+		return types.ListNull(types.StringType), fmt.Errorf("failed to convert string slice: %v", diags.Errors())
+	}
+	return list, nil
+}
+
+// mergeSpecWithPlanned merges the planned spec values with the read spec values.
+// This is necessary because the API may not return all fields that were set in the plan,
+// causing Terraform to detect inconsistencies between plan and state.
+// If a field is nil in the read spec but was set in the planned spec, we use the planned value.
+func mergeSpecWithPlanned(readSpec, plannedSpec *specModel) {
+	if readSpec == nil || plannedSpec == nil {
+		return
+	}
+
+	// Preserve planned AccessControl config if it wasn't returned by the API
+	if readSpec.AccessControl == nil && plannedSpec.AccessControl != nil {
+		readSpec.AccessControl = plannedSpec.AccessControl
+	}
+
+	// Preserve planned AppHTTPPipeline config if it wasn't returned by the API
+	if readSpec.AppHTTPPipeline == nil && plannedSpec.AppHTTPPipeline != nil {
+		readSpec.AppHTTPPipeline = plannedSpec.AppHTTPPipeline
+	}
+
+	// Preserve planned HttpPipeline config if it wasn't returned by the API
+	if readSpec.HttpPipeline == nil && plannedSpec.HttpPipeline != nil {
+		readSpec.HttpPipeline = plannedSpec.HttpPipeline
+	}
 }

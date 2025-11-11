@@ -11,12 +11,31 @@ import (
 type model struct {
 	ProjectName types.String `tfsdk:"project_name"`
 	Name        types.String `tfsdk:"name"`
-	Type        types.String `tfsdk:"type"`
-	Version     types.String `tfsdk:"version"`
-	Spec        types.String `tfsdk:"spec"`
-	SecretStore types.String `tfsdk:"secret_store"`
+	Spec        *specModel   `tfsdk:"spec"`
+	Auth        *authModel   `tfsdk:"auth"`
 	Scopes      types.List   `tfsdk:"scopes"`
 	Status      types.String `tfsdk:"status"`
+}
+
+type specModel struct {
+	Type     types.String        `tfsdk:"type"`
+	Version  types.String        `tfsdk:"version"`
+	Metadata []metadataItemModel `tfsdk:"metadata"`
+}
+
+type metadataItemModel struct {
+	Name         types.String       `tfsdk:"name"`
+	Value        types.String       `tfsdk:"value"`
+	SecretKeyRef *secretKeyRefModel `tfsdk:"secret_key_ref"`
+}
+
+type secretKeyRefModel struct {
+	Name types.String `tfsdk:"name"`
+	Key  types.String `tfsdk:"key"`
+}
+
+type authModel struct {
+	SecretStore types.String `tfsdk:"secret_store"`
 }
 
 func NewModel() *model {
@@ -57,39 +76,35 @@ func (m *model) SetName(name string) {
 }
 
 func (m *model) GetType() string {
-	return m.Type.ValueString()
+	if m.Spec == nil {
+		return ""
+	}
+	return m.Spec.Type.ValueString()
 }
 
 func (m *model) SetType(t string) {
-	m.Type = types.StringValue(t)
+	spec := m.ensureSpec()
+	if t == "" {
+		spec.Type = types.StringNull()
+		return
+	}
+	spec.Type = types.StringValue(t)
 }
 
 func (m *model) GetVersion() string {
-	return m.Version.ValueString()
+	if m.Spec == nil {
+		return ""
+	}
+	return m.Spec.Version.ValueString()
 }
 
 func (m *model) SetVersion(version string) {
-	m.Version = types.StringValue(version)
-}
-
-func (m *model) GetSpec() types.String {
-	return m.Spec
-}
-
-func (m *model) SetSpec(spec string) {
-	m.Spec = types.StringValue(spec)
-}
-
-func (m *model) GetSecretStore() string {
-	return m.SecretStore.ValueString()
-}
-
-func (m *model) SetSecretStore(secretStore string) {
-	if secretStore == "" {
-		m.SecretStore = types.StringNull()
-	} else {
-		m.SecretStore = types.StringValue(secretStore)
+	spec := m.ensureSpec()
+	if version == "" {
+		spec.Version = types.StringNull()
+		return
 	}
+	spec.Version = types.StringValue(version)
 }
 
 func (m *model) GetStatus() string {
@@ -102,4 +117,11 @@ func (m *model) SetStatus(status string) {
 	} else {
 		m.Status = types.StringValue(status)
 	}
+}
+
+func (m *model) ensureSpec() *specModel {
+	if m.Spec == nil {
+		m.Spec = &specModel{}
+	}
+	return m.Spec
 }

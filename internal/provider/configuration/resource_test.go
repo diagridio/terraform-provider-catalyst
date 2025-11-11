@@ -52,7 +52,8 @@ func TestMockConfigurationResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
-						resource.TestCheckResourceAttrSet("catalyst_configuration.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.app_http_pipeline.handlers.#", "1"),
 					),
 				},
 				{
@@ -78,7 +79,8 @@ func TestAccConfigurationResource(t *testing.T) {
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
-						resource.TestCheckResourceAttrSet("catalyst_configuration.test", "spec"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.http_pipeline.handlers.#", "1"),
 					),
 				},
 				{
@@ -208,64 +210,60 @@ func testAccConfigurationResourceConfig(projectID, configurationName string) str
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
   name           = %[1]q
-  wait_for_ready = true
 }
 
 resource "catalyst_configuration" "test" {
-  project_id = catalyst_project.test.name
-  name       = %[2]q
-  spec       = <<-EOT
-    accessControl:
-      defaultAction: allow
-      trustDomain: public
-      policies:
-        - appId: app1
-          defaultAction: allow
-          trustDomain: public
-          namespace: default
-          operations:
-            - name: op1
-              httpVerb:
-                - GET
-                - POST
-              action: allow
-        - appId: app2
-          defaultAction: deny
-          operations:
-            - name: op2
-              httpVerb:
-                - DELETE
-              action: deny
-    api:
-      allowed:
-        - name: state
-          version: v1
-          protocol: http
-        - name: pubsub
-          version: v1
-          protocol: grpc
-    tracing:
-      samplingRate: "1"
-      stdout: true
-      zipkin:
-        endpointAddress: http://zipkin:9411/api/v2/spans
-    metrics:
-      enabled: true
-      http:
-        increasedCardinality: true
-        pathMatching:
-          - /orders/*
-          - /products/*
-    secrets:
-      scopes:
-        - storeName: vault
-          defaultAccess: allow
-          allowedSecrets:
-            - secret1
-            - secret2
-          deniedSecrets:
-            - secret3
-  EOT
+	project_id = catalyst_project.test.name
+	name       = %[2]q
+	spec = {
+		access_control = {
+			default_action = "allow"
+			trust_domain   = "public"
+			policies = [
+				{
+					app_id         = "app1"
+					default_action = "allow"
+					trust_domain   = "public"
+					operations = [
+						{
+							name       = "op1"
+							action     = "allow"
+							http_verbs = ["GET", "POST"]
+						}
+					]
+				},
+				{
+					app_id         = "app2"
+					default_action = "deny"
+					operations = [
+						{
+							name       = "op2"
+							action     = "deny"
+							http_verbs = ["DELETE"]
+						}
+					]
+				}
+			]
+		}
+
+		app_http_pipeline = {
+			handlers = [
+				{
+					name = "auth"
+					type = "middleware"
+				}
+			]
+		}
+
+		http_pipeline = {
+			handlers = [
+				{
+					name = "ingress-auth"
+					type = "middleware"
+				}
+			]
+		}
+	}
 }
 `, projectID, configurationName)
 }
