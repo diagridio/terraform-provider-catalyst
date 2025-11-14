@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"testing"
 
@@ -54,6 +55,14 @@ func TestMockPubSubResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
 						resource.TestCheckResourceAttr("catalyst_pubsub.test", "component_name", componentName),
 						resource.TestCheckResourceAttr("catalyst_pubsub.test", "create_component", "true"),
+					),
+				},
+				{
+					Config: testAccPubSubResourceConfigWithScopes(projectName, pubsubName, componentName, createComponent, []string{"app1"}),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_pubsub.test", "name", pubsubName),
+						resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("catalyst_pubsub.test", "scopes.0", "app1"),
 					),
 				},
 				{
@@ -214,6 +223,15 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			DoAndReturn(func(ctx context.Context, projectId, pubsubId string, pubsub *cloudruntime_client.PubSub) error {
 				mu.Lock()
 				defer mu.Unlock()
+				// Ensure component fields are NOT sent on updates
+				if pubsub.Spec != nil {
+					if pubsub.Spec.ComponentName != nil {
+						return fmt.Errorf("component_name should not be included in update payload")
+					}
+					if pubsub.Spec.CreateComponent != nil {
+						return fmt.Errorf("create_component should not be included in update payload")
+					}
+				}
 				key := fmt.Sprintf("%s/%s", projectName, *pubsub.Metadata.Name)
 				pubsubs[key] = pubsub
 				return nil
@@ -235,16 +253,42 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 func testAccPubSubResourceConfig(projectName, pubsubName, componentName string, createComponent bool) string {
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
-  name           = %[1]q
+	name           = %[1]q
 }
 
 resource "catalyst_pubsub" "test" {
-  project_name     = catalyst_project.test.name
-  name             = %[2]q
-  component_name   = %[3]q
-  create_component = %[4]t
+	project_name     = catalyst_project.test.name
+	name             = %[2]q
+	component_name   = %[3]q
+	create_component = %[4]t
 }
 `, projectName, pubsubName, componentName, createComponent)
+}
+
+func testAccPubSubResourceConfigWithScopes(projectName, pubsubName, componentName string, createComponent bool, scopes []string) string {
+	scopesStr := "[]"
+	if len(scopes) > 0 {
+		// build HCL list
+		items := make([]string, 0, len(scopes))
+		for _, s := range scopes {
+			items = append(items, fmt.Sprintf("%q", s))
+		}
+		scopesStr = fmt.Sprintf("[%s]", strings.Join(items, ","))
+	}
+
+	return fmt.Sprintf(`
+resource "catalyst_project" "test" {
+	name           = %[1]q
+}
+
+resource "catalyst_pubsub" "test" {
+	project_name     = catalyst_project.test.name
+	name             = %[2]q
+	component_name   = %[3]q
+	create_component = %[4]t
+	scopes           = %s
+}
+`, projectName, pubsubName, componentName, createComponent, scopesStr)
 }
 
 func testAccPubSubDatasourceConfig(projectName, pubsubName string) string {

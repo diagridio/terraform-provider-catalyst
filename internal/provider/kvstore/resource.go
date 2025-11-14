@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -62,10 +63,16 @@ func (r *kvstoreResource) Schema(ctx context.Context,
 			"component_name": schema.StringAttribute{
 				MarkdownDescription: "Component name",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"create_component": schema.BoolAttribute{
 				MarkdownDescription: "Create component",
 				Optional:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			"scopes": schema.ListAttribute{
 				MarkdownDescription: "Scopes",
@@ -185,10 +192,7 @@ func (r *kvstoreResource) Update(ctx context.Context,
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
-		Spec: &client.KVStoreSpec{
-			ComponentName:   lo.ToPtr(model.GetComponentName()),
-			CreateComponent: lo.ToPtr(model.GetCreateComponent()),
-		},
+		Spec: &client.KVStoreSpec{},
 	}
 
 	// Set scopes
