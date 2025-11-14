@@ -30,14 +30,13 @@ resource "catalyst_pubsub" "example" {
 
 ### Required
 
-- `component_name` (String) Component name (create-only)
+- `component_name` (String) Component name
 - `name` (String) PubSub name
 - `project_name` (String) Project name
 
 ### Optional
 
 - `create_component` (Boolean) Create component
-  (create-only)
 - `scopes` (List of String) App IDs that can access this pubsub
 
 ### Read-Only
