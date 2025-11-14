@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
@@ -56,6 +57,14 @@ func TestMockKVStoreResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_kvstore.test", "project_name", projectName),
 						resource.TestCheckResourceAttr("catalyst_kvstore.test", "component_name", componentName),
 						resource.TestCheckResourceAttr("catalyst_kvstore.test", "create_component", "true"),
+					),
+				},
+				{
+					Config: testAccKVStoreResourceConfigWithScopes(projectName, kvstoreName, componentName, createComponent, []string{"app1"}),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("catalyst_kvstore.test", "name", kvstoreName),
+						resource.TestCheckResourceAttr("catalyst_kvstore.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("catalyst_kvstore.test", "scopes.0", "app1"),
 					),
 				},
 				{
@@ -198,6 +207,15 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			DoAndReturn(func(ctx context.Context, projectName, name string, kvstore *cloudruntime_client.KVStore) error {
 				mu.Lock()
 				defer mu.Unlock()
+				// Ensure component fields are NOT sent on updates
+				if kvstore.Spec != nil {
+					if kvstore.Spec.ComponentName != nil {
+						return fmt.Errorf("component_name should not be included in update payload")
+					}
+					if kvstore.Spec.CreateComponent != nil {
+						return fmt.Errorf("create_component should not be included in update payload")
+					}
+				}
 				key := fmt.Sprintf("%s/%s", projectName, *kvstore.Metadata.Name)
 				kvstores[key] = kvstore
 				return nil
@@ -219,14 +237,40 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 func testAccKVStoreResourceConfig(projectName, kvstoreName, componentName string, createComponent bool) string {
 	return fmt.Sprintf(`
 resource "catalyst_project" "test" {
-  name           = %[1]q
+	name           = %[1]q
 }
 
 resource "catalyst_kvstore" "test" {
-  project_name     = catalyst_project.test.name
-  name             = %[2]q
-  component_name   = %[3]q
-  create_component = %[4]t
+	project_name     = catalyst_project.test.name
+	name             = %[2]q
+	component_name   = %[3]q
+	create_component = %[4]t
 }
 `, projectName, kvstoreName, componentName, createComponent)
+}
+
+func testAccKVStoreResourceConfigWithScopes(projectName, kvstoreName, componentName string, createComponent bool, scopes []string) string {
+	scopesStr := "[]"
+	if len(scopes) > 0 {
+		// build HCL list
+		items := make([]string, 0, len(scopes))
+		for _, s := range scopes {
+			items = append(items, fmt.Sprintf("%q", s))
+		}
+		scopesStr = fmt.Sprintf("[%s]", strings.Join(items, ","))
+	}
+
+	return fmt.Sprintf(`
+resource "catalyst_project" "test" {
+	name           = %[1]q
+}
+
+resource "catalyst_kvstore" "test" {
+	project_name     = catalyst_project.test.name
+	name             = %[2]q
+	component_name   = %[3]q
+	create_component = %[4]t
+	scopes           = %s
+}
+`, projectName, kvstoreName, componentName, createComponent, scopesStr)
 }
