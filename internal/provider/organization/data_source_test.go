@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	conductor_client "github.com/diagridio/diagrid-cloud-go/pkg/conductor/client"
+	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
 )

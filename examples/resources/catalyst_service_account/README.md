@@ -26,7 +26,7 @@ This directory contains examples for using the `catalyst_service_account` resour
 2. Edit `terraform.tfvars` with your actual values:
    ```hcl
    api_key = "your-actual-api-key"
-   endpoint = "https://api.diagrid.io"  # or your custom endpoint
+   endpoint = "https://api.r1.diagrid.io"  # or your custom endpoint
    ```
 
 3. Initialize and apply:

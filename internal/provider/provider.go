@@ -33,7 +33,7 @@ var _ provider.ProviderWithFunctions = &catalystProvider{}
 
 var (
 	// ProdAPIEndpoint is the Base URL for Catalyst Production API endpoint.
-	ProdAPIEndpoint = "https://api.diagrid.io"
+	ProdAPIEndpoint = "https://api.r1.diagrid.io"
 )
 
 const (

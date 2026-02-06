@@ -8,5 +8,5 @@ variable "api_key" {
 variable "endpoint" {
   type        = string
   description = "Catalyst API endpoint"
-  default     = "https://api.diagrid.io"
+  default     = "https://api.r1.diagrid.io"
 }

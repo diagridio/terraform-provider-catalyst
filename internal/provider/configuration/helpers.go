@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-func expandConfigurationSpec(ctx context.Context, spec *specModel) (*cloudruntime_client.DaprConfigurationSpec, error) {
+func expandConfigurationSpec(ctx context.Context, spec *specModel) (*catalyst_client.DaprConfigurationSpec, error) {
 	if spec == nil {
-		return &cloudruntime_client.DaprConfigurationSpec{}, nil
+		return &catalyst_client.DaprConfigurationSpec{}, nil
 	}
 
-	apiSpec := &cloudruntime_client.DaprConfigurationSpec{}
+	apiSpec := &catalyst_client.DaprConfigurationSpec{}
 
 	if spec.AccessControl != nil {
 		ac, err := expandAccessControl(ctx, spec.AccessControl)
@@ -29,29 +29,29 @@ func expandConfigurationSpec(ctx context.Context, spec *specModel) (*cloudruntim
 	if spec.AppHTTPPipeline != nil {
 		handlers := expandHandlers(spec.AppHTTPPipeline)
 		if handlers != nil {
-			apiSpec.AppHttpPipeline = &cloudruntime_client.ConfigurationSpecAppHttpPipeline{Handlers: handlers}
+			apiSpec.AppHttpPipeline = &catalyst_client.ConfigurationSpecAppHttpPipeline{Handlers: handlers}
 		}
 	}
 
 	if spec.HttpPipeline != nil {
 		handlers := expandHandlers(spec.HttpPipeline)
 		if handlers != nil {
-			apiSpec.HttpPipeline = &cloudruntime_client.ConfigurationSpecHttpPipeline{Handlers: handlers}
+			apiSpec.HttpPipeline = &catalyst_client.ConfigurationSpecHttpPipeline{Handlers: handlers}
 		}
 	}
 
 	return apiSpec, nil
 }
 
-func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloudruntime_client.ConfigurationSpecAccessControl, error) {
+func expandAccessControl(ctx context.Context, model *accessControlModel) (*catalyst_client.ConfigurationSpecAccessControl, error) {
 	if model == nil {
 		return nil, nil
 	}
 
-	ac := &cloudruntime_client.ConfigurationSpecAccessControl{}
+	ac := &catalyst_client.ConfigurationSpecAccessControl{}
 
 	if !model.DefaultAction.IsNull() && !model.DefaultAction.IsUnknown() {
-		action := cloudruntime_client.ConfigurationSpecAccessControlDefaultAction(model.DefaultAction.ValueString())
+		action := catalyst_client.ConfigurationSpecAccessControlDefaultAction(model.DefaultAction.ValueString())
 		if action != "" {
 			ac.DefaultAction = &action
 		}
@@ -65,9 +65,9 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloud
 	}
 
 	if len(model.Policies) > 0 {
-		policies := make([]cloudruntime_client.ConfigurationSpecAccessControlPolicy, 0, len(model.Policies))
+		policies := make([]catalyst_client.ConfigurationSpecAccessControlPolicy, 0, len(model.Policies))
 		for _, policy := range model.Policies {
-			p := cloudruntime_client.ConfigurationSpecAccessControlPolicy{}
+			p := catalyst_client.ConfigurationSpecAccessControlPolicy{}
 
 			if !policy.AppID.IsNull() && !policy.AppID.IsUnknown() {
 				appID := policy.AppID.ValueString()
@@ -77,7 +77,7 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloud
 			}
 
 			if !policy.DefaultAction.IsNull() && !policy.DefaultAction.IsUnknown() {
-				action := cloudruntime_client.ConfigurationSpecAccessControlPolicyDefaultAction(policy.DefaultAction.ValueString())
+				action := catalyst_client.ConfigurationSpecAccessControlPolicyDefaultAction(policy.DefaultAction.ValueString())
 				if string(action) != "" {
 					p.DefaultAction = &action
 				}
@@ -94,16 +94,16 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloud
 
 			if len(policy.Operations) > 0 {
 				operations := make([]struct {
-					Action   *cloudruntime_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
-					HttpVerb *[]string                                                                 `json:"httpVerb,omitempty"`
-					Name     *string                                                                   `json:"name,omitempty"`
+					Action   *catalyst_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
+					HttpVerb *[]string                                                             `json:"httpVerb,omitempty"`
+					Name     *string                                                               `json:"name,omitempty"`
 				}, 0, len(policy.Operations))
 
 				for _, op := range policy.Operations {
 					operation := struct {
-						Action   *cloudruntime_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
-						HttpVerb *[]string                                                                 `json:"httpVerb,omitempty"`
-						Name     *string                                                                   `json:"name,omitempty"`
+						Action   *catalyst_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
+						HttpVerb *[]string                                                             `json:"httpVerb,omitempty"`
+						Name     *string                                                               `json:"name,omitempty"`
 					}{}
 
 					if !op.Name.IsNull() && !op.Name.IsUnknown() {
@@ -114,7 +114,7 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloud
 					}
 
 					if !op.Action.IsNull() && !op.Action.IsUnknown() {
-						action := cloudruntime_client.ConfigurationSpecAccessControlPolicyOperationsAction(op.Action.ValueString())
+						action := catalyst_client.ConfigurationSpecAccessControlPolicyOperationsAction(op.Action.ValueString())
 						if string(action) != "" {
 							operation.Action = &action
 						}
@@ -147,19 +147,19 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*cloud
 	return ac, nil
 }
 
-func expandHandlers(model *pipelineModel) *[]cloudruntime_client.ConfigurationSpecHandler {
+func expandHandlers(model *pipelineModel) *[]catalyst_client.ConfigurationSpecHandler {
 	if model == nil {
 		return nil
 	}
 
 	if len(model.Handlers) == 0 {
-		empty := []cloudruntime_client.ConfigurationSpecHandler{}
+		empty := []catalyst_client.ConfigurationSpecHandler{}
 		return &empty
 	}
 
-	handlers := make([]cloudruntime_client.ConfigurationSpecHandler, 0, len(model.Handlers))
+	handlers := make([]catalyst_client.ConfigurationSpecHandler, 0, len(model.Handlers))
 	for _, handler := range model.Handlers {
-		h := cloudruntime_client.ConfigurationSpecHandler{}
+		h := catalyst_client.ConfigurationSpecHandler{}
 
 		if !handler.Name.IsNull() && !handler.Name.IsUnknown() {
 			name := handler.Name.ValueString()
@@ -181,7 +181,7 @@ func expandHandlers(model *pipelineModel) *[]cloudruntime_client.ConfigurationSp
 	return &handlers
 }
 
-func flattenConfigurationSpec(ctx context.Context, apiSpec *cloudruntime_client.DaprConfigurationSpec) (*specModel, error) {
+func flattenConfigurationSpec(ctx context.Context, apiSpec *catalyst_client.DaprConfigurationSpec) (*specModel, error) {
 	spec := &specModel{}
 	if apiSpec == nil {
 		return spec, nil
@@ -206,7 +206,7 @@ func flattenConfigurationSpec(ctx context.Context, apiSpec *cloudruntime_client.
 	return spec, nil
 }
 
-func flattenAccessControl(ctx context.Context, api *cloudruntime_client.ConfigurationSpecAccessControl) (*accessControlModel, error) {
+func flattenAccessControl(ctx context.Context, api *catalyst_client.ConfigurationSpecAccessControl) (*accessControlModel, error) {
 	if api == nil {
 		return nil, nil
 	}
@@ -286,21 +286,21 @@ func flattenAccessControl(ctx context.Context, api *cloudruntime_client.Configur
 	return model, nil
 }
 
-func flattenAppPipeline(api *cloudruntime_client.ConfigurationSpecAppHttpPipeline) *pipelineModel {
+func flattenAppPipeline(api *catalyst_client.ConfigurationSpecAppHttpPipeline) *pipelineModel {
 	if api == nil {
 		return nil
 	}
 	return flattenHandlers(api.Handlers)
 }
 
-func flattenHTTPPipeline(api *cloudruntime_client.ConfigurationSpecHttpPipeline) *pipelineModel {
+func flattenHTTPPipeline(api *catalyst_client.ConfigurationSpecHttpPipeline) *pipelineModel {
 	if api == nil {
 		return nil
 	}
 	return flattenHandlers(api.Handlers)
 }
 
-func flattenHandlers(handlers *[]cloudruntime_client.ConfigurationSpecHandler) *pipelineModel {
+func flattenHandlers(handlers *[]catalyst_client.ConfigurationSpecHandler) *pipelineModel {
 	if handlers == nil {
 		return nil
 	}
@@ -340,7 +340,7 @@ func read(ctx context.Context,
 			"name":       m.GetName(),
 		})
 
-	configuration, err := client.GetConfiguration(ctx, m.GetProjectID(), m.GetName(), &cloudruntime_client.DescribeDaprConfigurationParams{})
+	configuration, err := client.GetConfiguration(ctx, m.GetProjectID(), m.GetName(), &catalyst_client.DescribeDaprConfigurationParams{})
 	if err != nil {
 		return fmt.Errorf("error getting configuration: %w", err)
 	}

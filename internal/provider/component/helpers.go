@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -12,7 +12,7 @@ import (
 )
 
 // toAPIScopes converts Terraform list to API scopes slice.
-func toAPIScopes(ctx context.Context, scopesList types.List) cloudruntime_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopesList types.List) catalyst_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
@@ -22,7 +22,7 @@ func toAPIScopes(ctx context.Context, scopesList types.List) cloudruntime_client
 	return scopes
 }
 
-func expandComponentSpec(spec *specModel) (*cloudruntime_client.DaprComponentSpec, error) {
+func expandComponentSpec(spec *specModel) (*catalyst_client.DaprComponentSpec, error) {
 	if spec == nil {
 		return nil, fmt.Errorf("spec must be provided")
 	}
@@ -32,7 +32,7 @@ func expandComponentSpec(spec *specModel) (*cloudruntime_client.DaprComponentSpe
 	}
 
 	typ := spec.Type.ValueString()
-	apiSpec := &cloudruntime_client.DaprComponentSpec{
+	apiSpec := &catalyst_client.DaprComponentSpec{
 		Type: &typ,
 	}
 
@@ -42,7 +42,7 @@ func expandComponentSpec(spec *specModel) (*cloudruntime_client.DaprComponentSpe
 	}
 
 	if len(spec.Metadata) > 0 {
-		metadata := make([]cloudruntime_client.DaprMetadataItem, len(spec.Metadata))
+		metadata := make([]catalyst_client.DaprMetadataItem, len(spec.Metadata))
 		for i, item := range spec.Metadata {
 			if item.Name.IsNull() || item.Name.IsUnknown() || item.Name.ValueString() == "" {
 				return nil, fmt.Errorf("spec.metadata[%d].name must be provided", i)
@@ -53,8 +53,11 @@ func expandComponentSpec(spec *specModel) (*cloudruntime_client.DaprComponentSpe
 
 			if !item.Value.IsNull() && !item.Value.IsUnknown() {
 				value := item.Value.ValueString()
-				var iface interface{} = value
-				metadata[i].Value = &iface
+				metadataValue := &catalyst_client.DaprMetadataItem_Value{}
+				if err := metadataValue.FromDaprMetadataItemValue0(value); err != nil {
+					return nil, fmt.Errorf("spec.metadata[%d].value: %w", i, err)
+				}
+				metadata[i].Value = metadataValue
 			}
 
 			if item.SecretKeyRef != nil {
@@ -82,7 +85,7 @@ func expandComponentSpec(spec *specModel) (*cloudruntime_client.DaprComponentSpe
 	return apiSpec, nil
 }
 
-func flattenMetadataItems(items *[]cloudruntime_client.DaprMetadataItem) []metadataItemModel {
+func flattenMetadataItems(items *[]catalyst_client.DaprMetadataItem) []metadataItemModel {
 	if items == nil {
 		return nil
 	}
@@ -101,7 +104,11 @@ func flattenMetadataItems(items *[]cloudruntime_client.DaprMetadataItem) []metad
 		}
 
 		if item.Value != nil {
-			metadata[i].Value = types.StringValue(fmt.Sprint(*item.Value))
+			if strVal, err := item.Value.AsDaprMetadataItemValue0(); err == nil {
+				metadata[i].Value = types.StringValue(strVal)
+			} else {
+				metadata[i].Value = types.StringValue(fmt.Sprint(*item.Value))
+			}
 		}
 
 		if item.SecretKeyRef != nil && item.SecretKeyRef.Name != nil && item.SecretKeyRef.Key != nil {
@@ -128,7 +135,7 @@ func read(ctx context.Context,
 		})
 
 	showSensitive := true
-	component, err := client.GetComponent(ctx, m.GetProjectName(), m.GetName(), &cloudruntime_client.DescribeDaprComponentParams{
+	component, err := client.GetComponent(ctx, m.GetProjectName(), m.GetName(), &catalyst_client.DescribeDaprComponentParams{
 		Showsensitive: &showSensitive,
 	})
 	if err != nil {

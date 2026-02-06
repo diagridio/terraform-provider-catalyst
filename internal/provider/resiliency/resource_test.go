@@ -9,9 +9,9 @@ import (
 	"sync"
 	"testing"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
-	conductor_client "github.com/diagridio/diagrid-cloud-go/pkg/conductor/client"
-	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
+	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
 	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
@@ -32,7 +32,7 @@ var (
 	resiliencyName = acctest.RandomWithPrefix("resiliency")
 
 	mu           sync.Mutex
-	resiliencies = make(map[string]*cloudruntime_client.DaprResiliency)
+	resiliencies = make(map[string]*catalyst_client.DaprResiliency)
 	projs        = make(map[string]bool)
 )
 
@@ -118,7 +118,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 		c.EXPECT().
 			CreateProject(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, project *cloudruntime_client.Project) error {
+			DoAndReturn(func(ctx context.Context, project *catalyst_client.Project) error {
 				mu.Lock()
 				defer mu.Unlock()
 				projs[*project.Metadata.Name] = true
@@ -128,30 +128,30 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 		c.EXPECT().
 			GetProject(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, name string, params *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error) {
+			DoAndReturn(func(ctx context.Context, name string, params *catalyst_client.DescribeProjectParams) (*catalyst_client.Project, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				if ok, created := projs[name]; !ok || !created {
 					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
 				}
 
-				return &cloudruntime_client.Project{
+				return &catalyst_client.Project{
 					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
 					Kind:       lo.ToPtr(catalyst.KindProject),
-					Metadata: &cloudruntime_client.Metadata{
+					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectID),
 					},
-					Spec: &cloudruntime_client.ProjectSpec{
+					Spec: &catalyst_client.ProjectSpec{
 						Region: lo.ToPtr("default"),
 					},
-					Status: &cloudruntime_client.ProjectStatus{
+					Status: &catalyst_client.ProjectStatus{
 						Status: lo.ToPtr("ready"),
-						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
-							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
+						Endpoints: &catalyst_client.ProjectStatusEndpoint{
+							Grpc: &catalyst_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectID)),
 							},
-							Http: &cloudruntime_client.ProjectStatusEndpointDetails{
+							Http: &catalyst_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("https://http.%s.default.example.com", projectID)),
 							},
 						},
@@ -171,7 +171,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			AnyTimes()
 
 		c.EXPECT().CreateResiliency(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectID string, resiliency *cloudruntime_client.DaprResiliency) error {
+			DoAndReturn(func(ctx context.Context, projectID string, resiliency *catalyst_client.DaprResiliency) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectID, *resiliency.Metadata.Name)
@@ -180,7 +180,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().GetResiliency(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectID, name string, qp *cloudruntime_client.DescribeDaprResiliencyParams) (*cloudruntime_client.DaprResiliency, error) {
+			DoAndReturn(func(ctx context.Context, projectID, name string, qp *catalyst_client.DescribeDaprResiliencyParams) (*catalyst_client.DaprResiliency, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectID, name)
@@ -192,7 +192,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().UpdateResiliency(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectID, name string, resiliency *cloudruntime_client.DaprResiliency) error {
+			DoAndReturn(func(ctx context.Context, projectID, name string, resiliency *catalyst_client.DaprResiliency) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectID, *resiliency.Metadata.Name)

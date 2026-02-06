@@ -35,7 +35,7 @@ jobs:
       - name: Grant access to private diagrid repos
         shell: bash # required on run steps in composite actions
         run: |
-          git config --global url."https://x-access-token:${{ inputs.workflow_token || steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
+          git config --global url."https://x-access-token:${{ steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
         uses: actions/setup-go@v6.0.0

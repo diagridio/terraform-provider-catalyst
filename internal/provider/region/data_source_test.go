@@ -10,7 +10,7 @@ import (
 	"github.com/samber/lo"
 	"go.uber.org/mock/gomock"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
 )
@@ -49,19 +49,19 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 		c.EXPECT().
 			GetRegion(gomock.Any(), gomock.Any()).
 			Return(
-				&cloudruntime_client.Region{
+				&catalyst_client.Region{
 					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
 					Kind:       lo.ToPtr(catalyst.KindRegion),
-					Metadata: &cloudruntime_client.Metadata{
+					Metadata: &catalyst_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
-					Spec: &cloudruntime_client.RegionSpec{
+					Spec: &catalyst_client.RegionSpec{
 						Host:     lo.ToPtr(regionHost),
 						Ingress:  lo.ToPtr(regionIngress),
 						Location: lo.ToPtr(regionLocation),
 						Type:     lo.ToPtr(regionType),
 					},
-					Status: &cloudruntime_client.RegionStatus{
+					Status: &catalyst_client.RegionStatus{
 						Connected: lo.ToPtr(true),
 					},
 				}, nil).

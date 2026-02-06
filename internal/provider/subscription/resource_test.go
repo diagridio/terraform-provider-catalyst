@@ -7,9 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
-	conductor_client "github.com/diagridio/diagrid-cloud-go/pkg/conductor/client"
-	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
+	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
 	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
@@ -34,9 +34,9 @@ var (
 
 	mu            sync.Mutex
 	projs         = make(map[string]bool)
-	appids        = make(map[string]*cloudruntime_client.AppIdentity)
-	pubsubs       = make(map[string]*cloudruntime_client.PubSub)
-	subscriptions = make(map[string]*cloudruntime_client.DaprSubscription)
+	appids        = make(map[string]*catalyst_client.AppIdentity)
+	pubsubs       = make(map[string]*catalyst_client.PubSub)
+	subscriptions = make(map[string]*catalyst_client.DaprSubscription)
 )
 
 func TestMockSubscriptionResource(t *testing.T) {
@@ -120,7 +120,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}, nil).AnyTimes()
 
 		c.EXPECT().CreateProject(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, project *cloudruntime_client.Project) error {
+			DoAndReturn(func(ctx context.Context, project *catalyst_client.Project) error {
 				mu.Lock()
 				defer mu.Unlock()
 				projs[*project.Metadata.Name] = true
@@ -128,30 +128,30 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().GetProject(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, name string, params *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error) {
+			DoAndReturn(func(ctx context.Context, name string, params *catalyst_client.DescribeProjectParams) (*catalyst_client.Project, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				if ok, created := projs[name]; !ok || !created {
 					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
 				}
 
-				return &cloudruntime_client.Project{
+				return &catalyst_client.Project{
 					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
 					Kind:       lo.ToPtr(catalyst.KindProject),
-					Metadata: &cloudruntime_client.Metadata{
+					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(uuid.NewString()),
 						Name: lo.ToPtr(projectName),
 					},
-					Spec: &cloudruntime_client.ProjectSpec{
+					Spec: &catalyst_client.ProjectSpec{
 						Region: lo.ToPtr("default"),
 					},
-					Status: &cloudruntime_client.ProjectStatus{
+					Status: &catalyst_client.ProjectStatus{
 						Status: lo.ToPtr("ready"),
-						Endpoints: &cloudruntime_client.ProjectStatusEndpoint{
-							Grpc: &cloudruntime_client.ProjectStatusEndpointDetails{
+						Endpoints: &catalyst_client.ProjectStatusEndpoint{
+							Grpc: &catalyst_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectName)),
 							},
-							Http: &cloudruntime_client.ProjectStatusEndpointDetails{
+							Http: &catalyst_client.ProjectStatusEndpointDetails{
 								Url: lo.ToPtr(fmt.Sprintf("https://http.%s.default.example.com", projectName)),
 							},
 						},
@@ -168,7 +168,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().CreateAppId(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName string, appId *cloudruntime_client.AppIdentity) error {
+			DoAndReturn(func(ctx context.Context, projectName string, appId *catalyst_client.AppIdentity) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, *appId.Metadata.Name)
@@ -177,7 +177,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().GetAppId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName, name string, qp *cloudruntime_client.DescribeAppIdentityParams) (*cloudruntime_client.AppIdentity, error) {
+			DoAndReturn(func(ctx context.Context, projectName, name string, qp *catalyst_client.DescribeAppIdentityParams) (*catalyst_client.AppIdentity, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, name)
@@ -189,7 +189,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().UpdateAppId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName, name string, appId *cloudruntime_client.AppIdentity) error {
+			DoAndReturn(func(ctx context.Context, projectName, name string, appId *catalyst_client.AppIdentity) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, *appId.Metadata.Name)
@@ -207,7 +207,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().CreatePubSub(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName string, pubsub *cloudruntime_client.PubSub) error {
+			DoAndReturn(func(ctx context.Context, projectName string, pubsub *catalyst_client.PubSub) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, *pubsub.Metadata.Name)
@@ -216,7 +216,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().GetPubSub(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName, name string, qp *cloudruntime_client.DescribePubSubParams) (*cloudruntime_client.PubSub, error) {
+			DoAndReturn(func(ctx context.Context, projectName, name string, qp *catalyst_client.DescribePubSubParams) (*catalyst_client.PubSub, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, name)
@@ -228,7 +228,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().UpdatePubSub(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectId, pubsubId string, pubsub *cloudruntime_client.PubSub) error {
+			DoAndReturn(func(ctx context.Context, projectId, pubsubId string, pubsub *catalyst_client.PubSub) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, *pubsub.Metadata.Name)
@@ -246,7 +246,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().CreateSubscription(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName string, subscription *cloudruntime_client.DaprSubscription) error {
+			DoAndReturn(func(ctx context.Context, projectName string, subscription *catalyst_client.DaprSubscription) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, *subscription.Metadata.Name)
@@ -255,7 +255,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().GetSubscription(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName, name string, qp *cloudruntime_client.DescribeDaprSubscriptionParams) (*cloudruntime_client.DaprSubscription, error) {
+			DoAndReturn(func(ctx context.Context, projectName, name string, qp *catalyst_client.DescribeDaprSubscriptionParams) (*catalyst_client.DaprSubscription, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, name)
@@ -267,7 +267,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			}).AnyTimes()
 
 		c.EXPECT().UpdateSubscription(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, projectName, name string, subscription *cloudruntime_client.DaprSubscription) error {
+			DoAndReturn(func(ctx context.Context, projectName, name string, subscription *catalyst_client.DaprSubscription) error {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectName, *subscription.Metadata.Name)
