@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-func toAPIScopes(ctx context.Context, scopes types.List) *cloudruntime_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopes types.List) *catalyst_client.DaprScopes {
 	if scopes.IsNull() || scopes.IsUnknown() {
 		return nil
 	}
@@ -37,7 +37,7 @@ func read(ctx context.Context,
 			"name":         m.GetName(),
 		})
 
-	kvstore, err := client.GetKVStore(ctx, m.GetProjectName(), m.GetName(), &cloudruntime_client.DescribeKVStoreParams{})
+	kvstore, err := client.GetKVStore(ctx, m.GetProjectName(), m.GetName(), &catalyst_client.DescribeKVStoreParams{})
 	if err != nil {
 		return fmt.Errorf("error getting kvstore: %w", err)
 	}

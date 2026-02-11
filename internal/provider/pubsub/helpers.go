@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
@@ -22,7 +22,7 @@ func read(ctx context.Context,
 			"name":         m.GetName(),
 		})
 
-	pubsub, err := client.GetPubSub(ctx, m.GetProjectName(), m.GetName(), &cloudruntime_client.DescribePubSubParams{})
+	pubsub, err := client.GetPubSub(ctx, m.GetProjectName(), m.GetName(), &catalyst_client.DescribePubSubParams{})
 	if err != nil {
 		return fmt.Errorf("error getting pubsub: %w", err)
 	}
@@ -68,7 +68,7 @@ func read(ctx context.Context,
 	return nil
 }
 
-func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopesList types.List) *catalyst_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}

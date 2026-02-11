@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -12,7 +12,7 @@ import (
 )
 
 // toAPIScopes converts a Terraform List to API DaprScopes.
-func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopesList types.List) *catalyst_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
@@ -28,12 +28,12 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 	return &scopes
 }
 
-func expandSubscriptionSpec(ctx context.Context, model *specModel) (*cloudruntime_client.DaprSubscriptionSpec, error) {
+func expandSubscriptionSpec(ctx context.Context, model *specModel) (*catalyst_client.DaprSubscriptionSpec, error) {
 	if model == nil {
 		return nil, nil
 	}
 
-	spec := &cloudruntime_client.DaprSubscriptionSpec{}
+	spec := &catalyst_client.DaprSubscriptionSpec{}
 	hasData := false
 
 	if routes := expandRoutes(model.Routes); routes != nil {
@@ -60,7 +60,7 @@ func expandSubscriptionSpec(ctx context.Context, model *specModel) (*cloudruntim
 			return nil, fmt.Errorf("failed to expand metadata: %w", err)
 		}
 		if len(metadata) > 0 {
-			spec.Metadata = &cloudruntime_client.DaprSubscriptionSpec_Metadata{AdditionalProperties: metadata}
+			spec.Metadata = &metadata
 			hasData = true
 		}
 	}
@@ -72,12 +72,12 @@ func expandSubscriptionSpec(ctx context.Context, model *specModel) (*cloudruntim
 	return spec, nil
 }
 
-func expandRoutes(model *routesModel) *cloudruntime_client.SubscriptionSpecRoutes {
+func expandRoutes(model *routesModel) *catalyst_client.SubscriptionSpecRoutes {
 	if model == nil {
 		return nil
 	}
 
-	routes := &cloudruntime_client.SubscriptionSpecRoutes{}
+	routes := &catalyst_client.SubscriptionSpecRoutes{}
 	hasData := false
 
 	if !model.Default.IsNull() && !model.Default.IsUnknown() {
@@ -89,9 +89,9 @@ func expandRoutes(model *routesModel) *cloudruntime_client.SubscriptionSpecRoute
 	}
 
 	if len(model.Rules) > 0 {
-		rules := make([]cloudruntime_client.SubscriptionRule, 0, len(model.Rules))
+		rules := make([]catalyst_client.SubscriptionRule, 0, len(model.Rules))
 		for _, ruleModel := range model.Rules {
-			rule := cloudruntime_client.SubscriptionRule{}
+			rule := catalyst_client.SubscriptionRule{}
 			ruleHasData := false
 
 			if !ruleModel.Match.IsNull() && !ruleModel.Match.IsUnknown() {
@@ -125,12 +125,12 @@ func expandRoutes(model *routesModel) *cloudruntime_client.SubscriptionSpecRoute
 	return routes
 }
 
-func expandBulkSubscribe(model *bulkSubscribeModel) *cloudruntime_client.DaprSubscriptionSpecBulkSubscribe {
+func expandBulkSubscribe(model *bulkSubscribeModel) *catalyst_client.DaprSubscriptionSpecBulkSubscribe {
 	if model == nil {
 		return nil
 	}
 
-	bulk := &cloudruntime_client.DaprSubscriptionSpecBulkSubscribe{}
+	bulk := &catalyst_client.DaprSubscriptionSpecBulkSubscribe{}
 	hasData := false
 
 	if !model.Enabled.IsNull() && !model.Enabled.IsUnknown() {
@@ -158,7 +158,7 @@ func expandBulkSubscribe(model *bulkSubscribeModel) *cloudruntime_client.DaprSub
 	return bulk
 }
 
-func flattenSubscriptionSpec(ctx context.Context, api *cloudruntime_client.DaprSubscriptionSpec) (*specModel, error) {
+func flattenSubscriptionSpec(ctx context.Context, api *catalyst_client.DaprSubscriptionSpec) (*specModel, error) {
 	spec := &specModel{
 		DeadLetterTopic: types.StringNull(),
 		Metadata:        types.MapNull(types.StringType),
@@ -180,8 +180,8 @@ func flattenSubscriptionSpec(ctx context.Context, api *cloudruntime_client.DaprS
 		spec.DeadLetterTopic = types.StringValue(*api.DeadLetterTopic)
 	}
 
-	if api.Metadata != nil && len(api.Metadata.AdditionalProperties) > 0 {
-		metadataValue, diags := types.MapValueFrom(ctx, types.StringType, api.Metadata.AdditionalProperties)
+	if api.Metadata != nil && len(*api.Metadata) > 0 {
+		metadataValue, diags := types.MapValueFrom(ctx, types.StringType, *api.Metadata)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to flatten metadata: %v", diags.Errors())
 		}
@@ -191,7 +191,7 @@ func flattenSubscriptionSpec(ctx context.Context, api *cloudruntime_client.DaprS
 	return spec, nil
 }
 
-func flattenRoutes(api *cloudruntime_client.SubscriptionSpecRoutes) *routesModel {
+func flattenRoutes(api *catalyst_client.SubscriptionSpecRoutes) *routesModel {
 	if api == nil {
 		return nil
 	}
@@ -242,7 +242,7 @@ func flattenRoutes(api *cloudruntime_client.SubscriptionSpecRoutes) *routesModel
 	return routes
 }
 
-func flattenBulkSubscribe(api *cloudruntime_client.DaprSubscriptionSpecBulkSubscribe) *bulkSubscribeModel {
+func flattenBulkSubscribe(api *catalyst_client.DaprSubscriptionSpecBulkSubscribe) *bulkSubscribeModel {
 	if api == nil {
 		return nil
 	}
@@ -312,7 +312,7 @@ func specModelIsEmpty(spec *specModel) bool {
 	return true
 }
 
-func applyExpandedSpec(target *cloudruntime_client.DaprSubscriptionSpec, extras *cloudruntime_client.DaprSubscriptionSpec) {
+func applyExpandedSpec(target *catalyst_client.DaprSubscriptionSpec, extras *catalyst_client.DaprSubscriptionSpec) {
 	if target == nil || extras == nil {
 		return
 	}
@@ -344,7 +344,7 @@ func read(ctx context.Context,
 			"name":         m.GetName(),
 		})
 
-	subscription, err := client.GetSubscription(ctx, m.GetProjectName(), m.GetName(), &cloudruntime_client.DescribeDaprSubscriptionParams{})
+	subscription, err := client.GetSubscription(ctx, m.GetProjectName(), m.GetName(), &catalyst_client.DescribeDaprSubscriptionParams{})
 	if err != nil {
 		return fmt.Errorf("error getting subscription: %w", err)
 	}

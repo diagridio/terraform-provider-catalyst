@@ -7,9 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
-	conductor_client "github.com/diagridio/diagrid-cloud-go/pkg/conductor/client"
-	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
+	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
 	"github.com/google/uuid"
@@ -31,7 +31,7 @@ var (
 	dsServiceAccountRole        = "viewer"
 
 	dsMu              sync.Mutex
-	dsServiceAccounts = make(map[string]*cloudruntime_client.ServiceAccount)
+	dsServiceAccounts = make(map[string]*catalyst_client.ServiceAccount)
 )
 
 func TestMockServiceAccountDataSource(t *testing.T) {
@@ -92,11 +92,11 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 
 		c.EXPECT().
 			CreateServiceAccount(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, sa *cloudruntime_client.ServiceAccount) error {
+			DoAndReturn(func(ctx context.Context, sa *catalyst_client.ServiceAccount) error {
 				dsMu.Lock()
 				defer dsMu.Unlock()
 
-				sa.Status = &cloudruntime_client.ServiceAccountStatus{
+				sa.Status = &catalyst_client.ServiceAccountStatus{
 					Email:     lo.ToPtr(fmt.Sprintf("%s@service.local", *sa.Metadata.Name)),
 					Status:    lo.ToPtr("active"),
 					UpdatedAt: lo.ToPtr("2024-01-01T00:00:00Z"),
@@ -108,7 +108,7 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 
 		c.EXPECT().
 			GetServiceAccount(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, name string) (*cloudruntime_client.ServiceAccount, error) {
+			DoAndReturn(func(ctx context.Context, name string) (*catalyst_client.ServiceAccount, error) {
 				dsMu.Lock()
 				defer dsMu.Unlock()
 
@@ -122,7 +122,7 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 
 		c.EXPECT().
 			UpdateServiceAccount(gomock.Any(), gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, name string, sa *cloudruntime_client.ServiceAccount) error {
+			DoAndReturn(func(ctx context.Context, name string, sa *catalyst_client.ServiceAccount) error {
 				dsMu.Lock()
 				defer dsMu.Unlock()
 

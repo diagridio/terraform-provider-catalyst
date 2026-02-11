@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
@@ -23,7 +23,7 @@ func read(ctx context.Context,
 			"name":       m.GetName(),
 		})
 
-	appid, err := client.GetAppId(ctx, m.GetProjectID(), m.GetName(), &cloudruntime_client.DescribeAppIdentityParams{})
+	appid, err := client.GetAppId(ctx, m.GetProjectID(), m.GetName(), &catalyst_client.DescribeAppIdentityParams{})
 	if err != nil {
 		return fmt.Errorf("error getting appid: %w", err)
 	}
@@ -155,7 +155,7 @@ func read(ctx context.Context,
 	return nil
 }
 
-func toAPIAppEndpoint(ctx context.Context, obj types.Object) *cloudruntime_client.AppIdentitySpecAppEndpoint {
+func toAPIAppEndpoint(ctx context.Context, obj types.Object) *catalyst_client.AppIdentitySpecAppEndpoint {
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil
 	}
@@ -166,7 +166,7 @@ func toAPIAppEndpoint(ctx context.Context, obj types.Object) *cloudruntime_clien
 		return nil
 	}
 
-	endpoint := &cloudruntime_client.AppIdentitySpecAppEndpoint{}
+	endpoint := &catalyst_client.AppIdentitySpecAppEndpoint{}
 
 	if !model.URL.IsNull() && !model.URL.IsUnknown() {
 		url := model.URL.ValueString()
@@ -191,7 +191,7 @@ func toAPIAppEndpoint(ctx context.Context, obj types.Object) *cloudruntime_clien
 	return endpoint
 }
 
-func toAPIHealthCheck(ctx context.Context, obj types.Object) *cloudruntime_client.AppIdentitySpecAppEndpointHealthCheck {
+func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.AppIdentitySpecAppEndpointHealthCheck {
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil
 	}
@@ -202,7 +202,7 @@ func toAPIHealthCheck(ctx context.Context, obj types.Object) *cloudruntime_clien
 		return nil
 	}
 
-	healthCheck := &cloudruntime_client.AppIdentitySpecAppEndpointHealthCheck{}
+	healthCheck := &catalyst_client.AppIdentitySpecAppEndpointHealthCheck{}
 
 	if !model.Path.IsNull() && !model.Path.IsUnknown() {
 		path := model.Path.ValueString()
@@ -211,7 +211,7 @@ func toAPIHealthCheck(ctx context.Context, obj types.Object) *cloudruntime_clien
 
 	// Set probe if any probe fields are set
 	if !model.Enabled.IsNull() || !model.FailureThreshold.IsNull() || !model.IntervalSeconds.IsNull() || !model.TimeoutMs.IsNull() {
-		probe := &cloudruntime_client.AppIdentitySpecAppEndpointHealthCheckProbe{}
+		probe := &catalyst_client.AppIdentitySpecAppEndpointHealthCheckProbe{}
 
 		if !model.Enabled.IsNull() && !model.Enabled.IsUnknown() {
 			probe.Enabled = model.Enabled.ValueBool()

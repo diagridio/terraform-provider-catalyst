@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
@@ -19,7 +19,7 @@ func read(ctx context.Context,
 			"name": m.GetName(),
 		})
 
-	project, err := client.GetProject(ctx, m.GetName(), &cloudruntime_client.DescribeProjectParams{})
+	project, err := client.GetProject(ctx, m.GetName(), &catalyst_client.DescribeProjectParams{})
 	if err != nil {
 		return fmt.Errorf("error getting project: %w", err)
 	}

@@ -8,79 +8,79 @@ import (
 
 	"k8s.io/utils/ptr"
 
-	"github.com/diagridio/diagrid-cloud-go/cloudruntime"
-	"github.com/diagridio/diagrid-cloud-go/management"
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
-	conductor_client "github.com/diagridio/diagrid-cloud-go/pkg/conductor/client"
+	"github.com/diagridio/cloudgrid/sdk/go/catalyst"
+	"github.com/diagridio/cloudgrid/sdk/go/management"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
+	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
 )
 
 type Client interface {
 	GetUserOrg(context.Context) (*conductor_client.Organization, error)
 
 	// Region operations
-	CreateRegion(ctx context.Context, region *cloudruntime_client.Region) (string, error)
-	GetRegion(ctx context.Context, name string) (*cloudruntime_client.Region, error)
-	UpdateRegion(ctx context.Context, region *cloudruntime_client.Region) error
+	CreateRegion(ctx context.Context, region *catalyst_client.Region) (string, error)
+	GetRegion(ctx context.Context, name string) (*catalyst_client.Region, error)
+	UpdateRegion(ctx context.Context, region *catalyst_client.Region) error
 	DeleteRegion(ctx context.Context, name string) error
 
 	// Project operations
-	GetProject(ctx context.Context, id string, qp *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error)
-	CreateProject(ctx context.Context, project *cloudruntime_client.Project) error
-	UpdateProject(ctx context.Context, prj *cloudruntime_client.Project) error
+	GetProject(ctx context.Context, id string, qp *catalyst_client.DescribeProjectParams) (*catalyst_client.Project, error)
+	CreateProject(ctx context.Context, project *catalyst_client.Project) error
+	UpdateProject(ctx context.Context, prj *catalyst_client.Project) error
 	DeleteProject(ctx context.Context, id string) error
 
 	// ServiceAccount operations
-	CreateServiceAccount(ctx context.Context, serviceAccount *cloudruntime_client.ServiceAccount) error
-	GetServiceAccount(ctx context.Context, serviceAccountId string) (*cloudruntime_client.ServiceAccount, error)
-	UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *cloudruntime_client.ServiceAccount) error
+	CreateServiceAccount(ctx context.Context, serviceAccount *catalyst_client.ServiceAccount) error
+	GetServiceAccount(ctx context.Context, serviceAccountId string) (*catalyst_client.ServiceAccount, error)
+	UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *catalyst_client.ServiceAccount) error
 	DeleteServiceAccount(ctx context.Context, serviceAccountId string) error
 
 	// AppId operations
-	CreateAppId(ctx context.Context, projectId string, appid *cloudruntime_client.AppIdentity) error
-	GetAppId(ctx context.Context, projectId string, appId string, qp *cloudruntime_client.DescribeAppIdentityParams) (*cloudruntime_client.AppIdentity, error)
-	UpdateAppId(ctx context.Context, projectId string, appId string, appid *cloudruntime_client.AppIdentity) error
+	CreateAppId(ctx context.Context, projectId string, appid *catalyst_client.AppIdentity) error
+	GetAppId(ctx context.Context, projectId string, appId string, qp *catalyst_client.DescribeAppIdentityParams) (*catalyst_client.AppIdentity, error)
+	UpdateAppId(ctx context.Context, projectId string, appId string, appid *catalyst_client.AppIdentity) error
 	DeleteAppId(ctx context.Context, projectId string, appId string) error
 
 	// Component operations
-	CreateComponent(ctx context.Context, projectName string, component *cloudruntime_client.DaprComponent) error
-	GetComponent(ctx context.Context, projectName string, name string, qParams *cloudruntime_client.DescribeDaprComponentParams) (*cloudruntime_client.DaprComponent, error)
-	UpdateComponent(ctx context.Context, projectName string, name string, component *cloudruntime_client.DaprComponent) error
+	CreateComponent(ctx context.Context, projectName string, component *catalyst_client.DaprComponent) error
+	GetComponent(ctx context.Context, projectName string, name string, qParams *catalyst_client.DescribeDaprComponentParams) (*catalyst_client.DaprComponent, error)
+	UpdateComponent(ctx context.Context, projectName string, name string, component *catalyst_client.DaprComponent) error
 	DeleteComponent(ctx context.Context, projectName string, name string) error
 
 	// PubSub operations
-	CreatePubSub(ctx context.Context, projectName string, pubsub *cloudruntime_client.PubSub) error
-	GetPubSub(ctx context.Context, projectName string, pubsubId string, qp *cloudruntime_client.DescribePubSubParams) (*cloudruntime_client.PubSub, error)
-	UpdatePubSub(ctx context.Context, projectId string, pubsubId string, pubsub *cloudruntime_client.PubSub) error
+	CreatePubSub(ctx context.Context, projectName string, pubsub *catalyst_client.PubSub) error
+	GetPubSub(ctx context.Context, projectName string, pubsubId string, qp *catalyst_client.DescribePubSubParams) (*catalyst_client.PubSub, error)
+	UpdatePubSub(ctx context.Context, projectId string, pubsubId string, pubsub *catalyst_client.PubSub) error
 	DeletePubSub(ctx context.Context, projectId string, pubSubId string) error
 
 	// KVStore operations
-	CreateKVStore(ctx context.Context, projectName string, kvstore *cloudruntime_client.KVStore) error
-	GetKVStore(ctx context.Context, projectName string, kvStoreName string, qp *cloudruntime_client.DescribeKVStoreParams) (*cloudruntime_client.KVStore, error)
-	UpdateKVStore(ctx context.Context, projectName string, kvStoreName string, kvstore *cloudruntime_client.KVStore) error
+	CreateKVStore(ctx context.Context, projectName string, kvstore *catalyst_client.KVStore) error
+	GetKVStore(ctx context.Context, projectName string, kvStoreName string, qp *catalyst_client.DescribeKVStoreParams) (*catalyst_client.KVStore, error)
+	UpdateKVStore(ctx context.Context, projectName string, kvStoreName string, kvstore *catalyst_client.KVStore) error
 	DeleteKVStore(ctx context.Context, projectName string, kvStoreName string) error
 
 	// Subscription operations
-	CreateSubscription(ctx context.Context, projectID string, subscription *cloudruntime_client.DaprSubscription) error
-	GetSubscription(ctx context.Context, projectName string, subscriptionName string, qp *cloudruntime_client.DescribeDaprSubscriptionParams) (*cloudruntime_client.DaprSubscription, error)
-	UpdateSubscription(ctx context.Context, projectName string, subscriptionName string, subscription *cloudruntime_client.DaprSubscription) error
+	CreateSubscription(ctx context.Context, projectID string, subscription *catalyst_client.DaprSubscription) error
+	GetSubscription(ctx context.Context, projectName string, subscriptionName string, qp *catalyst_client.DescribeDaprSubscriptionParams) (*catalyst_client.DaprSubscription, error)
+	UpdateSubscription(ctx context.Context, projectName string, subscriptionName string, subscription *catalyst_client.DaprSubscription) error
 	DeleteSubscription(ctx context.Context, projectName string, subscriptionName string) error
 
 	// Resiliency operations
-	CreateResiliency(ctx context.Context, projectID string, resiliency *cloudruntime_client.DaprResiliency) error
-	GetResiliency(ctx context.Context, projectName string, resiliencyName string, qp *cloudruntime_client.DescribeDaprResiliencyParams) (*cloudruntime_client.DaprResiliency, error)
-	UpdateResiliency(ctx context.Context, projectID string, resiliencyName string, resiliency *cloudruntime_client.DaprResiliency) error
+	CreateResiliency(ctx context.Context, projectID string, resiliency *catalyst_client.DaprResiliency) error
+	GetResiliency(ctx context.Context, projectName string, resiliencyName string, qp *catalyst_client.DescribeDaprResiliencyParams) (*catalyst_client.DaprResiliency, error)
+	UpdateResiliency(ctx context.Context, projectID string, resiliencyName string, resiliency *catalyst_client.DaprResiliency) error
 	DeleteResiliency(ctx context.Context, projectID string, resiliencyName string) error
 
 	// Configuration operations
-	CreateConfiguration(ctx context.Context, projectId string, config *cloudruntime_client.DaprConfiguration) error
-	GetConfiguration(ctx context.Context, projectId string, configName string, qp *cloudruntime_client.DescribeDaprConfigurationParams) (*cloudruntime_client.DaprConfiguration, error)
-	UpdateConfiguration(ctx context.Context, projectId string, configName string, config *cloudruntime_client.DaprConfiguration) error
+	CreateConfiguration(ctx context.Context, projectId string, config *catalyst_client.DaprConfiguration) error
+	GetConfiguration(ctx context.Context, projectId string, configName string, qp *catalyst_client.DescribeDaprConfigurationParams) (*catalyst_client.DaprConfiguration, error)
+	UpdateConfiguration(ctx context.Context, projectId string, configName string, config *catalyst_client.DaprConfiguration) error
 	DeleteConfiguration(ctx context.Context, projectId string, configName string) error
 }
 
 type cclient struct {
-	management management.ManagementClient
-	catalyst   cloudruntime.CloudruntimeAPIClient
+	management management.Client
+	catalyst   catalyst.Client
 }
 
 var (
@@ -111,7 +111,7 @@ func NewClient(endpoint, apiKey string, tlsSkipVerify bool) (Client, error) {
 
 	// Example client configuration for data sources and resources
 	maxRetries := 1
-	mc, err := management.NewManagementClientWithExponentialBackoff(httpClient,
+	mc, err := management.NewClientWithExponentialBackoff(httpClient,
 		endpoint,
 		maxRetries,
 		management.WithAPIKeyToken(apiKey))
@@ -119,10 +119,10 @@ func NewClient(endpoint, apiKey string, tlsSkipVerify bool) (Client, error) {
 		return nil, fmt.Errorf("error creating management client: %w", err)
 	}
 
-	catalystClient, err := cloudruntime.NewCloudruntimeClientWithExponentialBackoff(httpClient,
+	catalystClient, err := catalyst.NewClientWithExponentialBackoff(httpClient,
 		endpoint,
 		maxRetries,
-		cloudruntime.WithAPIKeyToken(apiKey))
+		catalyst.WithAPIKeyToken(apiKey))
 	if err != nil {
 		return nil, fmt.Errorf("error creating catalyst client: %w", err)
 	}
@@ -150,7 +150,7 @@ func (c *cclient) GetUserOrg(ctx context.Context) (*conductor_client.Organizatio
 	return org, nil
 }
 
-func (c *cclient) CreateRegion(ctx context.Context, region *cloudruntime_client.Region) (string, error) {
+func (c *cclient) CreateRegion(ctx context.Context, region *catalyst_client.Region) (string, error) {
 	resp, err := c.catalyst.CreatePrivateRegion(ctx, region)
 	if err != nil {
 		return "", fmt.Errorf("error creating region: %w", err)
@@ -162,7 +162,7 @@ func (c *cclient) CreateRegion(ctx context.Context, region *cloudruntime_client.
 	return *resp.JoinToken, nil
 }
 
-func (c *cclient) GetRegion(ctx context.Context, name string) (*cloudruntime_client.Region, error) {
+func (c *cclient) GetRegion(ctx context.Context, name string) (*catalyst_client.Region, error) {
 	region, err := c.catalyst.GetRegion(ctx, name)
 	if err != nil {
 		return nil, err
@@ -171,7 +171,7 @@ func (c *cclient) GetRegion(ctx context.Context, name string) (*cloudruntime_cli
 	return region, nil
 }
 
-func (c *cclient) UpdateRegion(ctx context.Context, region *cloudruntime_client.Region) error {
+func (c *cclient) UpdateRegion(ctx context.Context, region *catalyst_client.Region) error {
 	if err := c.catalyst.PutPrivateRegion(ctx, *region.Metadata.Name, region); err != nil {
 		return fmt.Errorf("error updating region %s: %w", *region.Metadata.Name, err)
 	}
@@ -185,7 +185,7 @@ func (c *cclient) DeleteRegion(ctx context.Context, name string) error {
 	return nil
 }
 
-func (c *cclient) GetProject(ctx context.Context, id string, qp *cloudruntime_client.DescribeProjectParams) (*cloudruntime_client.Project, error) {
+func (c *cclient) GetProject(ctx context.Context, id string, qp *catalyst_client.DescribeProjectParams) (*catalyst_client.Project, error) {
 	project, err := c.catalyst.GetProject(ctx, id, qp)
 	if err != nil {
 		return nil, err
@@ -194,8 +194,8 @@ func (c *cclient) GetProject(ctx context.Context, id string, qp *cloudruntime_cl
 	return project, nil
 }
 
-func (c *cclient) CreateProject(ctx context.Context, project *cloudruntime_client.Project) error {
-	if err := c.catalyst.CreateProject(ctx, project, &cloudruntime_client.CreateProjectParams{
+func (c *cclient) CreateProject(ctx context.Context, project *catalyst_client.Project) error {
+	if err := c.catalyst.CreateProject(ctx, project, &catalyst_client.CreateProjectParams{
 		// We always set wait for ready to true as this ensures we
 		// can more safely create sub-resources immediately after.
 		WaitForReady: ptr.To(true),
@@ -206,7 +206,7 @@ func (c *cclient) CreateProject(ctx context.Context, project *cloudruntime_clien
 	return nil
 }
 
-func (c *cclient) UpdateProject(ctx context.Context, project *cloudruntime_client.Project) error {
+func (c *cclient) UpdateProject(ctx context.Context, project *catalyst_client.Project) error {
 	if err := c.catalyst.PatchProject(ctx, project); err != nil {
 		return fmt.Errorf("error patching project: %w", err)
 	}
@@ -222,7 +222,7 @@ func (c *cclient) DeleteProject(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *cclient) CreateServiceAccount(ctx context.Context, serviceAccount *cloudruntime_client.ServiceAccount) error {
+func (c *cclient) CreateServiceAccount(ctx context.Context, serviceAccount *catalyst_client.ServiceAccount) error {
 	if err := c.catalyst.CreateServiceAccount(ctx, serviceAccount); err != nil {
 		return fmt.Errorf("error creating service account: %w", err)
 	}
@@ -230,7 +230,7 @@ func (c *cclient) CreateServiceAccount(ctx context.Context, serviceAccount *clou
 	return nil
 }
 
-func (c *cclient) GetServiceAccount(ctx context.Context, serviceAccountId string) (*cloudruntime_client.ServiceAccount, error) {
+func (c *cclient) GetServiceAccount(ctx context.Context, serviceAccountId string) (*catalyst_client.ServiceAccount, error) {
 	serviceAccount, err := c.catalyst.GetServiceAccount(ctx, serviceAccountId)
 	if err != nil {
 		return nil, err
@@ -239,7 +239,7 @@ func (c *cclient) GetServiceAccount(ctx context.Context, serviceAccountId string
 	return serviceAccount, nil
 }
 
-func (c *cclient) UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *cloudruntime_client.ServiceAccount) error {
+func (c *cclient) UpdateServiceAccount(ctx context.Context, serviceAccountId string, serviceAccount *catalyst_client.ServiceAccount) error {
 	if err := c.catalyst.PatchServiceAccount(ctx, serviceAccountId, serviceAccount); err != nil {
 		return fmt.Errorf("error updating service account %s: %w", serviceAccountId, err)
 	}
@@ -256,14 +256,14 @@ func (c *cclient) DeleteServiceAccount(ctx context.Context, serviceAccountId str
 }
 
 // AppId operations.
-func (c *cclient) CreateAppId(ctx context.Context, projectId string, appid *cloudruntime_client.AppIdentity) error {
+func (c *cclient) CreateAppId(ctx context.Context, projectId string, appid *catalyst_client.AppIdentity) error {
 	if err := c.catalyst.CreateAppId(ctx, projectId, appid); err != nil {
 		return fmt.Errorf("error creating appid: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetAppId(ctx context.Context, projectId string, appId string, qp *cloudruntime_client.DescribeAppIdentityParams) (*cloudruntime_client.AppIdentity, error) {
+func (c *cclient) GetAppId(ctx context.Context, projectId string, appId string, qp *catalyst_client.DescribeAppIdentityParams) (*catalyst_client.AppIdentity, error) {
 	appid, err := c.catalyst.GetAppId(ctx, projectId, appId, qp)
 	if err != nil {
 		return nil, err
@@ -271,7 +271,7 @@ func (c *cclient) GetAppId(ctx context.Context, projectId string, appId string, 
 	return appid, nil
 }
 
-func (c *cclient) UpdateAppId(ctx context.Context, projectId string, appId string, appid *cloudruntime_client.AppIdentity) error {
+func (c *cclient) UpdateAppId(ctx context.Context, projectId string, appId string, appid *catalyst_client.AppIdentity) error {
 	if err := c.catalyst.PatchAppId(ctx, projectId, appId, appid); err != nil {
 		return fmt.Errorf("error updating appid %s: %w", appId, err)
 	}
@@ -286,14 +286,14 @@ func (c *cclient) DeleteAppId(ctx context.Context, projectId string, appId strin
 }
 
 // Component operations.
-func (c *cclient) CreateComponent(ctx context.Context, projectName string, component *cloudruntime_client.DaprComponent) error {
+func (c *cclient) CreateComponent(ctx context.Context, projectName string, component *catalyst_client.DaprComponent) error {
 	if err := c.catalyst.CreateComponent(ctx, projectName, component); err != nil {
 		return fmt.Errorf("error creating component: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetComponent(ctx context.Context, projectName string, name string, qParams *cloudruntime_client.DescribeDaprComponentParams) (*cloudruntime_client.DaprComponent, error) {
+func (c *cclient) GetComponent(ctx context.Context, projectName string, name string, qParams *catalyst_client.DescribeDaprComponentParams) (*catalyst_client.DaprComponent, error) {
 	component, err := c.catalyst.GetComponent(ctx, projectName, name, qParams)
 	if err != nil {
 		return nil, err
@@ -301,7 +301,7 @@ func (c *cclient) GetComponent(ctx context.Context, projectName string, name str
 	return component, nil
 }
 
-func (c *cclient) UpdateComponent(ctx context.Context, projectName string, name string, component *cloudruntime_client.DaprComponent) error {
+func (c *cclient) UpdateComponent(ctx context.Context, projectName string, name string, component *catalyst_client.DaprComponent) error {
 	if err := c.catalyst.PatchComponent(ctx, projectName, name, component); err != nil {
 		return fmt.Errorf("error updating component %s: %w", name, err)
 	}
@@ -316,14 +316,14 @@ func (c *cclient) DeleteComponent(ctx context.Context, projectName string, name 
 }
 
 // PubSub operations.
-func (c *cclient) CreatePubSub(ctx context.Context, projectName string, pubsub *cloudruntime_client.PubSub) error {
+func (c *cclient) CreatePubSub(ctx context.Context, projectName string, pubsub *catalyst_client.PubSub) error {
 	if err := c.catalyst.CreatePubSub(ctx, projectName, pubsub); err != nil {
 		return fmt.Errorf("error creating pubsub: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetPubSub(ctx context.Context, projectName string, pubsubId string, qp *cloudruntime_client.DescribePubSubParams) (*cloudruntime_client.PubSub, error) {
+func (c *cclient) GetPubSub(ctx context.Context, projectName string, pubsubId string, qp *catalyst_client.DescribePubSubParams) (*catalyst_client.PubSub, error) {
 	pubsub, err := c.catalyst.GetPubSub(ctx, projectName, pubsubId, qp)
 	if err != nil {
 		return nil, err
@@ -331,7 +331,7 @@ func (c *cclient) GetPubSub(ctx context.Context, projectName string, pubsubId st
 	return pubsub, nil
 }
 
-func (c *cclient) UpdatePubSub(ctx context.Context, projectId string, pubsubId string, pubsub *cloudruntime_client.PubSub) error {
+func (c *cclient) UpdatePubSub(ctx context.Context, projectId string, pubsubId string, pubsub *catalyst_client.PubSub) error {
 	if err := c.catalyst.PatchPubSub(ctx, projectId, pubsubId, pubsub); err != nil {
 		return fmt.Errorf("error updating pubsub %s: %w", pubsubId, err)
 	}
@@ -346,14 +346,14 @@ func (c *cclient) DeletePubSub(ctx context.Context, projectId string, pubSubId s
 }
 
 // KVStore operations.
-func (c *cclient) CreateKVStore(ctx context.Context, projectName string, kvstore *cloudruntime_client.KVStore) error {
+func (c *cclient) CreateKVStore(ctx context.Context, projectName string, kvstore *catalyst_client.KVStore) error {
 	if err := c.catalyst.CreateKVStore(ctx, projectName, kvstore); err != nil {
 		return fmt.Errorf("error creating kvstore: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetKVStore(ctx context.Context, projectName string, kvStoreName string, qp *cloudruntime_client.DescribeKVStoreParams) (*cloudruntime_client.KVStore, error) {
+func (c *cclient) GetKVStore(ctx context.Context, projectName string, kvStoreName string, qp *catalyst_client.DescribeKVStoreParams) (*catalyst_client.KVStore, error) {
 	kvstore, err := c.catalyst.GetKVStore(ctx, projectName, kvStoreName, qp)
 	if err != nil {
 		return nil, err
@@ -361,7 +361,7 @@ func (c *cclient) GetKVStore(ctx context.Context, projectName string, kvStoreNam
 	return kvstore, nil
 }
 
-func (c *cclient) UpdateKVStore(ctx context.Context, projectName string, kvStoreName string, kvstore *cloudruntime_client.KVStore) error {
+func (c *cclient) UpdateKVStore(ctx context.Context, projectName string, kvStoreName string, kvstore *catalyst_client.KVStore) error {
 	if err := c.catalyst.PatchKVStore(ctx, projectName, kvStoreName, kvstore); err != nil {
 		return fmt.Errorf("error updating kvstore %s: %w", kvStoreName, err)
 	}
@@ -376,14 +376,14 @@ func (c *cclient) DeleteKVStore(ctx context.Context, projectName string, kvStore
 }
 
 // Subscription operations.
-func (c *cclient) CreateSubscription(ctx context.Context, projectID string, subscription *cloudruntime_client.DaprSubscription) error {
+func (c *cclient) CreateSubscription(ctx context.Context, projectID string, subscription *catalyst_client.DaprSubscription) error {
 	if err := c.catalyst.CreateSubscription(ctx, projectID, subscription); err != nil {
 		return fmt.Errorf("error creating subscription: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetSubscription(ctx context.Context, projectName string, subscriptionName string, qp *cloudruntime_client.DescribeDaprSubscriptionParams) (*cloudruntime_client.DaprSubscription, error) {
+func (c *cclient) GetSubscription(ctx context.Context, projectName string, subscriptionName string, qp *catalyst_client.DescribeDaprSubscriptionParams) (*catalyst_client.DaprSubscription, error) {
 	subscription, err := c.catalyst.GetSubscription(ctx, projectName, subscriptionName, qp)
 	if err != nil {
 		return nil, err
@@ -391,7 +391,7 @@ func (c *cclient) GetSubscription(ctx context.Context, projectName string, subsc
 	return subscription, nil
 }
 
-func (c *cclient) UpdateSubscription(ctx context.Context, projectName string, subscriptionName string, subscription *cloudruntime_client.DaprSubscription) error {
+func (c *cclient) UpdateSubscription(ctx context.Context, projectName string, subscriptionName string, subscription *catalyst_client.DaprSubscription) error {
 	if err := c.catalyst.PatchSubscription(ctx, projectName, subscriptionName, subscription); err != nil {
 		return fmt.Errorf("error updating subscription %s: %w", subscriptionName, err)
 	}
@@ -406,14 +406,14 @@ func (c *cclient) DeleteSubscription(ctx context.Context, projectName string, su
 }
 
 // Resiliency operations.
-func (c *cclient) CreateResiliency(ctx context.Context, projectID string, resiliency *cloudruntime_client.DaprResiliency) error {
+func (c *cclient) CreateResiliency(ctx context.Context, projectID string, resiliency *catalyst_client.DaprResiliency) error {
 	if err := c.catalyst.CreateResiliency(ctx, projectID, resiliency); err != nil {
 		return fmt.Errorf("error creating resiliency: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetResiliency(ctx context.Context, projectName string, resiliencyName string, qp *cloudruntime_client.DescribeDaprResiliencyParams) (*cloudruntime_client.DaprResiliency, error) {
+func (c *cclient) GetResiliency(ctx context.Context, projectName string, resiliencyName string, qp *catalyst_client.DescribeDaprResiliencyParams) (*catalyst_client.DaprResiliency, error) {
 	resiliency, err := c.catalyst.GetResiliency(ctx, projectName, resiliencyName, qp)
 	if err != nil {
 		return nil, err
@@ -421,7 +421,7 @@ func (c *cclient) GetResiliency(ctx context.Context, projectName string, resilie
 	return resiliency, nil
 }
 
-func (c *cclient) UpdateResiliency(ctx context.Context, projectID string, resiliencyName string, resiliency *cloudruntime_client.DaprResiliency) error {
+func (c *cclient) UpdateResiliency(ctx context.Context, projectID string, resiliencyName string, resiliency *catalyst_client.DaprResiliency) error {
 	if err := c.catalyst.PatchResiliency(ctx, projectID, resiliencyName, resiliency); err != nil {
 		return fmt.Errorf("error updating resiliency %s: %w", resiliencyName, err)
 	}
@@ -436,14 +436,14 @@ func (c *cclient) DeleteResiliency(ctx context.Context, projectID string, resili
 }
 
 // Configuration operations.
-func (c *cclient) CreateConfiguration(ctx context.Context, projectId string, config *cloudruntime_client.DaprConfiguration) error {
+func (c *cclient) CreateConfiguration(ctx context.Context, projectId string, config *catalyst_client.DaprConfiguration) error {
 	if err := c.catalyst.CreateConfiguration(ctx, projectId, config); err != nil {
 		return fmt.Errorf("error creating configuration: %w", err)
 	}
 	return nil
 }
 
-func (c *cclient) GetConfiguration(ctx context.Context, projectId string, configName string, qp *cloudruntime_client.DescribeDaprConfigurationParams) (*cloudruntime_client.DaprConfiguration, error) {
+func (c *cclient) GetConfiguration(ctx context.Context, projectId string, configName string, qp *catalyst_client.DescribeDaprConfigurationParams) (*catalyst_client.DaprConfiguration, error) {
 	config, err := c.catalyst.GetConfiguration(ctx, projectId, configName, qp)
 	if err != nil {
 		return nil, err
@@ -451,7 +451,7 @@ func (c *cclient) GetConfiguration(ctx context.Context, projectId string, config
 	return config, nil
 }
 
-func (c *cclient) UpdateConfiguration(ctx context.Context, projectId string, configName string, config *cloudruntime_client.DaprConfiguration) error {
+func (c *cclient) UpdateConfiguration(ctx context.Context, projectId string, configName string, config *catalyst_client.DaprConfiguration) error {
 	if err := c.catalyst.PatchConfiguration(ctx, projectId, configName, config); err != nil {
 		return fmt.Errorf("error updating configuration %s: %w", configName, err)
 	}

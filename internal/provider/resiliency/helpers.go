@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -12,7 +12,7 @@ import (
 )
 
 // toAPIScopes converts a Terraform List to API DaprScopes.
-func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopesList types.List) *catalyst_client.DaprScopes {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
@@ -28,12 +28,12 @@ func toAPIScopes(ctx context.Context, scopesList types.List) *cloudruntime_clien
 	return &scopes
 }
 
-func expandResiliencySpec(ctx context.Context, model *specModel) (*cloudruntime_client.DaprResiliencySpec, error) {
+func expandResiliencySpec(ctx context.Context, model *specModel) (*catalyst_client.DaprResiliencySpec, error) {
 	if model == nil {
-		return &cloudruntime_client.DaprResiliencySpec{}, nil
+		return &catalyst_client.DaprResiliencySpec{}, nil
 	}
 
-	api := &cloudruntime_client.DaprResiliencySpec{}
+	api := &catalyst_client.DaprResiliencySpec{}
 
 	if model.Policies != nil {
 		policies, err := expandResiliencyPolicies(ctx, model.Policies)
@@ -51,12 +51,12 @@ func expandResiliencySpec(ctx context.Context, model *specModel) (*cloudruntime_
 	return api, nil
 }
 
-func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*cloudruntime_client.ResiliencySpecPolicies, error) {
+func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*catalyst_client.ResiliencySpecPolicies, error) {
 	if model == nil {
 		return nil, nil
 	}
 
-	policies := &cloudruntime_client.ResiliencySpecPolicies{}
+	policies := &catalyst_client.ResiliencySpecPolicies{}
 	hasData := false
 
 	if !model.Timeouts.IsNull() && !model.Timeouts.IsUnknown() {
@@ -65,33 +65,33 @@ func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*cloud
 			return nil, fmt.Errorf("failed to expand timeouts: %w", err)
 		}
 		if len(timeouts) > 0 {
-			policies.Timeouts = &cloudruntime_client.ResiliencySpecPolicies_Timeouts{AdditionalProperties: timeouts}
+			policies.Timeouts = &timeouts
 			hasData = true
 		}
 	}
 
 	if len(model.Retries) > 0 {
-		retries := make(map[string]cloudruntime_client.ResiliencySpecPoliciesRetry, len(model.Retries))
+		retries := make(map[string]catalyst_client.ResiliencySpecPoliciesRetry, len(model.Retries))
 		for name, retryModel := range model.Retries {
 			if retry, ok := expandRetryPolicy(retryModel); ok {
 				retries[name] = retry
 			}
 		}
 		if len(retries) > 0 {
-			policies.Retries = &cloudruntime_client.ResiliencySpecPolicies_Retries{AdditionalProperties: retries}
+			policies.Retries = &retries
 			hasData = true
 		}
 	}
 
 	if len(model.CircuitBreakers) > 0 {
-		cbs := make(map[string]cloudruntime_client.ResiliencySpecPoliciesCircuitBreaker, len(model.CircuitBreakers))
+		cbs := make(map[string]catalyst_client.ResiliencySpecPoliciesCircuitBreaker, len(model.CircuitBreakers))
 		for name, cbModel := range model.CircuitBreakers {
 			if cb, ok := expandCircuitBreaker(cbModel); ok {
 				cbs[name] = cb
 			}
 		}
 		if len(cbs) > 0 {
-			policies.CircuitBreakers = &cloudruntime_client.ResiliencySpecPolicies_CircuitBreakers{AdditionalProperties: cbs}
+			policies.CircuitBreakers = &cbs
 			hasData = true
 		}
 	}
@@ -103,8 +103,8 @@ func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*cloud
 	return policies, nil
 }
 
-func expandRetryPolicy(model retryPolicyModel) (cloudruntime_client.ResiliencySpecPoliciesRetry, bool) {
-	retry := cloudruntime_client.ResiliencySpecPoliciesRetry{}
+func expandRetryPolicy(model retryPolicyModel) (catalyst_client.ResiliencySpecPoliciesRetry, bool) {
+	retry := catalyst_client.ResiliencySpecPoliciesRetry{}
 	hasValue := false
 
 	if !model.Duration.IsNull() && !model.Duration.IsUnknown() {
@@ -140,8 +140,8 @@ func expandRetryPolicy(model retryPolicyModel) (cloudruntime_client.ResiliencySp
 	return retry, hasValue
 }
 
-func expandCircuitBreaker(model circuitBreakerModel) (cloudruntime_client.ResiliencySpecPoliciesCircuitBreaker, bool) {
-	cb := cloudruntime_client.ResiliencySpecPoliciesCircuitBreaker{}
+func expandCircuitBreaker(model circuitBreakerModel) (catalyst_client.ResiliencySpecPoliciesCircuitBreaker, bool) {
+	cb := catalyst_client.ResiliencySpecPoliciesCircuitBreaker{}
 	hasValue := false
 
 	if !model.Interval.IsNull() && !model.Interval.IsUnknown() {
@@ -177,49 +177,49 @@ func expandCircuitBreaker(model circuitBreakerModel) (cloudruntime_client.Resili
 	return cb, hasValue
 }
 
-func expandResiliencyTargets(model *targetsModel) *cloudruntime_client.ResiliencySpecTargets {
+func expandResiliencyTargets(model *targetsModel) *catalyst_client.ResiliencySpecTargets {
 	if model == nil {
 		return nil
 	}
 
-	targets := &cloudruntime_client.ResiliencySpecTargets{}
+	targets := &catalyst_client.ResiliencySpecTargets{}
 	hasData := false
 
 	if len(model.Apps) > 0 {
-		apps := make(map[string]cloudruntime_client.ResiliencySpecTargetsEndpointPolicyNames, len(model.Apps))
+		apps := make(map[string]catalyst_client.ResiliencySpecTargetsEndpointPolicyNames, len(model.Apps))
 		for name, appModel := range model.Apps {
 			if endpoint, ok := expandEndpointPolicy(appModel); ok {
 				apps[name] = endpoint
 			}
 		}
 		if len(apps) > 0 {
-			targets.Apps = &cloudruntime_client.ResiliencySpecTargets_Apps{AdditionalProperties: apps}
+			targets.Apps = &apps
 			hasData = true
 		}
 	}
 
 	if len(model.Actors) > 0 {
-		actors := make(map[string]cloudruntime_client.ResiliencySpecTargetsActorPolicyNames, len(model.Actors))
+		actors := make(map[string]catalyst_client.ResiliencySpecTargetsActorPolicyNames, len(model.Actors))
 		for name, actorModel := range model.Actors {
 			if actor, ok := expandActorPolicy(actorModel); ok {
 				actors[name] = actor
 			}
 		}
 		if len(actors) > 0 {
-			targets.Actors = &cloudruntime_client.ResiliencySpecTargets_Actors{AdditionalProperties: actors}
+			targets.Actors = &actors
 			hasData = true
 		}
 	}
 
 	if len(model.Components) > 0 {
-		components := make(map[string]cloudruntime_client.ResiliencySpecTargetsComponentPolicyNames, len(model.Components))
+		components := make(map[string]catalyst_client.ResiliencySpecTargetsComponentPolicyNames, len(model.Components))
 		for name, componentModel := range model.Components {
 			if component, ok := expandComponentPolicy(componentModel); ok {
 				components[name] = component
 			}
 		}
 		if len(components) > 0 {
-			targets.Components = &cloudruntime_client.ResiliencySpecTargets_Components{AdditionalProperties: components}
+			targets.Components = &components
 			hasData = true
 		}
 	}
@@ -231,8 +231,8 @@ func expandResiliencyTargets(model *targetsModel) *cloudruntime_client.Resilienc
 	return targets
 }
 
-func expandEndpointPolicy(model endpointPolicyModel) (cloudruntime_client.ResiliencySpecTargetsEndpointPolicyNames, bool) {
-	policy := cloudruntime_client.ResiliencySpecTargetsEndpointPolicyNames{}
+func expandEndpointPolicy(model endpointPolicyModel) (catalyst_client.ResiliencySpecTargetsEndpointPolicyNames, bool) {
+	policy := catalyst_client.ResiliencySpecTargetsEndpointPolicyNames{}
 	hasValue := false
 
 	if !model.CircuitBreaker.IsNull() && !model.CircuitBreaker.IsUnknown() {
@@ -268,8 +268,8 @@ func expandEndpointPolicy(model endpointPolicyModel) (cloudruntime_client.Resili
 	return policy, hasValue
 }
 
-func expandActorPolicy(model actorPolicyModel) (cloudruntime_client.ResiliencySpecTargetsActorPolicyNames, bool) {
-	policy := cloudruntime_client.ResiliencySpecTargetsActorPolicyNames{}
+func expandActorPolicy(model actorPolicyModel) (catalyst_client.ResiliencySpecTargetsActorPolicyNames, bool) {
+	policy := catalyst_client.ResiliencySpecTargetsActorPolicyNames{}
 	hasValue := false
 
 	if !model.CircuitBreaker.IsNull() && !model.CircuitBreaker.IsUnknown() {
@@ -313,8 +313,8 @@ func expandActorPolicy(model actorPolicyModel) (cloudruntime_client.ResiliencySp
 	return policy, hasValue
 }
 
-func expandComponentPolicy(model componentPolicyModel) (cloudruntime_client.ResiliencySpecTargetsComponentPolicyNames, bool) {
-	policy := cloudruntime_client.ResiliencySpecTargetsComponentPolicyNames{}
+func expandComponentPolicy(model componentPolicyModel) (catalyst_client.ResiliencySpecTargetsComponentPolicyNames, bool) {
+	policy := catalyst_client.ResiliencySpecTargetsComponentPolicyNames{}
 	hasValue := false
 
 	if inbound := expandComponentDirectionPolicy(model.Inbound); inbound != nil {
@@ -330,12 +330,12 @@ func expandComponentPolicy(model componentPolicyModel) (cloudruntime_client.Resi
 	return policy, hasValue
 }
 
-func expandComponentDirectionPolicy(model *componentDirectionPolicyModel) *cloudruntime_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames {
+func expandComponentDirectionPolicy(model *componentDirectionPolicyModel) *catalyst_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames {
 	if model == nil {
 		return nil
 	}
 
-	direction := &cloudruntime_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames{}
+	direction := &catalyst_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames{}
 	hasValue := false
 
 	if !model.CircuitBreaker.IsNull() && !model.CircuitBreaker.IsUnknown() {
@@ -369,7 +369,7 @@ func expandComponentDirectionPolicy(model *componentDirectionPolicyModel) *cloud
 	return direction
 }
 
-func flattenResiliencySpec(ctx context.Context, api *cloudruntime_client.DaprResiliencySpec) (*specModel, error) {
+func flattenResiliencySpec(ctx context.Context, api *catalyst_client.DaprResiliencySpec) (*specModel, error) {
 	model := &specModel{}
 	if api == nil {
 		return model, nil
@@ -391,7 +391,7 @@ func flattenResiliencySpec(ctx context.Context, api *cloudruntime_client.DaprRes
 	return model, nil
 }
 
-func flattenResiliencyPolicies(ctx context.Context, api *cloudruntime_client.ResiliencySpecPolicies) (*policiesModel, error) {
+func flattenResiliencyPolicies(ctx context.Context, api *catalyst_client.ResiliencySpecPolicies) (*policiesModel, error) {
 	if api == nil {
 		return nil, nil
 	}
@@ -401,8 +401,8 @@ func flattenResiliencyPolicies(ctx context.Context, api *cloudruntime_client.Res
 	}
 	hasData := false
 
-	if api.Timeouts != nil && len(api.Timeouts.AdditionalProperties) > 0 {
-		timeoutsValue, diags := types.MapValueFrom(ctx, types.StringType, api.Timeouts.AdditionalProperties)
+	if api.Timeouts != nil && len(*api.Timeouts) > 0 {
+		timeoutsValue, diags := types.MapValueFrom(ctx, types.StringType, *api.Timeouts)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to flatten timeouts: %v", diags.Errors())
 		}
@@ -410,9 +410,9 @@ func flattenResiliencyPolicies(ctx context.Context, api *cloudruntime_client.Res
 		hasData = true
 	}
 
-	if api.Retries != nil && len(api.Retries.AdditionalProperties) > 0 {
-		retries := make(map[string]retryPolicyModel, len(api.Retries.AdditionalProperties))
-		for name, retry := range api.Retries.AdditionalProperties {
+	if api.Retries != nil && len(*api.Retries) > 0 {
+		retries := make(map[string]retryPolicyModel, len(*api.Retries))
+		for name, retry := range *api.Retries {
 			if retryModel, ok := flattenRetryPolicy(retry); ok {
 				retries[name] = retryModel
 			}
@@ -423,9 +423,9 @@ func flattenResiliencyPolicies(ctx context.Context, api *cloudruntime_client.Res
 		}
 	}
 
-	if api.CircuitBreakers != nil && len(api.CircuitBreakers.AdditionalProperties) > 0 {
-		cbs := make(map[string]circuitBreakerModel, len(api.CircuitBreakers.AdditionalProperties))
-		for name, cb := range api.CircuitBreakers.AdditionalProperties {
+	if api.CircuitBreakers != nil && len(*api.CircuitBreakers) > 0 {
+		cbs := make(map[string]circuitBreakerModel, len(*api.CircuitBreakers))
+		for name, cb := range *api.CircuitBreakers {
 			if cbModel, ok := flattenCircuitBreaker(cb); ok {
 				cbs[name] = cbModel
 			}
@@ -443,7 +443,7 @@ func flattenResiliencyPolicies(ctx context.Context, api *cloudruntime_client.Res
 	return model, nil
 }
 
-func flattenRetryPolicy(api cloudruntime_client.ResiliencySpecPoliciesRetry) (retryPolicyModel, bool) {
+func flattenRetryPolicy(api catalyst_client.ResiliencySpecPoliciesRetry) (retryPolicyModel, bool) {
 	model := retryPolicyModel{
 		Duration:    types.StringNull(),
 		MaxInterval: types.StringNull(),
@@ -475,7 +475,7 @@ func flattenRetryPolicy(api cloudruntime_client.ResiliencySpecPoliciesRetry) (re
 	return model, hasValue
 }
 
-func flattenCircuitBreaker(api cloudruntime_client.ResiliencySpecPoliciesCircuitBreaker) (circuitBreakerModel, bool) {
+func flattenCircuitBreaker(api catalyst_client.ResiliencySpecPoliciesCircuitBreaker) (circuitBreakerModel, bool) {
 	model := circuitBreakerModel{
 		Interval:    types.StringNull(),
 		MaxRequests: types.Int64Null(),
@@ -507,7 +507,7 @@ func flattenCircuitBreaker(api cloudruntime_client.ResiliencySpecPoliciesCircuit
 	return model, hasValue
 }
 
-func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) *targetsModel {
+func flattenResiliencyTargets(api *catalyst_client.ResiliencySpecTargets) *targetsModel {
 	if api == nil {
 		return nil
 	}
@@ -515,9 +515,9 @@ func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) *t
 	model := &targetsModel{}
 	hasData := false
 
-	if api.Apps != nil && len(api.Apps.AdditionalProperties) > 0 {
-		apps := make(map[string]endpointPolicyModel, len(api.Apps.AdditionalProperties))
-		for name, endpoint := range api.Apps.AdditionalProperties {
+	if api.Apps != nil && len(*api.Apps) > 0 {
+		apps := make(map[string]endpointPolicyModel, len(*api.Apps))
+		for name, endpoint := range *api.Apps {
 			if endpointModel, ok := flattenEndpointPolicy(endpoint); ok {
 				apps[name] = endpointModel
 			}
@@ -528,9 +528,9 @@ func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) *t
 		}
 	}
 
-	if api.Actors != nil && len(api.Actors.AdditionalProperties) > 0 {
-		actors := make(map[string]actorPolicyModel, len(api.Actors.AdditionalProperties))
-		for name, actor := range api.Actors.AdditionalProperties {
+	if api.Actors != nil && len(*api.Actors) > 0 {
+		actors := make(map[string]actorPolicyModel, len(*api.Actors))
+		for name, actor := range *api.Actors {
 			if actorModel, ok := flattenActorPolicy(actor); ok {
 				actors[name] = actorModel
 			}
@@ -541,9 +541,9 @@ func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) *t
 		}
 	}
 
-	if api.Components != nil && len(api.Components.AdditionalProperties) > 0 {
-		components := make(map[string]componentPolicyModel, len(api.Components.AdditionalProperties))
-		for name, component := range api.Components.AdditionalProperties {
+	if api.Components != nil && len(*api.Components) > 0 {
+		components := make(map[string]componentPolicyModel, len(*api.Components))
+		for name, component := range *api.Components {
 			if componentModel, ok := flattenComponentPolicy(component); ok {
 				components[name] = componentModel
 			}
@@ -561,7 +561,7 @@ func flattenResiliencyTargets(api *cloudruntime_client.ResiliencySpecTargets) *t
 	return model
 }
 
-func flattenEndpointPolicy(api cloudruntime_client.ResiliencySpecTargetsEndpointPolicyNames) (endpointPolicyModel, bool) {
+func flattenEndpointPolicy(api catalyst_client.ResiliencySpecTargetsEndpointPolicyNames) (endpointPolicyModel, bool) {
 	model := endpointPolicyModel{
 		CircuitBreaker:          types.StringNull(),
 		CircuitBreakerCacheSize: types.Int64Null(),
@@ -593,7 +593,7 @@ func flattenEndpointPolicy(api cloudruntime_client.ResiliencySpecTargetsEndpoint
 	return model, hasValue
 }
 
-func flattenActorPolicy(api cloudruntime_client.ResiliencySpecTargetsActorPolicyNames) (actorPolicyModel, bool) {
+func flattenActorPolicy(api catalyst_client.ResiliencySpecTargetsActorPolicyNames) (actorPolicyModel, bool) {
 	model := actorPolicyModel{
 		CircuitBreaker:          types.StringNull(),
 		CircuitBreakerCacheSize: types.Int64Null(),
@@ -631,7 +631,7 @@ func flattenActorPolicy(api cloudruntime_client.ResiliencySpecTargetsActorPolicy
 	return model, hasValue
 }
 
-func flattenComponentPolicy(api cloudruntime_client.ResiliencySpecTargetsComponentPolicyNames) (componentPolicyModel, bool) {
+func flattenComponentPolicy(api catalyst_client.ResiliencySpecTargetsComponentPolicyNames) (componentPolicyModel, bool) {
 	model := componentPolicyModel{}
 	hasValue := false
 
@@ -648,7 +648,7 @@ func flattenComponentPolicy(api cloudruntime_client.ResiliencySpecTargetsCompone
 	return model, hasValue
 }
 
-func flattenComponentDirectionPolicy(api *cloudruntime_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames) *componentDirectionPolicyModel {
+func flattenComponentDirectionPolicy(api *catalyst_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames) *componentDirectionPolicyModel {
 	if api == nil {
 		return nil
 	}
@@ -704,7 +704,7 @@ func read(ctx context.Context,
 			"name":       m.GetName(),
 		})
 
-	resiliency, err := client.GetResiliency(ctx, m.GetProjectID(), m.GetName(), &cloudruntime_client.DescribeDaprResiliencyParams{})
+	resiliency, err := client.GetResiliency(ctx, m.GetProjectID(), m.GetName(), &catalyst_client.DescribeDaprResiliencyParams{})
 	if err != nil {
 		return fmt.Errorf("error getting resiliency: %w", err)
 	}

@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/samber/lo"
 
-	"github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
-	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
+	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
+	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"

@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	cloudruntime_client "github.com/diagridio/diagrid-cloud-go/pkg/cloudruntime/client"
-	diagrid_errors "github.com/diagridio/diagrid-cloud-go/pkg/errors"
+	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
+	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
@@ -30,7 +30,7 @@ var (
 	regionType      = "public"
 	regionJoinToken = acctest.RandomWithPrefix("regionJoinToken")
 
-	region *cloudruntime_client.Region
+	region *catalyst_client.Region
 )
 
 func testSteps() []resource.TestStep {
@@ -135,7 +135,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 		c.EXPECT().
 			GetRegion(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(_ context.Context, _ string) (*cloudruntime_client.Region, error) {
+			DoAndReturn(func(_ context.Context, _ string) (*catalyst_client.Region, error) {
 				if region == nil {
 					return nil, diagrid_errors.NewDiagridCloudError(http.StatusNotFound)
 				}
@@ -145,20 +145,20 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 		c.EXPECT().
 			CreateRegion(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(_ context.Context, r *cloudruntime_client.Region) (string, error) {
-				region = &cloudruntime_client.Region{
+			DoAndReturn(func(_ context.Context, r *catalyst_client.Region) (string, error) {
+				region = &catalyst_client.Region{
 					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
 					Kind:       lo.ToPtr(catalyst.KindRegion),
-					Metadata: &cloudruntime_client.Metadata{
+					Metadata: &catalyst_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
-					Spec: &cloudruntime_client.RegionSpec{
+					Spec: &catalyst_client.RegionSpec{
 						Host:     lo.ToPtr(regionHost),
 						Ingress:  lo.ToPtr(regionIngress),
 						Location: lo.ToPtr(regionLocation),
 						Type:     lo.ToPtr(regionType),
 					},
-					Status: &cloudruntime_client.RegionStatus{
+					Status: &catalyst_client.RegionStatus{
 						Status: lo.ToPtr("ready"),
 					},
 				}
@@ -169,7 +169,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 		c.EXPECT().
 			UpdateRegion(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(_ context.Context, r *cloudruntime_client.Region) (*cloudruntime_client.Region, error) {
+			DoAndReturn(func(_ context.Context, r *catalyst_client.Region) (*catalyst_client.Region, error) {
 				region = r
 				region.Spec.Type = lo.ToPtr(regionType)
 				return region, nil
