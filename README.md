@@ -17,7 +17,99 @@ go install
 
 ## Using the provider
 
-Fill this in for each provider
+The Catalyst provider enables you to manage Diagrid Catalyst resources using Terraform. You'll need an API key to authenticate with the Catalyst API.
+
+### Provider Configuration
+
+```hcl
+terraform {
+  required_providers {
+    catalyst = {
+      source = "diagridio/catalyst"
+    }
+  }
+}
+
+provider "catalyst" {
+  api_key  = var.api_key
+  endpoint = var.endpoint  # Optional, defaults to production endpoint
+}
+```
+
+### Authentication
+
+Set your API key as a variable or environment variable:
+
+```bash
+export TF_VAR_api_key="your-catalyst-api-key"
+```
+
+### Available Resources
+
+#### Regions
+Create and manage Catalyst regions:
+
+```hcl
+resource "catalyst_region" "us_west" {
+  name     = "us-west-region"
+  ingress  = "https://*.example.com:443"
+  host     = "us-west-host"
+  location = "us-west-1"
+}
+```
+
+#### Projects
+Create projects within regions:
+
+```hcl
+resource "catalyst_project" "my_project" {
+  region = catalyst_region.us_west.name
+  name   = "my-application"
+}
+```
+
+#### Service Accounts
+Manage service accounts for programmatic access:
+
+```hcl
+resource "catalyst_service_account" "automation" {
+  name        = "automation-account"
+  description = "Service account for CI/CD automation"
+  owner       = "devops@example.com"
+  role        = "cra.diagrid:admin"  # or "cra.diagrid:viewer"
+}
+```
+
+#### Service Account API Keys
+Generate API keys for service accounts:
+
+```hcl
+resource "catalyst_service_account_api_key" "automation_key" {
+  name               = "automation-api-key"
+  service_account_id = catalyst_service_account.automation.name
+  expire_in_seconds  = 86400  # 24 hours (optional)
+}
+
+# Access the generated token
+output "api_key_token" {
+  value     = catalyst_service_account_api_key.automation_key.token
+  sensitive = true
+}
+```
+
+### Available Data Sources
+
+All resources are also available as data sources for referencing existing infrastructure:
+
+- `data.catalyst_organization` - Organization information
+- `data.catalyst_region` - Region details
+- `data.catalyst_project` - Project information
+- `data.catalyst_service_account` - Service account details
+- `data.catalyst_service_account_api_key` - API key information
+
+### Example Usage
+
+See the `examples/` directory for complete working examples of each resource type.
 
 ## Developing the Provider
 
