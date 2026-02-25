@@ -39,7 +39,7 @@ jobs:
           git config --global url."https://x-access-token:${{ steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.2.0
         env:
           GOPRIVATE: "github.com/diagridio/*"
           GOPROXY: "https://proxy.golang.org,direct"
@@ -79,7 +79,7 @@ jobs:
           git config --global url."https://x-access-token:${{ steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.2.0
         env:
           GOPRIVATE: "github.com/diagridio/*"
           GOPROXY: "https://proxy.golang.org,direct"
@@ -133,7 +133,7 @@ jobs:
           git config --global url."https://x-access-token:${{ steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.2.0
         env:
           GOPRIVATE: "github.com/diagridio/*"
           GOPROXY: "https://proxy.golang.org,direct"
@@ -183,7 +183,7 @@ jobs:
           git config --global url."https://x-access-token:${{ steps.get_workflow_token.outputs.token }}@github.com/diagridio/".insteadOf "https://github.com/diagridio/"
 
       - name: Setup Go
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.2.0
         env:
           GOPRIVATE: "github.com/diagridio/*"
           GOPROXY: "https://proxy.golang.org,direct"
