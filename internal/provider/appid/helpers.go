@@ -56,6 +56,8 @@ func read(ctx context.Context,
 			m.SetApiTokenRevision(0)
 		}
 
+		m.SetMaxBodySize(appid.Spec.MaxBodySize)
+
 		// Handle AppEndpoint
 		if appid.Spec.AppEndpoint != nil {
 			appEndpointAttrs := map[string]attr.Value{
