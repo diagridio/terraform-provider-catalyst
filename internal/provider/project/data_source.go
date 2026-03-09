@@ -56,6 +56,34 @@ func (d *projectDataSource) Schema(ctx context.Context,
 				Optional:            true,
 				Computed:            true,
 			},
+			"default_agent_infrastructure_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Default agent infrastructure enabled",
+				Computed:            true,
+			},
+			"default_kvstore_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Default KV store enabled",
+				Computed:            true,
+			},
+			"default_pubsub_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Default pub/sub enabled",
+				Computed:            true,
+			},
+			"default_workflow_store_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Default workflow store enabled",
+				Computed:            true,
+			},
+			"disable_app_tunnels": schema.BoolAttribute{
+				MarkdownDescription: "App tunnels disabled",
+				Computed:            true,
+			},
+			"private_region": schema.BoolAttribute{
+				MarkdownDescription: "Private region",
+				Computed:            true,
+			},
+			"global_app_id_max_body_size": schema.StringAttribute{
+				MarkdownDescription: "Maximum body size for HTTP and gRPC requests across all appids",
+				Computed:            true,
+			},
 		},
 	}
 }

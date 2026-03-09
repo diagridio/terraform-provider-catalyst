@@ -39,6 +39,18 @@ func read(ctx context.Context,
 		m.SetGRPCEndpoint(*project.Status.Endpoints.Grpc.Url)
 	}
 
+	m.SetDefaultAgentInfrastructureEnabled(project.Spec.DefaultAgentInfrastructureEnabled)
+	m.SetDefaultKVStoreEnabled(project.Spec.DefaultKVStoreEnabled)
+	m.SetDefaultPubsubEnabled(project.Spec.DefaultPubsubEnabled)
+	m.SetDefaultWorkflowStoreEnabled(project.Spec.DefaultWorkflowStoreEnabled)
+	m.SetDisableAppTunnels(project.Spec.DisableAppTunnels)
+	m.SetPrivateRegion(project.Spec.PrivateRegion)
+	if project.Spec.GlobalAppId != nil {
+		m.SetGlobalAppIdMaxBodySize(project.Spec.GlobalAppId.MaxBodySize)
+	} else {
+		m.SetGlobalAppIdMaxBodySize(nil)
+	}
+
 	return nil
 
 }
