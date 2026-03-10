@@ -109,6 +109,10 @@ func (d *appidDataSource) Schema(ctx context.Context,
 					},
 				},
 			},
+			"max_body_size": schema.StringAttribute{
+				MarkdownDescription: "Maximum body size for HTTP and gRPC requests",
+				Computed:            true,
+			},
 		},
 	}
 }

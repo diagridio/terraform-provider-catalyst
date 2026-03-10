@@ -131,6 +131,11 @@ func (r *appidResource) Schema(ctx context.Context,
 					},
 				},
 			},
+			"max_body_size": schema.StringAttribute{
+				MarkdownDescription: "Maximum body size for HTTP and gRPC requests (e.g. \"4Mi\", \"8Mi\"). Overrides the project-level setting.",
+				Optional:            true,
+				Computed:            true,
+			},
 		},
 	}
 }
@@ -201,6 +206,9 @@ func (r *appidResource) Create(ctx context.Context,
 
 	// Set health check
 	appid.Spec.HealthCheck = toAPIHealthCheck(ctx, model.HealthCheck)
+
+	// Set max body size
+	appid.Spec.MaxBodySize = model.GetMaxBodySize()
 
 	if err := r.client.CreateAppId(ctx, model.GetProjectID(), appid); err != nil {
 		resp.Diagnostics.AddError("Client Error",
@@ -292,6 +300,9 @@ func (r *appidResource) Update(ctx context.Context,
 
 	// Set health check
 	appid.Spec.HealthCheck = toAPIHealthCheck(ctx, model.HealthCheck)
+
+	// Set max body size
+	appid.Spec.MaxBodySize = model.GetMaxBodySize()
 
 	if err := r.client.UpdateAppId(ctx, model.GetProjectID(), model.GetName(), appid); err != nil {
 		resp.Diagnostics.AddError("Client Error",
