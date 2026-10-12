@@ -24,7 +24,6 @@ resource "catalyst_configuration" "example" {
   spec = {
     access_control = {
       default_action = "allow"
-      trust_domain   = "public"
       policies = [
         {
           app_id         = "app1"
@@ -90,7 +89,7 @@ Optional:
 
 - `default_action` (String) Default action when no policy matches
 - `policies` (Attributes List) Access control policies (see [below for nested schema](#nestedatt--spec--access_control--policies))
-- `trust_domain` (String) Trust domain for access control
+- `trust_domain` (String, Deprecated) Deprecated: Catalyst sets the trust domain to your organization's own and ignores this value.
 
 <a id="nestedatt--spec--access_control--policies"></a>
 ### Nested Schema for `spec.access_control.policies`
