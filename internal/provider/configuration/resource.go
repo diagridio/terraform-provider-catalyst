@@ -149,6 +149,8 @@ func (r *configurationResource) Read(ctx context.Context,
 		return
 	}
 
+	priorSpec := model.Spec
+
 	if err := read(ctx, r.client, model); err != nil {
 		if diagrid_errors.IsResourceNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
@@ -158,6 +160,8 @@ func (r *configurationResource) Read(ctx context.Context,
 			fmt.Sprintf("error reading configuration: %s", err))
 		return
 	}
+
+	preserveTrustDomain(model.Spec, priorSpec)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

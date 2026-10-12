@@ -18,7 +18,7 @@ func configurationSpecAttribute(required, computed bool) schema.SingleNestedAttr
 				computed,
 				map[string]schema.Attribute{
 					"default_action": helpers.StringAttr("Default action when no policy matches", computed),
-					"trust_domain":   helpers.StringAttr("Trust domain for access control", computed),
+					"trust_domain":   trustDomainAttr(computed),
 					"policies": helpers.ListNestedAttr(
 						"Access control policies",
 						false,
@@ -76,4 +76,18 @@ func configurationSpecAttribute(required, computed bool) schema.SingleNestedAttr
 			),
 		},
 	)
+}
+
+// trustDomainAttr is the access control trust domain. Catalyst strips any
+// value set here and uses the organization's own trust domain, so the
+// attribute is deprecated and kept only so existing configurations still apply.
+func trustDomainAttr(computed bool) schema.StringAttribute {
+	req, opt, comp := helpers.AttributeModes(false, computed)
+	return schema.StringAttribute{
+		MarkdownDescription: "Deprecated: Catalyst sets the trust domain to your organization's own and ignores this value.",
+		DeprecationMessage:  "Catalyst sets the trust domain to your organization's own and ignores this value. Remove it from your configuration; it will be removed in a future release.",
+		Required:            req,
+		Optional:            opt,
+		Computed:            comp,
+	}
 }
