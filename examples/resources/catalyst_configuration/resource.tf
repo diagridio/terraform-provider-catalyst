@@ -9,7 +9,6 @@ resource "catalyst_configuration" "example" {
   spec = {
     access_control = {
       default_action = "allow"
-      trust_domain   = "public"
       policies = [
         {
           app_id         = "app1"

@@ -56,6 +56,8 @@ resource "catalyst_service_account" "cicd_service_account" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # using name
 terraform import -var-file=../../terraform.tfvars catalyst_service_account.basic_service_account basic-service-account 

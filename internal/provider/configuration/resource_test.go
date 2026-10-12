@@ -53,6 +53,7 @@ func TestMockConfigurationResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.trust_domain", "public"),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.app_http_pipeline.handlers.#", "1"),
 					),
 				},
@@ -80,6 +81,7 @@ func TestAccConfigurationResource(t *testing.T) {
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
+						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.trust_domain", "public"),
 						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.http_pipeline.handlers.#", "1"),
 					),
 				},
@@ -168,7 +170,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectID, *configuration.Metadata.Name)
-				configurations[key] = configuration
+				configurations[key] = stripTrustDomain(configuration)
 				return nil
 			}).AnyTimes()
 
@@ -189,7 +191,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				mu.Lock()
 				defer mu.Unlock()
 				key := fmt.Sprintf("%s/%s", projectID, *configuration.Metadata.Name)
-				configurations[key] = configuration
+				configurations[key] = stripTrustDomain(configuration)
 				return nil
 			}).AnyTimes()
 
@@ -204,6 +206,15 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 		return c, nil
 	}
+}
+
+// stripTrustDomain does what Catalyst does on write: it drops the access
+// control trust domain, which the platform sets to the organization's own.
+func stripTrustDomain(configuration *catalyst_client.DaprConfiguration) *catalyst_client.DaprConfiguration {
+	if configuration.Spec != nil && configuration.Spec.AccessControl != nil {
+		configuration.Spec.AccessControl.TrustDomain = nil
+	}
+	return configuration
 }
 
 func testAccConfigurationResourceConfig(projectID, configurationName string) string {

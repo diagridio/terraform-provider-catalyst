@@ -414,6 +414,8 @@ func mergeSpecWithPlanned(readSpec, plannedSpec *specModel) {
 		readSpec.AccessControl = plannedSpec.AccessControl
 	}
 
+	preserveTrustDomain(readSpec, plannedSpec)
+
 	// Preserve planned AppHTTPPipeline config if it wasn't returned by the API
 	if readSpec.AppHTTPPipeline == nil && plannedSpec.AppHTTPPipeline != nil {
 		readSpec.AppHTTPPipeline = plannedSpec.AppHTTPPipeline
@@ -422,5 +424,20 @@ func mergeSpecWithPlanned(readSpec, plannedSpec *specModel) {
 	// Preserve planned HttpPipeline config if it wasn't returned by the API
 	if readSpec.HttpPipeline == nil && plannedSpec.HttpPipeline != nil {
 		readSpec.HttpPipeline = plannedSpec.HttpPipeline
+	}
+}
+
+// preserveTrustDomain keeps the access control trust domain from prevSpec when
+// the API returned none. Catalyst strips the value and uses the organization's
+// own trust domain, so without this a configured value reads back as null and
+// Terraform reports an inconsistent result after apply, or a diff on refresh.
+func preserveTrustDomain(readSpec, prevSpec *specModel) {
+	if readSpec == nil || prevSpec == nil ||
+		readSpec.AccessControl == nil || prevSpec.AccessControl == nil {
+		return
+	}
+
+	if readSpec.AccessControl.TrustDomain.IsNull() {
+		readSpec.AccessControl.TrustDomain = prevSpec.AccessControl.TrustDomain
 	}
 }
