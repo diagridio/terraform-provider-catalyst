@@ -37,112 +37,107 @@ func read(ctx context.Context,
 		m.SetName(*appid.Metadata.Name)
 	}
 
-	if appid.Spec != nil {
-		if appid.Spec.AppConfig != nil {
-			m.SetAppConfig(*appid.Spec.AppConfig)
-		} else {
-			m.SetAppConfig("")
+	if appid.Spec.AppConfig != nil {
+		m.SetAppConfig(*appid.Spec.AppConfig)
+	} else {
+		m.SetAppConfig("")
+	}
+
+	if appid.Spec.Protocol != nil {
+		m.SetProtocol(*appid.Spec.Protocol)
+	} else {
+		m.SetProtocol("")
+	}
+
+	if appid.Spec.ApiTokenRevision != nil {
+		m.SetApiTokenRevision(*appid.Spec.ApiTokenRevision)
+	} else {
+		m.SetApiTokenRevision(0)
+	}
+
+	m.SetMaxBodySize(appid.Spec.MaxBodySize)
+
+	// Handle AppEndpoint
+	if appid.Spec.AppEndpoint != nil {
+		appEndpointAttrs := map[string]attr.Value{
+			"url":                    types.StringNull(),
+			"token":                  types.StringNull(),
+			"token_header":           types.StringNull(),
+			"client_timeout_seconds": types.Int64Null(),
 		}
 
-		if appid.Spec.Protocol != nil {
-			m.SetProtocol(*appid.Spec.Protocol)
-		} else {
-			m.SetProtocol("")
+		if appid.Spec.AppEndpoint.Url != nil {
+			appEndpointAttrs["url"] = types.StringValue(*appid.Spec.AppEndpoint.Url)
+		}
+		if appid.Spec.AppEndpoint.Token != nil {
+			appEndpointAttrs["token"] = types.StringValue(*appid.Spec.AppEndpoint.Token)
+		}
+		if appid.Spec.AppEndpoint.ClientTimeoutSeconds != nil {
+			appEndpointAttrs["client_timeout_seconds"] = types.Int64Value(int64(*appid.Spec.AppEndpoint.ClientTimeoutSeconds))
 		}
 
-		if appid.Spec.ApiTokenRevision != nil {
-			m.SetApiTokenRevision(*appid.Spec.ApiTokenRevision)
-		} else {
-			m.SetApiTokenRevision(0)
-		}
-
-		m.SetMaxBodySize(appid.Spec.MaxBodySize)
-
-		// Handle AppEndpoint
-		if appid.Spec.AppEndpoint != nil {
-			appEndpointAttrs := map[string]attr.Value{
-				"url":                    types.StringNull(),
-				"token":                  types.StringNull(),
-				"token_header":           types.StringNull(),
-				"client_timeout_seconds": types.Int64Null(),
-			}
-
-			if appid.Spec.AppEndpoint.Url != nil {
-				appEndpointAttrs["url"] = types.StringValue(*appid.Spec.AppEndpoint.Url)
-			}
-			if appid.Spec.AppEndpoint.Token != nil {
-				appEndpointAttrs["token"] = types.StringValue(*appid.Spec.AppEndpoint.Token)
-			}
-			if appid.Spec.AppEndpoint.TokenHeader != nil {
-				appEndpointAttrs["token_header"] = types.StringValue(*appid.Spec.AppEndpoint.TokenHeader)
-			}
-			if appid.Spec.AppEndpoint.ClientTimeoutSeconds != nil {
-				appEndpointAttrs["client_timeout_seconds"] = types.Int64Value(int64(*appid.Spec.AppEndpoint.ClientTimeoutSeconds))
-			}
-
-			m.AppEndpoint = types.ObjectValueMust(
-				map[string]attr.Type{
-					"url":                    types.StringType,
-					"token":                  types.StringType,
-					"token_header":           types.StringType,
-					"client_timeout_seconds": types.Int64Type,
-				},
-				appEndpointAttrs,
-			)
-		} else {
-			m.AppEndpoint = types.ObjectNull(map[string]attr.Type{
+		m.AppEndpoint = types.ObjectValueMust(
+			map[string]attr.Type{
 				"url":                    types.StringType,
 				"token":                  types.StringType,
 				"token_header":           types.StringType,
 				"client_timeout_seconds": types.Int64Type,
-			})
+			},
+			appEndpointAttrs,
+		)
+	} else {
+		m.AppEndpoint = types.ObjectNull(map[string]attr.Type{
+			"url":                    types.StringType,
+			"token":                  types.StringType,
+			"token_header":           types.StringType,
+			"client_timeout_seconds": types.Int64Type,
+		})
+	}
+
+	// Handle HealthCheck
+	if appid.Spec.HealthCheck != nil {
+		healthCheckAttrs := map[string]attr.Value{
+			"path":              types.StringNull(),
+			"enabled":           types.BoolNull(),
+			"failure_threshold": types.Int64Null(),
+			"interval_seconds":  types.Int64Null(),
+			"timeout_ms":        types.Int64Null(),
 		}
 
-		// Handle HealthCheck
-		if appid.Spec.HealthCheck != nil {
-			healthCheckAttrs := map[string]attr.Value{
-				"path":              types.StringNull(),
-				"enabled":           types.BoolNull(),
-				"failure_threshold": types.Int64Null(),
-				"interval_seconds":  types.Int64Null(),
-				"timeout_ms":        types.Int64Null(),
+		if appid.Spec.HealthCheck.Path != nil {
+			healthCheckAttrs["path"] = types.StringValue(*appid.Spec.HealthCheck.Path)
+		}
+		if appid.Spec.HealthCheck.Probe != nil {
+			healthCheckAttrs["enabled"] = types.BoolValue(appid.Spec.HealthCheck.Probe.Enabled != nil && *appid.Spec.HealthCheck.Probe.Enabled)
+			if appid.Spec.HealthCheck.Probe.FailureThreshold != nil {
+				healthCheckAttrs["failure_threshold"] = types.Int64Value(int64(*appid.Spec.HealthCheck.Probe.FailureThreshold))
 			}
+			if appid.Spec.HealthCheck.Probe.IntervalInSec != nil {
+				healthCheckAttrs["interval_seconds"] = types.Int64Value(int64(*appid.Spec.HealthCheck.Probe.IntervalInSec))
+			}
+			if appid.Spec.HealthCheck.Probe.TimeoutInMs != nil {
+				healthCheckAttrs["timeout_ms"] = types.Int64Value(int64(*appid.Spec.HealthCheck.Probe.TimeoutInMs))
+			}
+		}
 
-			if appid.Spec.HealthCheck.Path != nil {
-				healthCheckAttrs["path"] = types.StringValue(*appid.Spec.HealthCheck.Path)
-			}
-			if appid.Spec.HealthCheck.Probe != nil {
-				healthCheckAttrs["enabled"] = types.BoolValue(appid.Spec.HealthCheck.Probe.Enabled)
-				if appid.Spec.HealthCheck.Probe.FailureThreshold != nil {
-					healthCheckAttrs["failure_threshold"] = types.Int64Value(int64(*appid.Spec.HealthCheck.Probe.FailureThreshold))
-				}
-				if appid.Spec.HealthCheck.Probe.IntervalInSec != nil {
-					healthCheckAttrs["interval_seconds"] = types.Int64Value(int64(*appid.Spec.HealthCheck.Probe.IntervalInSec))
-				}
-				if appid.Spec.HealthCheck.Probe.TimeoutInMs != nil {
-					healthCheckAttrs["timeout_ms"] = types.Int64Value(int64(*appid.Spec.HealthCheck.Probe.TimeoutInMs))
-				}
-			}
-
-			m.HealthCheck = types.ObjectValueMust(
-				map[string]attr.Type{
-					"path":              types.StringType,
-					"enabled":           types.BoolType,
-					"failure_threshold": types.Int64Type,
-					"interval_seconds":  types.Int64Type,
-					"timeout_ms":        types.Int64Type,
-				},
-				healthCheckAttrs,
-			)
-		} else {
-			m.HealthCheck = types.ObjectNull(map[string]attr.Type{
+		m.HealthCheck = types.ObjectValueMust(
+			map[string]attr.Type{
 				"path":              types.StringType,
 				"enabled":           types.BoolType,
 				"failure_threshold": types.Int64Type,
 				"interval_seconds":  types.Int64Type,
 				"timeout_ms":        types.Int64Type,
-			})
-		}
+			},
+			healthCheckAttrs,
+		)
+	} else {
+		m.HealthCheck = types.ObjectNull(map[string]attr.Type{
+			"path":              types.StringType,
+			"enabled":           types.BoolType,
+			"failure_threshold": types.Int64Type,
+			"interval_seconds":  types.Int64Type,
+			"timeout_ms":        types.Int64Type,
+		})
 	}
 
 	// Set status (read-only)
@@ -180,10 +175,8 @@ func toAPIAppEndpoint(ctx context.Context, obj types.Object) *catalyst_client.Ap
 		endpoint.Token = &token
 	}
 
-	if !model.TokenHeader.IsNull() && !model.TokenHeader.IsUnknown() {
-		tokenHeader := model.TokenHeader.ValueString()
-		endpoint.TokenHeader = &tokenHeader
-	}
+	// token_header is deprecated: Catalyst no longer supports a custom header
+	// for the app endpoint token, so the value is not sent.
 
 	if !model.ClientTimeoutSeconds.IsNull() && !model.ClientTimeoutSeconds.IsUnknown() {
 		timeout := int(model.ClientTimeoutSeconds.ValueInt64())
@@ -193,7 +186,7 @@ func toAPIAppEndpoint(ctx context.Context, obj types.Object) *catalyst_client.Ap
 	return endpoint
 }
 
-func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.AppIdentitySpecAppEndpointHealthCheck {
+func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.AppIdentitySpecHealthCheck {
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil
 	}
@@ -204,7 +197,7 @@ func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.Ap
 		return nil
 	}
 
-	healthCheck := &catalyst_client.AppIdentitySpecAppEndpointHealthCheck{}
+	healthCheck := &catalyst_client.AppIdentitySpecHealthCheck{}
 
 	if !model.Path.IsNull() && !model.Path.IsUnknown() {
 		path := model.Path.ValueString()
@@ -213,11 +206,15 @@ func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.Ap
 
 	// Set probe if any probe fields are set
 	if !model.Enabled.IsNull() || !model.FailureThreshold.IsNull() || !model.IntervalSeconds.IsNull() || !model.TimeoutMs.IsNull() {
-		probe := &catalyst_client.AppIdentitySpecAppEndpointHealthCheckProbe{}
+		probe := &catalyst_client.AppIdentitySpecHealthCheckProbe{}
 
+		// enabled is always sent, false when unset, as it was when the API
+		// client modelled it as a plain bool.
+		enabled := false
 		if !model.Enabled.IsNull() && !model.Enabled.IsUnknown() {
-			probe.Enabled = model.Enabled.ValueBool()
+			enabled = model.Enabled.ValueBool()
 		}
+		probe.Enabled = &enabled
 
 		if !model.FailureThreshold.IsNull() && !model.FailureThreshold.IsUnknown() {
 			threshold := int32(model.FailureThreshold.ValueInt64())
@@ -238,4 +235,41 @@ func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.Ap
 	}
 
 	return healthCheck
+}
+
+// preserveTokenHeader keeps the configured app_endpoint.token_header in state.
+// Catalyst no longer supports a custom header for the app endpoint token and
+// the API has no such field, so without this a configured value reads back as
+// null and Terraform reports an inconsistent result after apply, or a diff on
+// refresh.
+func preserveTokenHeader(m *model, prev types.Object) {
+	if prev.IsNull() || prev.IsUnknown() {
+		return
+	}
+
+	tokenHeader, ok := prev.Attributes()["token_header"]
+	if !ok || tokenHeader.IsNull() || tokenHeader.IsUnknown() {
+		return
+	}
+
+	attrs := map[string]attr.Value{
+		"url":                    types.StringNull(),
+		"token":                  types.StringNull(),
+		"token_header":           types.StringNull(),
+		"client_timeout_seconds": types.Int64Null(),
+	}
+	if !m.AppEndpoint.IsNull() && !m.AppEndpoint.IsUnknown() {
+		attrs = m.AppEndpoint.Attributes()
+	}
+	attrs["token_header"] = tokenHeader
+
+	m.AppEndpoint = types.ObjectValueMust(
+		map[string]attr.Type{
+			"url":                    types.StringType,
+			"token":                  types.StringType,
+			"token_header":           types.StringType,
+			"client_timeout_seconds": types.Int64Type,
+		},
+		attrs,
+	)
 }

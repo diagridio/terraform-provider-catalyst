@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
-	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
@@ -110,10 +110,10 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 		c := catalyst.NewMockClient(ctrl)
 
 		c.EXPECT().GetUserOrg(gomock.Any()).Return(
-			&conductor_client.Organization{
-				Data: conductor_client.OrganizationData{
+			&common_client.Organization{
+				Data: common_client.OrganizationData{
 					Id: lo.ToPtr(orgID),
-					Attributes: &conductor_client.OrganizationAttributes{
+					Attributes: &common_client.OrganizationAttributes{
 						Name: lo.ToPtr(orgName),
 					},
 				},
@@ -147,11 +147,11 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 					},
 					Status: &catalyst_client.ProjectStatus{
 						Status: lo.ToPtr("ready"),
-						Endpoints: &catalyst_client.ProjectStatusEndpoint{
-							Grpc: &catalyst_client.ProjectStatusEndpointDetails{
+						Endpoints: &catalyst_client.ProjectStatusEndpoints{
+							Grpc: &catalyst_client.ProjectStatusEndpointsHttp{
 								Url: lo.ToPtr(fmt.Sprintf("grpc://grpc.%s.default.example.com", projectName)),
 							},
-							Http: &catalyst_client.ProjectStatusEndpointDetails{
+							Http: &catalyst_client.ProjectStatusEndpointsHttp{
 								Url: lo.ToPtr(fmt.Sprintf("https://http.%s.default.example.com", projectName)),
 							},
 						},

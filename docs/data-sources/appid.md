@@ -37,7 +37,7 @@ Read-Only:
 
 - `client_timeout_seconds` (Number) Client timeout in seconds
 - `token` (String, Sensitive) Authentication token
-- `token_header` (String) Header name for the authentication token
+- `token_header` (String, Deprecated) Deprecated: Catalyst no longer supports a custom header for the authentication token. Always null.
 - `url` (String) Application endpoint URL
 
 

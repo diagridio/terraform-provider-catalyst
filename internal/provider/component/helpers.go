@@ -12,7 +12,7 @@ import (
 )
 
 // toAPIScopes converts Terraform list to API scopes slice.
-func toAPIScopes(ctx context.Context, scopesList types.List) catalyst_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopesList types.List) []string {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
@@ -42,7 +42,7 @@ func expandComponentSpec(spec *specModel) (*catalyst_client.DaprComponentSpec, e
 	}
 
 	if len(spec.Metadata) > 0 {
-		metadata := make([]catalyst_client.DaprMetadataItem, len(spec.Metadata))
+		metadata := make([]catalyst_client.DaprComponentSpecMetadataItem, len(spec.Metadata))
 		for i, item := range spec.Metadata {
 			if item.Name.IsNull() || item.Name.IsUnknown() || item.Name.ValueString() == "" {
 				return nil, fmt.Errorf("spec.metadata[%d].name must be provided", i)
@@ -53,8 +53,8 @@ func expandComponentSpec(spec *specModel) (*catalyst_client.DaprComponentSpec, e
 
 			if !item.Value.IsNull() && !item.Value.IsUnknown() {
 				value := item.Value.ValueString()
-				metadataValue := &catalyst_client.DaprMetadataItem_Value{}
-				if err := metadataValue.FromDaprMetadataItemValue0(value); err != nil {
+				metadataValue := &catalyst_client.DaprComponentSpecMetadataItem_Value{}
+				if err := metadataValue.FromDaprComponentSpecMetadataItemValue0(value); err != nil {
 					return nil, fmt.Errorf("spec.metadata[%d].value: %w", i, err)
 				}
 				metadata[i].Value = metadataValue
@@ -70,10 +70,7 @@ func expandComponentSpec(spec *specModel) (*catalyst_client.DaprComponentSpec, e
 
 				keyName := item.SecretKeyRef.Name.ValueString()
 				keyKey := item.SecretKeyRef.Key.ValueString()
-				metadata[i].SecretKeyRef = &struct {
-					Key  *string `json:"key,omitempty"`
-					Name *string `json:"name,omitempty"`
-				}{
+				metadata[i].SecretKeyRef = &catalyst_client.DaprComponentSpecMetadataItemSecretKeyRef{
 					Name: &keyName,
 					Key:  &keyKey,
 				}
@@ -85,7 +82,7 @@ func expandComponentSpec(spec *specModel) (*catalyst_client.DaprComponentSpec, e
 	return apiSpec, nil
 }
 
-func flattenMetadataItems(items *[]catalyst_client.DaprMetadataItem) []metadataItemModel {
+func flattenMetadataItems(items *[]catalyst_client.DaprComponentSpecMetadataItem) []metadataItemModel {
 	if items == nil {
 		return nil
 	}
@@ -104,7 +101,7 @@ func flattenMetadataItems(items *[]catalyst_client.DaprMetadataItem) []metadataI
 		}
 
 		if item.Value != nil {
-			if strVal, err := item.Value.AsDaprMetadataItemValue0(); err == nil {
+			if strVal, err := item.Value.AsDaprComponentSpecMetadataItemValue0(); err == nil {
 				metadata[i].Value = types.StringValue(strVal)
 			} else {
 				metadata[i].Value = types.StringValue(fmt.Sprint(*item.Value))

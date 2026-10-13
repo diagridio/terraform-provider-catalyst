@@ -11,11 +11,12 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/catalyst"
 	"github.com/diagridio/cloudgrid/sdk/go/management"
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
-	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	"github.com/diagridio/cloudgrid/sdk/go/pkg/clientcommon"
+	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 )
 
 type Client interface {
-	GetUserOrg(context.Context) (*conductor_client.Organization, error)
+	GetUserOrg(context.Context) (*common_client.Organization, error)
 
 	// Region operations
 	CreateRegion(ctx context.Context, region *catalyst_client.Region) (string, error)
@@ -122,7 +123,7 @@ func NewClient(endpoint, apiKey string, tlsSkipVerify bool) (Client, error) {
 	catalystClient, err := catalyst.NewClientWithExponentialBackoff(httpClient,
 		endpoint,
 		maxRetries,
-		catalyst.WithAPIKeyToken(apiKey))
+		clientcommon.WithAPIKeyToken(apiKey))
 	if err != nil {
 		return nil, fmt.Errorf("error creating catalyst client: %w", err)
 	}
@@ -133,15 +134,18 @@ func NewClient(endpoint, apiKey string, tlsSkipVerify bool) (Client, error) {
 	}, nil
 }
 
-func (c *cclient) GetUserOrg(ctx context.Context) (*conductor_client.Organization, error) {
+func (c *cclient) GetUserOrg(ctx context.Context) (*common_client.Organization, error) {
 	// find the current user's organization id
 	user, err := c.management.GetCurrentUser(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user org: %w", err)
 	}
+	if user.Data.Attributes.Organization.Id == nil {
+		return nil, fmt.Errorf("error getting user org: current user has no organization")
+	}
 
 	// now fetch the org
-	org, err := c.management.GetUserOrg(ctx, *user.Data.Attributes.Organization.Id)
+	org, err := c.management.GetCurrentUserOrg(ctx, *user.Data.Attributes.Organization.Id)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user org %s: %w",
 			*user.Data.Attributes.Organization.Id, err)

@@ -68,7 +68,7 @@ func read(ctx context.Context,
 	return nil
 }
 
-func toAPIScopes(ctx context.Context, scopesList types.List) *catalyst_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopesList types.List) *[]string {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}

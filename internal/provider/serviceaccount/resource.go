@@ -117,7 +117,7 @@ func (s *serviceAccountResource) Create(ctx context.Context,
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
-		Spec: client.ServiceAccountSpec{
+		Spec: &client.ServiceAccountSpec{
 			Description: model.GetDescription(),
 			Owner:       model.GetOwner(),
 			Role:        model.GetRole(),
@@ -210,6 +210,9 @@ func (s *serviceAccountResource) Update(ctx context.Context,
 		return
 	}
 
+	if serviceAccount.Spec == nil {
+		serviceAccount.Spec = &client.ServiceAccountSpec{}
+	}
 	serviceAccount.Spec.Description = model.GetDescription()
 	serviceAccount.Spec.Owner = model.GetOwner()
 	serviceAccount.Spec.Role = model.GetRole()

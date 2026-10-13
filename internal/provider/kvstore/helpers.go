@@ -11,7 +11,7 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-func toAPIScopes(ctx context.Context, scopes types.List) *catalyst_client.DaprScopes {
+func toAPIScopes(ctx context.Context, scopes types.List) *[]string {
 	if scopes.IsNull() || scopes.IsUnknown() {
 		return nil
 	}

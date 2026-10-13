@@ -12,14 +12,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	conductor_client "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
 )
 
 type productAttributes struct {
-	Cra *conductor_client.ProductAttributes `json:"cra,omitempty"`
-	Mcp *conductor_client.ProductAttributes `json:"mcp,omitempty"`
+	Cra *common_client.ProductAttributes `json:"cra,omitempty"`
+	Mcp *common_client.ProductAttributes `json:"mcp,omitempty"`
 }
 
 func TestMockOrganizationDataSource(t *testing.T) {
@@ -38,19 +38,19 @@ func TestMockOrganizationDataSource(t *testing.T) {
 							c := catalyst.NewMockClient(ctrl)
 
 							attrs := &productAttributes{
-								Cra: &conductor_client.ProductAttributes{
+								Cra: &common_client.ProductAttributes{
 									Plan: lo.ToPtr(orgPlan),
 								},
 							}
 							c.EXPECT().GetUserOrg(gomock.Any()).Return(
-								&conductor_client.Organization{
-									Data: conductor_client.OrganizationData{
+								&common_client.Organization{
+									Data: common_client.OrganizationData{
 										Id: lo.ToPtr(orgID),
-										Attributes: &conductor_client.OrganizationAttributes{
+										Attributes: &common_client.OrganizationAttributes{
 											Name: lo.ToPtr(orgName),
 											Products: (*struct {
-												Cra *conductor_client.ProductAttributes `json:"cra,omitempty"`
-												Mcp *conductor_client.ProductAttributes `json:"mcp,omitempty"`
+												Cra *common_client.ProductAttributes `json:"cra,omitempty"`
+												Mcp *common_client.ProductAttributes `json:"mcp,omitempty"`
 											})(attrs),
 										},
 									},

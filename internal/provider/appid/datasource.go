@@ -74,7 +74,8 @@ func (d *appidDataSource) Schema(ctx context.Context,
 						Sensitive:           true,
 					},
 					"token_header": schema.StringAttribute{
-						MarkdownDescription: "Header name for the authentication token",
+						MarkdownDescription: "Deprecated: Catalyst no longer supports a custom header for the authentication token. Always null.",
+						DeprecationMessage:  "Catalyst no longer supports a custom header for the app endpoint token, so this attribute is always null. It will be removed in a future release.",
 						Computed:            true,
 					},
 					"client_timeout_seconds": schema.Int64Attribute{

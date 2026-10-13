@@ -79,8 +79,11 @@ func (m *model) GetRegion() string {
 	return m.Region.ValueString()
 }
 
-func (m *model) SetRegion(region string) {
-	m.Region = types.StringValue(region)
+// SetRegion sets the region, or null when the project has none: a project
+// placed in a region group has no region, since the API treats the two as
+// mutually exclusive.
+func (m *model) SetRegion(region *string) {
+	m.Region = types.StringPointerValue(region)
 }
 
 func (m *model) GetGRPCEndpoint() string {
