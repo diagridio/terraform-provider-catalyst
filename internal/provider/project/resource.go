@@ -64,6 +64,41 @@ func (p *projectResource) Schema(ctx context.Context,
 				Optional:            true,
 				Computed:            true,
 			},
+			"default_agent_infrastructure_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enable default agent infrastructure for the project",
+				Optional:            true,
+				Computed:            true,
+			},
+			"default_kvstore_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enable default KV store for the project",
+				Optional:            true,
+				Computed:            true,
+			},
+			"default_pubsub_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enable default pub/sub for the project",
+				Optional:            true,
+				Computed:            true,
+			},
+			"default_workflow_store_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enable default workflow store for the project",
+				Optional:            true,
+				Computed:            true,
+			},
+			"disable_app_tunnels": schema.BoolAttribute{
+				MarkdownDescription: "Disable app tunnels for the project",
+				Optional:            true,
+				Computed:            true,
+			},
+			"private_region": schema.BoolAttribute{
+				MarkdownDescription: "Mark the project region as private",
+				Optional:            true,
+				Computed:            true,
+			},
+			"global_app_id_max_body_size": schema.StringAttribute{
+				MarkdownDescription: "Maximum body size for HTTP and gRPC requests across all appids (e.g. \"4Mi\", \"8Mi\"). Can be overridden at the individual appid level.",
+				Optional:            true,
+				Computed:            true,
+			},
 		},
 	}
 }
@@ -115,10 +150,21 @@ func (p *projectResource) Create(ctx context.Context,
 			Name: lo.ToPtr(model.GetName()),
 		},
 		Spec: &client.ProjectSpec{
-			DisplayName: lo.ToPtr(model.GetName()),
-			Region:      lo.ToPtr(model.GetRegion()),
+			DisplayName:                       lo.ToPtr(model.GetName()),
+			Region:                            lo.ToPtr(model.GetRegion()),
+			DefaultAgentInfrastructureEnabled: model.GetDefaultAgentInfrastructureEnabled(),
+			DefaultKVStoreEnabled:             model.GetDefaultKVStoreEnabled(),
+			DefaultPubsubEnabled:              model.GetDefaultPubsubEnabled(),
+			DefaultWorkflowStoreEnabled:       model.GetDefaultWorkflowStoreEnabled(),
+			DisableAppTunnels:                 model.GetDisableAppTunnels(),
+			PrivateRegion:                     model.GetPrivateRegion(),
 		},
 		Status: &client.ProjectStatus{},
+	}
+	if v := model.GetGlobalAppIdMaxBodySize(); v != nil {
+		project.Spec.GlobalAppId = &client.GlobalAppIdSpec{
+			MaxBodySize: v,
+		}
 	}
 	if err := p.client.CreateProject(ctx, project); err != nil {
 		resp.Diagnostics.AddError("Client Error",
@@ -226,6 +272,19 @@ func (p *projectResource) Update(ctx context.Context,
 
 	project.Spec.DisplayName = lo.ToPtr(model.GetName())
 	project.Spec.Region = lo.ToPtr(model.GetRegion())
+	project.Spec.DefaultAgentInfrastructureEnabled = model.GetDefaultAgentInfrastructureEnabled()
+	project.Spec.DefaultKVStoreEnabled = model.GetDefaultKVStoreEnabled()
+	project.Spec.DefaultPubsubEnabled = model.GetDefaultPubsubEnabled()
+	project.Spec.DefaultWorkflowStoreEnabled = model.GetDefaultWorkflowStoreEnabled()
+	project.Spec.DisableAppTunnels = model.GetDisableAppTunnels()
+	project.Spec.PrivateRegion = model.GetPrivateRegion()
+	if v := model.GetGlobalAppIdMaxBodySize(); v != nil {
+		project.Spec.GlobalAppId = &client.GlobalAppIdSpec{
+			MaxBodySize: v,
+		}
+	} else {
+		project.Spec.GlobalAppId = nil
+	}
 	project.Status = &client.ProjectStatus{}
 
 	tflog.Debug(ctx, "updating project", map[string]interface{}{

@@ -32,6 +32,7 @@ type model struct {
 	Status           types.String `tfsdk:"status"`
 	AppEndpoint      types.Object `tfsdk:"app_endpoint"`
 	HealthCheck      types.Object `tfsdk:"health_check"`
+	MaxBodySize      types.String `tfsdk:"max_body_size"`
 }
 
 func NewModel() *model {
@@ -40,15 +41,33 @@ func NewModel() *model {
 
 func (m *model) Log(ctx context.Context, msg string) {
 	tflog.Debug(ctx, msg, map[string]interface{}{
-		"project_id": m.GetProjectID(),
-		"name":       m.GetName(),
+		"project_id":    m.GetProjectID(),
+		"name":          m.GetName(),
+		"max_body_size": m.MaxBodySize.ValueString(),
 	})
 }
 
 func (m *model) String() string {
-	return fmt.Sprintf(`project_id: %s, name: %s`,
+	return fmt.Sprintf(`project_id: %s, name: %s, max_body_size: %s`,
 		m.GetProjectID(),
-		m.GetName())
+		m.GetName(),
+		m.MaxBodySize.ValueString())
+}
+
+func (m *model) GetMaxBodySize() *string {
+	if m.MaxBodySize.IsNull() || m.MaxBodySize.IsUnknown() {
+		return nil
+	}
+	v := m.MaxBodySize.ValueString()
+	return &v
+}
+
+func (m *model) SetMaxBodySize(v *string) {
+	if v == nil {
+		m.MaxBodySize = types.StringNull()
+	} else {
+		m.MaxBodySize = types.StringValue(*v)
+	}
 }
 
 func (m *model) GetProjectID() string {
