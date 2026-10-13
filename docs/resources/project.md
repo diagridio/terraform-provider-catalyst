@@ -35,8 +35,15 @@ resource "catalyst_project" "project" {
 
 ### Optional
 
+- `default_agent_infrastructure_enabled` (Boolean) Enable default agent infrastructure for the project
+- `default_kvstore_enabled` (Boolean) Enable default KV store for the project
+- `default_pubsub_enabled` (Boolean) Enable default pub/sub for the project
+- `default_workflow_store_enabled` (Boolean) Enable default workflow store for the project
+- `disable_app_tunnels` (Boolean) Disable app tunnels for the project
+- `global_app_id_max_body_size` (String) Maximum body size for HTTP and gRPC requests across all appids (e.g. "4Mi", "8Mi"). Can be overridden at the individual appid level.
 - `grpc_endpoint` (String) gRPC endpoint
 - `http_endpoint` (String) HTTP endpoint
+- `private_region` (Boolean) Mark the project region as private
 - `region` (String) Project region
 
 ## Import

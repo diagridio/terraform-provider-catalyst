@@ -21,3 +21,13 @@ Project data source
 - `http_endpoint` (String) HTTP endpoint
 - `name` (String) Project name
 - `region` (String) Region
+
+### Read-Only
+
+- `default_agent_infrastructure_enabled` (Boolean) Default agent infrastructure enabled
+- `default_kvstore_enabled` (Boolean) Default KV store enabled
+- `default_pubsub_enabled` (Boolean) Default pub/sub enabled
+- `default_workflow_store_enabled` (Boolean) Default workflow store enabled
+- `disable_app_tunnels` (Boolean) App tunnels disabled
+- `global_app_id_max_body_size` (String) Maximum body size for HTTP and gRPC requests across all appids
+- `private_region` (Boolean) Private region

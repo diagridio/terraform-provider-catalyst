@@ -36,6 +36,7 @@ resource "catalyst_appid" "example" {
 - `app_config` (String) App configuration name
 - `app_endpoint` (Attributes) Application endpoint configuration (see [below for nested schema](#nestedatt--app_endpoint))
 - `health_check` (Attributes) Health check configuration (see [below for nested schema](#nestedatt--health_check))
+- `max_body_size` (String) Maximum body size for HTTP and gRPC requests (e.g. "4Mi", "8Mi"). Overrides the project-level setting.
 - `protocol` (String) Protocol (e.g., 'http', 'grpc')
 
 ### Read-Only
