@@ -11,8 +11,8 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// toAPIScopes converts a Terraform List to API DaprScopes.
-func toAPIScopes(ctx context.Context, scopesList types.List) *catalyst_client.DaprScopes {
+// toAPIScopes converts a Terraform List to API scopes.
+func toAPIScopes(ctx context.Context, scopesList types.List) *[]string {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
@@ -72,12 +72,12 @@ func expandSubscriptionSpec(ctx context.Context, model *specModel) (*catalyst_cl
 	return spec, nil
 }
 
-func expandRoutes(model *routesModel) *catalyst_client.SubscriptionSpecRoutes {
+func expandRoutes(model *routesModel) *catalyst_client.DaprSubscriptionSpecRoutes {
 	if model == nil {
 		return nil
 	}
 
-	routes := &catalyst_client.SubscriptionSpecRoutes{}
+	routes := &catalyst_client.DaprSubscriptionSpecRoutes{}
 	hasData := false
 
 	if !model.Default.IsNull() && !model.Default.IsUnknown() {
@@ -89,9 +89,9 @@ func expandRoutes(model *routesModel) *catalyst_client.SubscriptionSpecRoutes {
 	}
 
 	if len(model.Rules) > 0 {
-		rules := make([]catalyst_client.SubscriptionRule, 0, len(model.Rules))
+		rules := make([]catalyst_client.DaprSubscriptionSpecRoutesRulesItem, 0, len(model.Rules))
 		for _, ruleModel := range model.Rules {
-			rule := catalyst_client.SubscriptionRule{}
+			rule := catalyst_client.DaprSubscriptionSpecRoutesRulesItem{}
 			ruleHasData := false
 
 			if !ruleModel.Match.IsNull() && !ruleModel.Match.IsUnknown() {
@@ -140,13 +140,13 @@ func expandBulkSubscribe(model *bulkSubscribeModel) *catalyst_client.DaprSubscri
 	}
 
 	if !model.MaxMessagesCount.IsNull() && !model.MaxMessagesCount.IsUnknown() {
-		value := int(model.MaxMessagesCount.ValueInt64())
+		value := int32(model.MaxMessagesCount.ValueInt64())
 		bulk.MaxMessagesCount = &value
 		hasData = true
 	}
 
 	if !model.MaxAwaitDurationMs.IsNull() && !model.MaxAwaitDurationMs.IsUnknown() {
-		value := int(model.MaxAwaitDurationMs.ValueInt64())
+		value := int32(model.MaxAwaitDurationMs.ValueInt64())
 		bulk.MaxAwaitDurationMs = &value
 		hasData = true
 	}
@@ -191,7 +191,7 @@ func flattenSubscriptionSpec(ctx context.Context, api *catalyst_client.DaprSubsc
 	return spec, nil
 }
 
-func flattenRoutes(api *catalyst_client.SubscriptionSpecRoutes) *routesModel {
+func flattenRoutes(api *catalyst_client.DaprSubscriptionSpecRoutes) *routesModel {
 	if api == nil {
 		return nil
 	}

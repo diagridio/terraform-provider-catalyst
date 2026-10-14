@@ -27,7 +27,11 @@ func read(ctx context.Context,
 	m.Log(ctx, "read project")
 
 	m.SetName(*project.Metadata.Name)
-	m.SetRegion(*project.Spec.Region)
+	var region *string
+	if project.Spec != nil {
+		region = project.Spec.Region
+	}
+	m.SetRegion(region)
 	if project.Status.Endpoints != nil &&
 		project.Status.Endpoints.Http != nil &&
 		project.Status.Endpoints.Http.Url != nil {

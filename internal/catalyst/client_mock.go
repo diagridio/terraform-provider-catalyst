@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
-	client0 "github.com/diagridio/cloudgrid/sdk/go/pkg/conductor/client"
+	client0 "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	gomock "go.uber.org/mock/gomock"
 )
 

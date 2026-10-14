@@ -162,7 +162,7 @@ func (p *projectResource) Create(ctx context.Context,
 		Status: &client.ProjectStatus{},
 	}
 	if v := model.GetGlobalAppIdMaxBodySize(); v != nil {
-		project.Spec.GlobalAppId = &client.GlobalAppIdSpec{
+		project.Spec.GlobalAppId = &client.ProjectSpecGlobalAppId{
 			MaxBodySize: v,
 		}
 	}
@@ -205,7 +205,7 @@ func (p *projectResource) Create(ctx context.Context,
 	tflog.Debug(ctx, "created project", map[string]interface{}{
 		"id":     project.Metadata.Uid,
 		"name":   *project.Metadata.Name,
-		"region": *project.Spec.Region,
+		"region": lo.FromPtr(lo.FromPtr(project.Spec).Region),
 	})
 
 	if err := read(ctx, p.client, model); err != nil {
@@ -271,7 +271,11 @@ func (p *projectResource) Update(ctx context.Context,
 	model.Log(ctx, "read project")
 
 	project.Spec.DisplayName = lo.ToPtr(model.GetName())
-	project.Spec.Region = lo.ToPtr(model.GetRegion())
+	// Keep the project's own placement when no region is configured: sending
+	// an empty region would clash with a region group.
+	if region := model.GetRegion(); region != "" {
+		project.Spec.Region = lo.ToPtr(region)
+	}
 	project.Spec.DefaultAgentInfrastructureEnabled = model.GetDefaultAgentInfrastructureEnabled()
 	project.Spec.DefaultKVStoreEnabled = model.GetDefaultKVStoreEnabled()
 	project.Spec.DefaultPubsubEnabled = model.GetDefaultPubsubEnabled()
@@ -279,7 +283,7 @@ func (p *projectResource) Update(ctx context.Context,
 	project.Spec.DisableAppTunnels = model.GetDisableAppTunnels()
 	project.Spec.PrivateRegion = model.GetPrivateRegion()
 	if v := model.GetGlobalAppIdMaxBodySize(); v != nil {
-		project.Spec.GlobalAppId = &client.GlobalAppIdSpec{
+		project.Spec.GlobalAppId = &client.ProjectSpecGlobalAppId{
 			MaxBodySize: v,
 		}
 	} else {

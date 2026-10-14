@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/samber/lo"
 
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
@@ -34,9 +35,10 @@ func read(ctx context.Context,
 		}
 	}
 
-	m.SetDescription(serviceAccount.Spec.Description)
-	m.SetOwner(serviceAccount.Spec.Owner)
-	m.SetRole(serviceAccount.Spec.Role)
+	spec := lo.FromPtr(serviceAccount.Spec)
+	m.SetDescription(spec.Description)
+	m.SetOwner(spec.Owner)
+	m.SetRole(spec.Role)
 
 	if serviceAccount.Status != nil {
 		if serviceAccount.Status.Email != nil {

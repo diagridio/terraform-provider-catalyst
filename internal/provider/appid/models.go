@@ -11,7 +11,7 @@ import (
 type appEndpointModel struct {
 	URL                  types.String `tfsdk:"url"`
 	Token                types.String `tfsdk:"token"`
-	TokenHeader          types.String `tfsdk:"token_header"`
+	TokenHeader          types.String `tfsdk:"token_header"` // deprecated: ignored by Catalyst, kept in state only
 	ClientTimeoutSeconds types.Int64  `tfsdk:"client_timeout_seconds"`
 }
 

@@ -96,7 +96,8 @@ func (r *appidResource) Schema(ctx context.Context,
 						Sensitive:           true,
 					},
 					"token_header": schema.StringAttribute{
-						MarkdownDescription: "Header name for the authentication token",
+						MarkdownDescription: "Deprecated: Catalyst no longer supports a custom header for the authentication token and ignores this value.",
+						DeprecationMessage:  "Catalyst no longer supports a custom header for the app endpoint token and ignores this value. Remove it from your configuration; it will be removed in a future release.",
 						Optional:            true,
 					},
 					"client_timeout_seconds": schema.Int64Attribute{
@@ -177,6 +178,7 @@ func (r *appidResource) Create(ctx context.Context,
 	// Store original plan values for optional computed fields
 	originalProtocol := model.Protocol
 	originalAppConfig := model.AppConfig
+	originalAppEndpoint := model.AppEndpoint
 
 	appid := &client.AppIdentity{
 		ApiVersion: lo.ToPtr("cra.diagrid.io/v1beta1"),
@@ -184,7 +186,7 @@ func (r *appidResource) Create(ctx context.Context,
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
-		Spec: &client.AppIdentitySpec{},
+		Spec: client.AppIdentitySpec{},
 	}
 
 	// Set optional fields
@@ -230,6 +232,8 @@ func (r *appidResource) Create(ctx context.Context,
 		model.AppConfig = originalAppConfig
 	}
 
+	preserveTokenHeader(model, originalAppEndpoint)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -244,6 +248,8 @@ func (r *appidResource) Read(ctx context.Context,
 		return
 	}
 
+	priorAppEndpoint := model.AppEndpoint
+
 	if err := read(ctx, r.client, model); err != nil {
 		if diagrid_errors.IsResourceNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
@@ -253,6 +259,8 @@ func (r *appidResource) Read(ctx context.Context,
 			fmt.Sprintf("error reading appid: %s", err))
 		return
 	}
+
+	preserveTokenHeader(model, priorAppEndpoint)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
@@ -273,12 +281,13 @@ func (r *appidResource) Update(ctx context.Context,
 	// Store original plan values for optional computed fields
 	originalProtocol := model.Protocol
 	originalAppConfig := model.AppConfig
+	originalAppEndpoint := model.AppEndpoint
 
 	appid := &client.AppIdentity{
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
-		Spec: &client.AppIdentitySpec{},
+		Spec: client.AppIdentitySpec{},
 	}
 
 	// Set optional fields
@@ -323,6 +332,8 @@ func (r *appidResource) Update(ctx context.Context,
 	if originalAppConfig.IsNull() {
 		model.AppConfig = originalAppConfig
 	}
+
+	preserveTokenHeader(model, originalAppEndpoint)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

@@ -29,29 +29,29 @@ func expandConfigurationSpec(ctx context.Context, spec *specModel) (*catalyst_cl
 	if spec.AppHTTPPipeline != nil {
 		handlers := expandHandlers(spec.AppHTTPPipeline)
 		if handlers != nil {
-			apiSpec.AppHttpPipeline = &catalyst_client.ConfigurationSpecAppHttpPipeline{Handlers: handlers}
+			apiSpec.AppHttpPipeline = &catalyst_client.DaprConfigurationSpecAppHttpPipeline{Handlers: handlers}
 		}
 	}
 
 	if spec.HttpPipeline != nil {
 		handlers := expandHandlers(spec.HttpPipeline)
 		if handlers != nil {
-			apiSpec.HttpPipeline = &catalyst_client.ConfigurationSpecHttpPipeline{Handlers: handlers}
+			apiSpec.HttpPipeline = &catalyst_client.DaprConfigurationSpecAppHttpPipeline{Handlers: handlers}
 		}
 	}
 
 	return apiSpec, nil
 }
 
-func expandAccessControl(ctx context.Context, model *accessControlModel) (*catalyst_client.ConfigurationSpecAccessControl, error) {
+func expandAccessControl(ctx context.Context, model *accessControlModel) (*catalyst_client.DaprConfigurationSpecAccessControl, error) {
 	if model == nil {
 		return nil, nil
 	}
 
-	ac := &catalyst_client.ConfigurationSpecAccessControl{}
+	ac := &catalyst_client.DaprConfigurationSpecAccessControl{}
 
 	if !model.DefaultAction.IsNull() && !model.DefaultAction.IsUnknown() {
-		action := catalyst_client.ConfigurationSpecAccessControlDefaultAction(model.DefaultAction.ValueString())
+		action := catalyst_client.DaprConfigurationSpecAccessControlDefaultAction(model.DefaultAction.ValueString())
 		if action != "" {
 			ac.DefaultAction = &action
 		}
@@ -65,9 +65,9 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*catal
 	}
 
 	if len(model.Policies) > 0 {
-		policies := make([]catalyst_client.ConfigurationSpecAccessControlPolicy, 0, len(model.Policies))
+		policies := make([]catalyst_client.DaprConfigurationSpecAccessControlPoliciesItem, 0, len(model.Policies))
 		for _, policy := range model.Policies {
-			p := catalyst_client.ConfigurationSpecAccessControlPolicy{}
+			p := catalyst_client.DaprConfigurationSpecAccessControlPoliciesItem{}
 
 			if !policy.AppID.IsNull() && !policy.AppID.IsUnknown() {
 				appID := policy.AppID.ValueString()
@@ -77,7 +77,7 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*catal
 			}
 
 			if !policy.DefaultAction.IsNull() && !policy.DefaultAction.IsUnknown() {
-				action := catalyst_client.ConfigurationSpecAccessControlPolicyDefaultAction(policy.DefaultAction.ValueString())
+				action := catalyst_client.DaprConfigurationSpecAccessControlPoliciesItemDefaultAction(policy.DefaultAction.ValueString())
 				if string(action) != "" {
 					p.DefaultAction = &action
 				}
@@ -93,18 +93,10 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*catal
 			}
 
 			if len(policy.Operations) > 0 {
-				operations := make([]struct {
-					Action   *catalyst_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
-					HttpVerb *[]string                                                             `json:"httpVerb,omitempty"`
-					Name     *string                                                               `json:"name,omitempty"`
-				}, 0, len(policy.Operations))
+				operations := make([]catalyst_client.DaprConfigurationSpecAccessControlPoliciesItemOperationsItem, 0, len(policy.Operations))
 
 				for _, op := range policy.Operations {
-					operation := struct {
-						Action   *catalyst_client.ConfigurationSpecAccessControlPolicyOperationsAction `json:"action,omitempty"`
-						HttpVerb *[]string                                                             `json:"httpVerb,omitempty"`
-						Name     *string                                                               `json:"name,omitempty"`
-					}{}
+					operation := catalyst_client.DaprConfigurationSpecAccessControlPoliciesItemOperationsItem{}
 
 					if !op.Name.IsNull() && !op.Name.IsUnknown() {
 						name := op.Name.ValueString()
@@ -114,7 +106,7 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*catal
 					}
 
 					if !op.Action.IsNull() && !op.Action.IsUnknown() {
-						action := catalyst_client.ConfigurationSpecAccessControlPolicyOperationsAction(op.Action.ValueString())
+						action := catalyst_client.DaprConfigurationSpecAccessControlPoliciesItemOperationsItemAction(op.Action.ValueString())
 						if string(action) != "" {
 							operation.Action = &action
 						}
@@ -147,19 +139,19 @@ func expandAccessControl(ctx context.Context, model *accessControlModel) (*catal
 	return ac, nil
 }
 
-func expandHandlers(model *pipelineModel) *[]catalyst_client.ConfigurationSpecHandler {
+func expandHandlers(model *pipelineModel) *[]catalyst_client.DaprConfigurationSpecAppHttpPipelineHandlersItem {
 	if model == nil {
 		return nil
 	}
 
 	if len(model.Handlers) == 0 {
-		empty := []catalyst_client.ConfigurationSpecHandler{}
+		empty := []catalyst_client.DaprConfigurationSpecAppHttpPipelineHandlersItem{}
 		return &empty
 	}
 
-	handlers := make([]catalyst_client.ConfigurationSpecHandler, 0, len(model.Handlers))
+	handlers := make([]catalyst_client.DaprConfigurationSpecAppHttpPipelineHandlersItem, 0, len(model.Handlers))
 	for _, handler := range model.Handlers {
-		h := catalyst_client.ConfigurationSpecHandler{}
+		h := catalyst_client.DaprConfigurationSpecAppHttpPipelineHandlersItem{}
 
 		if !handler.Name.IsNull() && !handler.Name.IsUnknown() {
 			name := handler.Name.ValueString()
@@ -206,7 +198,7 @@ func flattenConfigurationSpec(ctx context.Context, apiSpec *catalyst_client.Dapr
 	return spec, nil
 }
 
-func flattenAccessControl(ctx context.Context, api *catalyst_client.ConfigurationSpecAccessControl) (*accessControlModel, error) {
+func flattenAccessControl(ctx context.Context, api *catalyst_client.DaprConfigurationSpecAccessControl) (*accessControlModel, error) {
 	if api == nil {
 		return nil, nil
 	}
@@ -286,21 +278,21 @@ func flattenAccessControl(ctx context.Context, api *catalyst_client.Configuratio
 	return model, nil
 }
 
-func flattenAppPipeline(api *catalyst_client.ConfigurationSpecAppHttpPipeline) *pipelineModel {
+func flattenAppPipeline(api *catalyst_client.DaprConfigurationSpecAppHttpPipeline) *pipelineModel {
 	if api == nil {
 		return nil
 	}
 	return flattenHandlers(api.Handlers)
 }
 
-func flattenHTTPPipeline(api *catalyst_client.ConfigurationSpecHttpPipeline) *pipelineModel {
+func flattenHTTPPipeline(api *catalyst_client.DaprConfigurationSpecAppHttpPipeline) *pipelineModel {
 	if api == nil {
 		return nil
 	}
 	return flattenHandlers(api.Handlers)
 }
 
-func flattenHandlers(handlers *[]catalyst_client.ConfigurationSpecHandler) *pipelineModel {
+func flattenHandlers(handlers *[]catalyst_client.DaprConfigurationSpecAppHttpPipelineHandlersItem) *pipelineModel {
 	if handlers == nil {
 		return nil
 	}

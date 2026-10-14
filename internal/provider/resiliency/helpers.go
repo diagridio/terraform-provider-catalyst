@@ -11,8 +11,8 @@ import (
 	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
 )
 
-// toAPIScopes converts a Terraform List to API DaprScopes.
-func toAPIScopes(ctx context.Context, scopesList types.List) *catalyst_client.DaprScopes {
+// toAPIScopes converts a Terraform List to API scopes.
+func toAPIScopes(ctx context.Context, scopesList types.List) *[]string {
 	if scopesList.IsNull() || scopesList.IsUnknown() {
 		return nil
 	}
@@ -51,12 +51,12 @@ func expandResiliencySpec(ctx context.Context, model *specModel) (*catalyst_clie
 	return api, nil
 }
 
-func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*catalyst_client.ResiliencySpecPolicies, error) {
+func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*catalyst_client.DaprResiliencySpecPolicies, error) {
 	if model == nil {
 		return nil, nil
 	}
 
-	policies := &catalyst_client.ResiliencySpecPolicies{}
+	policies := &catalyst_client.DaprResiliencySpecPolicies{}
 	hasData := false
 
 	if !model.Timeouts.IsNull() && !model.Timeouts.IsUnknown() {
@@ -71,7 +71,7 @@ func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*catal
 	}
 
 	if len(model.Retries) > 0 {
-		retries := make(map[string]catalyst_client.ResiliencySpecPoliciesRetry, len(model.Retries))
+		retries := make(map[string]catalyst_client.DaprResiliencySpecPoliciesRetries, len(model.Retries))
 		for name, retryModel := range model.Retries {
 			if retry, ok := expandRetryPolicy(retryModel); ok {
 				retries[name] = retry
@@ -84,7 +84,7 @@ func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*catal
 	}
 
 	if len(model.CircuitBreakers) > 0 {
-		cbs := make(map[string]catalyst_client.ResiliencySpecPoliciesCircuitBreaker, len(model.CircuitBreakers))
+		cbs := make(map[string]catalyst_client.DaprResiliencySpecPoliciesCircuitBreakers, len(model.CircuitBreakers))
 		for name, cbModel := range model.CircuitBreakers {
 			if cb, ok := expandCircuitBreaker(cbModel); ok {
 				cbs[name] = cb
@@ -103,8 +103,8 @@ func expandResiliencyPolicies(ctx context.Context, model *policiesModel) (*catal
 	return policies, nil
 }
 
-func expandRetryPolicy(model retryPolicyModel) (catalyst_client.ResiliencySpecPoliciesRetry, bool) {
-	retry := catalyst_client.ResiliencySpecPoliciesRetry{}
+func expandRetryPolicy(model retryPolicyModel) (catalyst_client.DaprResiliencySpecPoliciesRetries, bool) {
+	retry := catalyst_client.DaprResiliencySpecPoliciesRetries{}
 	hasValue := false
 
 	if !model.Duration.IsNull() && !model.Duration.IsUnknown() {
@@ -140,8 +140,8 @@ func expandRetryPolicy(model retryPolicyModel) (catalyst_client.ResiliencySpecPo
 	return retry, hasValue
 }
 
-func expandCircuitBreaker(model circuitBreakerModel) (catalyst_client.ResiliencySpecPoliciesCircuitBreaker, bool) {
-	cb := catalyst_client.ResiliencySpecPoliciesCircuitBreaker{}
+func expandCircuitBreaker(model circuitBreakerModel) (catalyst_client.DaprResiliencySpecPoliciesCircuitBreakers, bool) {
+	cb := catalyst_client.DaprResiliencySpecPoliciesCircuitBreakers{}
 	hasValue := false
 
 	if !model.Interval.IsNull() && !model.Interval.IsUnknown() {
@@ -177,16 +177,16 @@ func expandCircuitBreaker(model circuitBreakerModel) (catalyst_client.Resiliency
 	return cb, hasValue
 }
 
-func expandResiliencyTargets(model *targetsModel) *catalyst_client.ResiliencySpecTargets {
+func expandResiliencyTargets(model *targetsModel) *catalyst_client.DaprResiliencySpecTargets {
 	if model == nil {
 		return nil
 	}
 
-	targets := &catalyst_client.ResiliencySpecTargets{}
+	targets := &catalyst_client.DaprResiliencySpecTargets{}
 	hasData := false
 
 	if len(model.Apps) > 0 {
-		apps := make(map[string]catalyst_client.ResiliencySpecTargetsEndpointPolicyNames, len(model.Apps))
+		apps := make(map[string]catalyst_client.DaprResiliencySpecTargetsApps, len(model.Apps))
 		for name, appModel := range model.Apps {
 			if endpoint, ok := expandEndpointPolicy(appModel); ok {
 				apps[name] = endpoint
@@ -199,7 +199,7 @@ func expandResiliencyTargets(model *targetsModel) *catalyst_client.ResiliencySpe
 	}
 
 	if len(model.Actors) > 0 {
-		actors := make(map[string]catalyst_client.ResiliencySpecTargetsActorPolicyNames, len(model.Actors))
+		actors := make(map[string]catalyst_client.DaprResiliencySpecTargetsActors, len(model.Actors))
 		for name, actorModel := range model.Actors {
 			if actor, ok := expandActorPolicy(actorModel); ok {
 				actors[name] = actor
@@ -212,7 +212,7 @@ func expandResiliencyTargets(model *targetsModel) *catalyst_client.ResiliencySpe
 	}
 
 	if len(model.Components) > 0 {
-		components := make(map[string]catalyst_client.ResiliencySpecTargetsComponentPolicyNames, len(model.Components))
+		components := make(map[string]catalyst_client.DaprResiliencySpecTargetsComponents, len(model.Components))
 		for name, componentModel := range model.Components {
 			if component, ok := expandComponentPolicy(componentModel); ok {
 				components[name] = component
@@ -231,8 +231,8 @@ func expandResiliencyTargets(model *targetsModel) *catalyst_client.ResiliencySpe
 	return targets
 }
 
-func expandEndpointPolicy(model endpointPolicyModel) (catalyst_client.ResiliencySpecTargetsEndpointPolicyNames, bool) {
-	policy := catalyst_client.ResiliencySpecTargetsEndpointPolicyNames{}
+func expandEndpointPolicy(model endpointPolicyModel) (catalyst_client.DaprResiliencySpecTargetsApps, bool) {
+	policy := catalyst_client.DaprResiliencySpecTargetsApps{}
 	hasValue := false
 
 	if !model.CircuitBreaker.IsNull() && !model.CircuitBreaker.IsUnknown() {
@@ -268,8 +268,8 @@ func expandEndpointPolicy(model endpointPolicyModel) (catalyst_client.Resiliency
 	return policy, hasValue
 }
 
-func expandActorPolicy(model actorPolicyModel) (catalyst_client.ResiliencySpecTargetsActorPolicyNames, bool) {
-	policy := catalyst_client.ResiliencySpecTargetsActorPolicyNames{}
+func expandActorPolicy(model actorPolicyModel) (catalyst_client.DaprResiliencySpecTargetsActors, bool) {
+	policy := catalyst_client.DaprResiliencySpecTargetsActors{}
 	hasValue := false
 
 	if !model.CircuitBreaker.IsNull() && !model.CircuitBreaker.IsUnknown() {
@@ -313,8 +313,8 @@ func expandActorPolicy(model actorPolicyModel) (catalyst_client.ResiliencySpecTa
 	return policy, hasValue
 }
 
-func expandComponentPolicy(model componentPolicyModel) (catalyst_client.ResiliencySpecTargetsComponentPolicyNames, bool) {
-	policy := catalyst_client.ResiliencySpecTargetsComponentPolicyNames{}
+func expandComponentPolicy(model componentPolicyModel) (catalyst_client.DaprResiliencySpecTargetsComponents, bool) {
+	policy := catalyst_client.DaprResiliencySpecTargetsComponents{}
 	hasValue := false
 
 	if inbound := expandComponentDirectionPolicy(model.Inbound); inbound != nil {
@@ -330,12 +330,12 @@ func expandComponentPolicy(model componentPolicyModel) (catalyst_client.Resilien
 	return policy, hasValue
 }
 
-func expandComponentDirectionPolicy(model *componentDirectionPolicyModel) *catalyst_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames {
+func expandComponentDirectionPolicy(model *componentDirectionPolicyModel) *catalyst_client.DaprResiliencySpecTargetsComponentsInbound {
 	if model == nil {
 		return nil
 	}
 
-	direction := &catalyst_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames{}
+	direction := &catalyst_client.DaprResiliencySpecTargetsComponentsInbound{}
 	hasValue := false
 
 	if !model.CircuitBreaker.IsNull() && !model.CircuitBreaker.IsUnknown() {
@@ -391,7 +391,7 @@ func flattenResiliencySpec(ctx context.Context, api *catalyst_client.DaprResilie
 	return model, nil
 }
 
-func flattenResiliencyPolicies(ctx context.Context, api *catalyst_client.ResiliencySpecPolicies) (*policiesModel, error) {
+func flattenResiliencyPolicies(ctx context.Context, api *catalyst_client.DaprResiliencySpecPolicies) (*policiesModel, error) {
 	if api == nil {
 		return nil, nil
 	}
@@ -443,7 +443,7 @@ func flattenResiliencyPolicies(ctx context.Context, api *catalyst_client.Resilie
 	return model, nil
 }
 
-func flattenRetryPolicy(api catalyst_client.ResiliencySpecPoliciesRetry) (retryPolicyModel, bool) {
+func flattenRetryPolicy(api catalyst_client.DaprResiliencySpecPoliciesRetries) (retryPolicyModel, bool) {
 	model := retryPolicyModel{
 		Duration:    types.StringNull(),
 		MaxInterval: types.StringNull(),
@@ -475,7 +475,7 @@ func flattenRetryPolicy(api catalyst_client.ResiliencySpecPoliciesRetry) (retryP
 	return model, hasValue
 }
 
-func flattenCircuitBreaker(api catalyst_client.ResiliencySpecPoliciesCircuitBreaker) (circuitBreakerModel, bool) {
+func flattenCircuitBreaker(api catalyst_client.DaprResiliencySpecPoliciesCircuitBreakers) (circuitBreakerModel, bool) {
 	model := circuitBreakerModel{
 		Interval:    types.StringNull(),
 		MaxRequests: types.Int64Null(),
@@ -507,7 +507,7 @@ func flattenCircuitBreaker(api catalyst_client.ResiliencySpecPoliciesCircuitBrea
 	return model, hasValue
 }
 
-func flattenResiliencyTargets(api *catalyst_client.ResiliencySpecTargets) *targetsModel {
+func flattenResiliencyTargets(api *catalyst_client.DaprResiliencySpecTargets) *targetsModel {
 	if api == nil {
 		return nil
 	}
@@ -561,7 +561,7 @@ func flattenResiliencyTargets(api *catalyst_client.ResiliencySpecTargets) *targe
 	return model
 }
 
-func flattenEndpointPolicy(api catalyst_client.ResiliencySpecTargetsEndpointPolicyNames) (endpointPolicyModel, bool) {
+func flattenEndpointPolicy(api catalyst_client.DaprResiliencySpecTargetsApps) (endpointPolicyModel, bool) {
 	model := endpointPolicyModel{
 		CircuitBreaker:          types.StringNull(),
 		CircuitBreakerCacheSize: types.Int64Null(),
@@ -593,7 +593,7 @@ func flattenEndpointPolicy(api catalyst_client.ResiliencySpecTargetsEndpointPoli
 	return model, hasValue
 }
 
-func flattenActorPolicy(api catalyst_client.ResiliencySpecTargetsActorPolicyNames) (actorPolicyModel, bool) {
+func flattenActorPolicy(api catalyst_client.DaprResiliencySpecTargetsActors) (actorPolicyModel, bool) {
 	model := actorPolicyModel{
 		CircuitBreaker:          types.StringNull(),
 		CircuitBreakerCacheSize: types.Int64Null(),
@@ -631,7 +631,7 @@ func flattenActorPolicy(api catalyst_client.ResiliencySpecTargetsActorPolicyName
 	return model, hasValue
 }
 
-func flattenComponentPolicy(api catalyst_client.ResiliencySpecTargetsComponentPolicyNames) (componentPolicyModel, bool) {
+func flattenComponentPolicy(api catalyst_client.DaprResiliencySpecTargetsComponents) (componentPolicyModel, bool) {
 	model := componentPolicyModel{}
 	hasValue := false
 
@@ -648,7 +648,7 @@ func flattenComponentPolicy(api catalyst_client.ResiliencySpecTargetsComponentPo
 	return model, hasValue
 }
 
-func flattenComponentDirectionPolicy(api *catalyst_client.ResiliencySpecTargetsComponentPolicyNamesPolicyNames) *componentDirectionPolicyModel {
+func flattenComponentDirectionPolicy(api *catalyst_client.DaprResiliencySpecTargetsComponentsInbound) *componentDirectionPolicyModel {
 	if api == nil {
 		return nil
 	}
