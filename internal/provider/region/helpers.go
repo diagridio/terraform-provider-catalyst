@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func read(ctx context.Context,
-	client catalyst.Client,
+	client diagrid.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading region",

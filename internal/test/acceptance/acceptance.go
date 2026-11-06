@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 )
 
 // TestAccProtoV6ProviderFactories are used to instantiate a provider during
@@ -22,7 +22,7 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 
 // TestAccPreCheck - Check if the environment variables are set.
 func TestAccPreCheck(t *testing.T) {
-	if v := os.Getenv("CATALYST_API_KEY"); v == "" {
-		t.Fatal("CATALYST_API_KEY must be set for acceptance tests")
+	if v := os.Getenv("DIAGRID_API_KEY"); v == "" {
+		t.Fatal("DIAGRID_API_KEY must be set for acceptance tests")
 	}
 }

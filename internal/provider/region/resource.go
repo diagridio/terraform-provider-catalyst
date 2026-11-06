@@ -18,9 +18,9 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/helpers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -31,7 +31,7 @@ var ingressRegex = regexp.MustCompile(`^https?://\*\.[^:]+:\d+$`)
 
 // regionResource defines the resource implementation.
 type regionResource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewResource() resource.Resource {
@@ -51,7 +51,7 @@ func (p *regionResource) Schema(ctx context.Context,
 ) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Catalyst region resource",
+		MarkdownDescription: "Diagrid region resource",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Region name",
@@ -138,8 +138,8 @@ func (p *regionResource) Create(ctx context.Context,
 		})
 
 	region := &client.Region{
-		ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-		Kind:       lo.ToPtr(catalyst.KindRegion),
+		ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+		Kind:       lo.ToPtr(diagrid.KindRegion),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},

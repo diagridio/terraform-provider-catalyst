@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 )
 
 func expandConfigurationSpec(ctx context.Context, spec *specModel) (*catalyst_client.DaprConfigurationSpec, error) {
@@ -323,7 +323,7 @@ func flattenHandlers(handlers *[]catalyst_client.DaprConfigurationSpecAppHttpPip
 }
 
 func read(ctx context.Context,
-	client catalyst.Client,
+	client diagrid.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading configuration",
@@ -420,7 +420,7 @@ func mergeSpecWithPlanned(readSpec, plannedSpec *specModel) {
 }
 
 // preserveTrustDomain keeps the access control trust domain from prevSpec when
-// the API returned none. Catalyst strips the value and uses the organization's
+// the API returned none. Diagrid strips the value and uses the organization's
 // own trust domain, so without this a configured value reads back as null and
 // Terraform reports an inconsistent result after apply, or a diff on refresh.
 func preserveTrustDomain(readSpec, prevSpec *specModel) {

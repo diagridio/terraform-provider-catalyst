@@ -12,9 +12,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -42,13 +42,13 @@ func testSteps() []resource.TestStep {
 		{
 			Config: testAccAppIdResourceConfig(projectName, appidName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_appid.test", "name", appidName),
-				resource.TestCheckResourceAttr("catalyst_appid.test", "project_id", projectName),
+				resource.TestCheckResourceAttr("diagrid_appid.test", "name", appidName),
+				resource.TestCheckResourceAttr("diagrid_appid.test", "project_id", projectName),
 			),
 		},
 		// ImportState testing
 		{
-			ResourceName:                         "catalyst_appid.test",
+			ResourceName:                         "diagrid_appid.test",
 			ImportState:                          true,
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        fmt.Sprintf("%s/%s", projectName, appidName),
@@ -83,8 +83,8 @@ func TestAccAppIdResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetUserOrg(gomock.Any()).
@@ -119,8 +119,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectName),
@@ -206,12 +206,12 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccAppIdResourceConfig(projectName, appidName string) string {
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
   name           = %[1]q
 }
 
-resource "catalyst_appid" "test" {
-  project_id = catalyst_project.test.name
+resource "diagrid_appid" "test" {
+  project_id = diagrid_project.test.name
   name       = %[2]q
 }
 `, projectName, appidName)

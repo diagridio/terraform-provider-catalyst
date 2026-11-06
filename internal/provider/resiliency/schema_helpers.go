@@ -1,7 +1,7 @@
 package resiliency
 
 import (
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 )
 
 func toAPIScopes(ctx context.Context, scopes types.List) *[]string {
@@ -28,7 +28,7 @@ func toAPIScopes(ctx context.Context, scopes types.List) *[]string {
 }
 
 func read(ctx context.Context,
-	client catalyst.Client,
+	client diagrid.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading kvstore",

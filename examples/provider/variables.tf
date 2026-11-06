@@ -2,20 +2,20 @@
 variable "api_key" {
   type        = string
   sensitive   = true
-  description = "Catalyst API key"
+  description = "Diagrid API key"
 }
 
 variable "endpoint" {
   type        = string
-  description = "Catalyst API endpoint"
+  description = "Diagrid API endpoint"
 }
 
 variable "organization_id" {
   type        = string
-  description = "Catalyst organization ID"
+  description = "Diagrid organization ID"
 }
 
 variable "project_name" {
   type        = string
-  description = "Catalyst project name"
+  description = "Diagrid project name"
 }

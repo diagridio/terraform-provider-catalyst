@@ -15,15 +15,15 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 )
 
 var _ resource.Resource = &appidResource{}
 var _ resource.ResourceWithImportState = &appidResource{}
 
 type appidResource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewResource() resource.Resource {
@@ -42,7 +42,7 @@ func (r *appidResource) Schema(ctx context.Context,
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Catalyst AppID resource",
+		MarkdownDescription: "Diagrid AppID resource",
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "Project ID",
@@ -96,8 +96,8 @@ func (r *appidResource) Schema(ctx context.Context,
 						Sensitive:           true,
 					},
 					"token_header": schema.StringAttribute{
-						MarkdownDescription: "Deprecated: Catalyst no longer supports a custom header for the authentication token and ignores this value.",
-						DeprecationMessage:  "Catalyst no longer supports a custom header for the app endpoint token and ignores this value. Remove it from your configuration; it will be removed in a future release.",
+						MarkdownDescription: "Deprecated: Diagrid no longer supports a custom header for the authentication token and ignores this value.",
+						DeprecationMessage:  "Diagrid no longer supports a custom header for the app endpoint token and ignores this value. Remove it from your configuration; it will be removed in a future release.",
 						Optional:            true,
 					},
 					"client_timeout_seconds": schema.Int64Attribute{

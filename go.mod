@@ -1,4 +1,4 @@
-module github.com/diagridio/terraform-provider-catalyst
+module github.com/diagridio/terraform-provider-diagrid
 
 go 1.26.9
 

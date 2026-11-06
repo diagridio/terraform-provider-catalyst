@@ -1,0 +1,24 @@
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/diagridio/catalyst" {
+  version = "0.0.6"
+  hashes = [
+    "h1:sWc72mk1J5Zv9FY4cGFW9FGlfYx6yyK/UIrzeRPmAoY=",
+    "zh:0ef8d4947f8966c82195c5d60758384edaa23b81db18b6e2e40cf85c4d22441f",
+    "zh:1c2e24a9b7b6049551f81fa48a0c9ef8d37f914bf74b8a92d3d8b82e53eaff69",
+    "zh:26057a402086d5bae459862941a769c310621a73a6efd04c267acc3af8a35c67",
+    "zh:68c105d761cc71d86fce5da7ddf56c3abdacc91e2cc64869b3ac0262b0ec932e",
+    "zh:70db488595d8e1bd7c339600421f11f24c0aa93413c4370cde4a471044f6b754",
+    "zh:865c43b4b582f00df09c8a99be277f4b564d4e253846b47711378487c39187f4",
+    "zh:890df766e9b839623b1f0437355032a3c006226a6c200cd911e15ee1a9014e9f",
+    "zh:91aec8c100b8e065f2c8408a68332fb9aa88c98f23e9f98c8574c573591a918f",
+    "zh:9d8267eb13d7104f246d510c60340d1c240b992dd240c12462d43161db99f855",
+    "zh:a82128fb9c85bfd77610b2baff1ebecd9b66f0c2f328b35404b029c8762d80a0",
+    "zh:b1545936d927f1bf14a0d9da0beeed8c64671c48368421a34c33e908e9a7d2c1",
+    "zh:d4a5f957b59514c070ca6dc2f31dd52a947919e0e9a73611e46a7b2f5e21ec99",
+    "zh:dae20dfb0b5d47f4052847bfc69ff80000ee9d51f1ef14efcc3040aef0f2e01f",
+    "zh:e84b34ca659a4bbc9cae8d8daad4b9cee95e963451994dd2e3c55455ef64f1e3",
+    "zh:fb563e2d856f85e0a70820ffb0a481d353c4eed5fefc7c65ce85f930fdb2e36e",
+  ]
+}

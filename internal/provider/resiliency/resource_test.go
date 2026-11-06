@@ -12,9 +12,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -50,18 +50,18 @@ func TestMockResiliencyResource(t *testing.T) {
 				{
 					Config: testAccResiliencyResourceConfig(projectID, resiliencyName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "name", resiliencyName),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "project_id", projectID),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.policies.timeouts.general", "5s"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.policies.retries.retryForever.max_retries", "-1"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.targets.apps.app1.circuit_breaker", "simpleCB"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.#", "2"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.0", "app1"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.1", "app2"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "name", resiliencyName),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "project_id", projectID),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "spec.policies.timeouts.general", "5s"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "spec.policies.retries.retryForever.max_retries", "-1"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "spec.targets.apps.app1.circuit_breaker", "simpleCB"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "scopes.#", "2"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "scopes.0", "app1"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "scopes.1", "app2"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_resiliency.test",
+					ResourceName:                         "diagrid_resiliency.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, resiliencyName),
@@ -81,17 +81,17 @@ func TestAccResiliencyResource(t *testing.T) {
 				{
 					Config: testAccResiliencyResourceConfig(projectID, resiliencyName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "name", resiliencyName),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "project_id", projectID),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.policies.timeouts.general", "5s"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "spec.targets.apps.app2.retry", "important"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.#", "2"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.0", "app1"),
-						resource.TestCheckResourceAttr("catalyst_resiliency.test", "scopes.1", "app2"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "name", resiliencyName),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "project_id", projectID),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "spec.policies.timeouts.general", "5s"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "spec.targets.apps.app2.retry", "important"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "scopes.#", "2"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "scopes.0", "app1"),
+						resource.TestCheckResourceAttr("diagrid_resiliency.test", "scopes.1", "app2"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_resiliency.test",
+					ResourceName:                         "diagrid_resiliency.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, resiliencyName),
@@ -103,8 +103,8 @@ func TestAccResiliencyResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().GetUserOrg(gomock.Any()).Return(
 			&common_client.Organization{
@@ -136,8 +136,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectID),
@@ -215,12 +215,12 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccResiliencyResourceConfig(projectID, resiliencyName string) string {
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
 	name           = %[1]q
 }
 
-resource "catalyst_resiliency" "test" {
-	project_id = catalyst_project.test.name
+resource "diagrid_resiliency" "test" {
+	project_id = diagrid_project.test.name
 	name       = %[2]q
 	scopes     = ["app1", "app2"]
 	spec = {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 	tfprovider "github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
@@ -19,7 +19,7 @@ import (
 
 // Run the docs generation tool, check its repository for more information on how it works and how docs
 // can be customized.
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate -provider-name catalyst
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate -provider-name diagrid
 
 var (
 	// these will be set by the goreleaser configuration
@@ -42,7 +42,7 @@ func main() {
 		// TODO: Update this string with the published name of your provider.
 		// Also update the tfplugindocs generate command to either remove the
 		// -provider-name flag or set its value to the updated provider name.
-		Address: "registry.terraform.io/diagridio/catalyst",
+		Address: "registry.terraform.io/diagridio/diagrid",
 		Debug:   debug,
 	}
 

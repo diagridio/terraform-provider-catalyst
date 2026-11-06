@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 )
 
 // toAPIScopes converts Terraform list to API scopes slice.
@@ -122,7 +122,7 @@ func flattenMetadataItems(items *[]catalyst_client.DaprComponentSpecMetadataItem
 }
 
 func read(ctx context.Context,
-	client catalyst.Client,
+	client diagrid.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading component",

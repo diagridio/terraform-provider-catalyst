@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -26,10 +26,10 @@ func TestMockComponentDataSource(t *testing.T) {
 				{
 					Config: testAccComponentResourceConfig(projectName, componentName, componentType, componentVersion),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_component.test", "name", componentName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_component.test", "spec.type", componentType),
-						resource.TestCheckResourceAttr("catalyst_component.test", "spec.version", componentVersion),
+						resource.TestCheckResourceAttr("diagrid_component.test", "name", componentName),
+						resource.TestCheckResourceAttr("diagrid_component.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_component.test", "spec.type", componentType),
+						resource.TestCheckResourceAttr("diagrid_component.test", "spec.version", componentVersion),
 					),
 				},
 				// Read Component datasource
@@ -37,10 +37,10 @@ func TestMockComponentDataSource(t *testing.T) {
 					Config: testAccComponentResourceConfig(projectName, componentName, componentType, componentVersion) +
 						testAccComponentDatasourceConfig(projectName, componentName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_component.test", "name", componentName),
-						resource.TestCheckResourceAttr("data.catalyst_component.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("data.catalyst_component.test", "spec.type", componentType),
-						resource.TestCheckResourceAttr("data.catalyst_component.test", "spec.version", componentVersion),
+						resource.TestCheckResourceAttr("data.diagrid_component.test", "name", componentName),
+						resource.TestCheckResourceAttr("data.diagrid_component.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("data.diagrid_component.test", "spec.type", componentType),
+						resource.TestCheckResourceAttr("data.diagrid_component.test", "spec.version", componentVersion),
 					),
 				},
 			},
@@ -49,7 +49,7 @@ func TestMockComponentDataSource(t *testing.T) {
 
 func testAccComponentDatasourceConfig(projectName, componentName string) string {
 	return fmt.Sprintf(`
-data "catalyst_component" "test" {
+data "diagrid_component" "test" {
   project_name = %q
   name         = %q
 }

@@ -12,9 +12,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -50,15 +50,15 @@ func TestMockConfigurationResource(t *testing.T) {
 				{
 					Config: testAccConfigurationResourceConfig(projectID, configurationName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.trust_domain", "public"),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.app_http_pipeline.handlers.#", "1"),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "name", configurationName),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "project_id", projectID),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "spec.access_control.default_action", "allow"),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "spec.access_control.trust_domain", "public"),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "spec.app_http_pipeline.handlers.#", "1"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_configuration.test",
+					ResourceName:                         "diagrid_configuration.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
@@ -78,15 +78,15 @@ func TestAccConfigurationResource(t *testing.T) {
 				{
 					Config: testAccConfigurationResourceConfig(projectID, configurationName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "name", configurationName),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "project_id", projectID),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.default_action", "allow"),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.access_control.trust_domain", "public"),
-						resource.TestCheckResourceAttr("catalyst_configuration.test", "spec.http_pipeline.handlers.#", "1"),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "name", configurationName),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "project_id", projectID),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "spec.access_control.default_action", "allow"),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "spec.access_control.trust_domain", "public"),
+						resource.TestCheckResourceAttr("diagrid_configuration.test", "spec.http_pipeline.handlers.#", "1"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_configuration.test",
+					ResourceName:                         "diagrid_configuration.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectID, configurationName),
@@ -98,8 +98,8 @@ func TestAccConfigurationResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().GetUserOrg(gomock.Any()).Return(
 			&common_client.Organization{
@@ -131,8 +131,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectID),
@@ -208,7 +208,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 	}
 }
 
-// stripTrustDomain does what Catalyst does on write: it drops the access
+// stripTrustDomain does what Diagrid does on write: it drops the access
 // control trust domain, which the platform sets to the organization's own.
 func stripTrustDomain(configuration *catalyst_client.DaprConfiguration) *catalyst_client.DaprConfiguration {
 	if configuration.Spec != nil && configuration.Spec.AccessControl != nil {
@@ -219,12 +219,12 @@ func stripTrustDomain(configuration *catalyst_client.DaprConfiguration) *catalys
 
 func testAccConfigurationResourceConfig(projectID, configurationName string) string {
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
   name           = %[1]q
 }
 
-resource "catalyst_configuration" "test" {
-	project_id = catalyst_project.test.name
+resource "diagrid_configuration" "test" {
+	project_id = diagrid_project.test.name
 	name       = %[2]q
 	spec = {
 		access_control = {

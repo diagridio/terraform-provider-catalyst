@@ -16,15 +16,15 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 )
 
 var _ resource.Resource = &resiliencyResource{}
 var _ resource.ResourceWithImportState = &resiliencyResource{}
 
 type resiliencyResource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewResource() resource.Resource {
@@ -43,7 +43,7 @@ func (r *resiliencyResource) Schema(ctx context.Context,
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Catalyst Resiliency resource",
+		MarkdownDescription: "Diagrid Resiliency resource",
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "Project ID",

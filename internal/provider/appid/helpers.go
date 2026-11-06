@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 )
 
 func read(ctx context.Context,
-	client catalyst.Client,
+	client diagrid.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading appid",
@@ -175,7 +175,7 @@ func toAPIAppEndpoint(ctx context.Context, obj types.Object) *catalyst_client.Ap
 		endpoint.Token = &token
 	}
 
-	// token_header is deprecated: Catalyst no longer supports a custom header
+	// token_header is deprecated: Diagrid no longer supports a custom header
 	// for the app endpoint token, so the value is not sent.
 
 	if !model.ClientTimeoutSeconds.IsNull() && !model.ClientTimeoutSeconds.IsUnknown() {
@@ -238,7 +238,7 @@ func toAPIHealthCheck(ctx context.Context, obj types.Object) *catalyst_client.Ap
 }
 
 // preserveTokenHeader keeps the configured app_endpoint.token_header in state.
-// Catalyst no longer supports a custom header for the app endpoint token and
+// Diagrid no longer supports a custom header for the app endpoint token and
 // the API has no such field, so without this a configured value reads back as
 // null and Terraform reports an inconsistent result after apply, or a diff on
 // refresh.

@@ -11,9 +11,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -51,22 +51,22 @@ func TestMockPubSubResource(t *testing.T) {
 				{
 					Config: testAccPubSubResourceConfig(projectName, pubsubName, componentName, createComponent),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "name", pubsubName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "component_name", componentName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "create_component", "true"),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "name", pubsubName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "component_name", componentName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "create_component", "true"),
 					),
 				},
 				{
 					Config: testAccPubSubResourceConfigWithScopes(projectName, pubsubName, componentName, createComponent, []string{"app1"}),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "name", pubsubName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "scopes.0", "app1"),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "name", pubsubName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "scopes.0", "app1"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_pubsub.test",
+					ResourceName:                         "diagrid_pubsub.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, pubsubName),
@@ -84,14 +84,14 @@ func TestAccPubSubResource(t *testing.T) {
 			{
 				Config: testAccPubSubResourceConfig(projectName, pubsubName, componentName, createComponent),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("catalyst_pubsub.test", "name", pubsubName),
-					resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
-					resource.TestCheckResourceAttr("catalyst_pubsub.test", "component_name", componentName),
-					resource.TestCheckResourceAttr("catalyst_pubsub.test", "create_component", "true"),
+					resource.TestCheckResourceAttr("diagrid_pubsub.test", "name", pubsubName),
+					resource.TestCheckResourceAttr("diagrid_pubsub.test", "project_name", projectName),
+					resource.TestCheckResourceAttr("diagrid_pubsub.test", "component_name", componentName),
+					resource.TestCheckResourceAttr("diagrid_pubsub.test", "create_component", "true"),
 				),
 			},
 			{
-				ResourceName:                         "catalyst_pubsub.test",
+				ResourceName:                         "diagrid_pubsub.test",
 				ImportState:                          true,
 				ImportStateVerifyIdentifierAttribute: "name",
 				ImportStateId:                        fmt.Sprintf("%s/%s", projectName, pubsubName),
@@ -117,9 +117,9 @@ func TestMockPubSubDataSource(t *testing.T) {
 				{
 					Config: testAccPubSubResourceConfig(projectName, pubsubName, componentName, createComponent),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "name", pubsubName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_pubsub.test", "component_name", componentName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "name", pubsubName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_pubsub.test", "component_name", componentName),
 					),
 				},
 				// Read PubSub datasource
@@ -127,9 +127,9 @@ func TestMockPubSubDataSource(t *testing.T) {
 					Config: testAccPubSubResourceConfig(projectName, pubsubName, componentName, createComponent) +
 						testAccPubSubDatasourceConfig(projectName, pubsubName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_pubsub.test", "name", pubsubName),
-						resource.TestCheckResourceAttr("data.catalyst_pubsub.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("data.catalyst_pubsub.test", "component_name", componentName),
+						resource.TestCheckResourceAttr("data.diagrid_pubsub.test", "name", pubsubName),
+						resource.TestCheckResourceAttr("data.diagrid_pubsub.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("data.diagrid_pubsub.test", "component_name", componentName),
 					),
 				},
 			},
@@ -137,8 +137,8 @@ func TestMockPubSubDataSource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().GetUserOrg(gomock.Any()).Return(
 			&common_client.Organization{
@@ -167,8 +167,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(uuid.NewString()),
 						Name: lo.ToPtr(projectName),
@@ -252,12 +252,12 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccPubSubResourceConfig(projectName, pubsubName, componentName string, createComponent bool) string {
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
 	name           = %[1]q
 }
 
-resource "catalyst_pubsub" "test" {
-	project_name     = catalyst_project.test.name
+resource "diagrid_pubsub" "test" {
+	project_name     = diagrid_project.test.name
 	name             = %[2]q
 	component_name   = %[3]q
 	create_component = %[4]t
@@ -277,12 +277,12 @@ func testAccPubSubResourceConfigWithScopes(projectName, pubsubName, componentNam
 	}
 
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
 	name           = %[1]q
 }
 
-resource "catalyst_pubsub" "test" {
-	project_name     = catalyst_project.test.name
+resource "diagrid_pubsub" "test" {
+	project_name     = diagrid_project.test.name
 	name             = %[2]q
 	component_name   = %[3]q
 	create_component = %[4]t
@@ -293,7 +293,7 @@ resource "catalyst_pubsub" "test" {
 
 func testAccPubSubDatasourceConfig(projectName, pubsubName string) string {
 	return fmt.Sprintf(`
-data "catalyst_pubsub" "test" {
+data "diagrid_pubsub" "test" {
   project_name = %q
   name         = %q
 }

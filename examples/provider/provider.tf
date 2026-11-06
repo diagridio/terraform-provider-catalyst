@@ -1,13 +1,13 @@
 # Specify required provider as maintained
 terraform {
   required_providers {
-    catalyst = {
-      source = "diagridio/catalyst"
+    diagrid = {
+      source = "diagridio/diagrid"
     }
   }
 }
 
-provider "catalyst" {
+provider "diagrid" {
   api_key  = var.api_key
   endpoint = var.endpoint
 }

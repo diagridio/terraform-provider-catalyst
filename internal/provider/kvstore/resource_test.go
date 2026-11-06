@@ -13,9 +13,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -53,22 +53,22 @@ func TestMockKVStoreResource(t *testing.T) {
 				{
 					Config: testAccKVStoreResourceConfig(projectName, kvstoreName, componentName, createComponent),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "name", kvstoreName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "component_name", componentName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "create_component", "true"),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "name", kvstoreName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "component_name", componentName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "create_component", "true"),
 					),
 				},
 				{
 					Config: testAccKVStoreResourceConfigWithScopes(projectName, kvstoreName, componentName, createComponent, []string{"app1"}),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "name", kvstoreName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "scopes.0", "app1"),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "name", kvstoreName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "scopes.0", "app1"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_kvstore.test",
+					ResourceName:                         "diagrid_kvstore.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, kvstoreName),
@@ -88,14 +88,14 @@ func TestAccKVStoreResource(t *testing.T) {
 				{
 					Config: testAccKVStoreResourceConfig(projectName, kvstoreName, componentName, createComponent),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "name", kvstoreName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "component_name", componentName),
-						resource.TestCheckResourceAttr("catalyst_kvstore.test", "create_component", "true"),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "name", kvstoreName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "component_name", componentName),
+						resource.TestCheckResourceAttr("diagrid_kvstore.test", "create_component", "true"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_kvstore.test",
+					ResourceName:                         "diagrid_kvstore.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, kvstoreName),
@@ -107,8 +107,8 @@ func TestAccKVStoreResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().GetUserOrg(gomock.Any()).Return(
 			&common_client.Organization{
@@ -140,8 +140,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectName),
@@ -236,12 +236,12 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccKVStoreResourceConfig(projectName, kvstoreName, componentName string, createComponent bool) string {
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
 	name           = %[1]q
 }
 
-resource "catalyst_kvstore" "test" {
-	project_name     = catalyst_project.test.name
+resource "diagrid_kvstore" "test" {
+	project_name     = diagrid_project.test.name
 	name             = %[2]q
 	component_name   = %[3]q
 	create_component = %[4]t
@@ -261,12 +261,12 @@ func testAccKVStoreResourceConfigWithScopes(projectName, kvstoreName, componentN
 	}
 
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
 	name           = %[1]q
 }
 
-resource "catalyst_kvstore" "test" {
-	project_name     = catalyst_project.test.name
+resource "diagrid_kvstore" "test" {
+	project_name     = diagrid_project.test.name
 	name             = %[2]q
 	component_name   = %[3]q
 	create_component = %[4]t

@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 )
 
 type productAttributes struct {
@@ -33,9 +33,9 @@ func TestMockOrganizationDataSource(t *testing.T) {
 			ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 				provider.ProviderName: providerserver.NewProtocol6WithError(
 					provider.New("test").WithClientFactory(
-						func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
+						func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
 							ctrl := gomock.NewController(t)
-							c := catalyst.NewMockClient(ctrl)
+							c := diagrid.NewMockClient(ctrl)
 
 							attrs := &productAttributes{
 								Cra: &common_client.ProductAttributes{
@@ -66,9 +66,9 @@ func TestMockOrganizationDataSource(t *testing.T) {
 				{
 					Config: testAccOrganizationDataSourceConfig,
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_organization.test", "id", orgID),
-						resource.TestCheckResourceAttr("data.catalyst_organization.test", "name", orgName),
-						resource.TestCheckResourceAttr("data.catalyst_organization.test", "plan", orgPlan),
+						resource.TestCheckResourceAttr("data.diagrid_organization.test", "id", orgID),
+						resource.TestCheckResourceAttr("data.diagrid_organization.test", "name", orgName),
+						resource.TestCheckResourceAttr("data.diagrid_organization.test", "plan", orgPlan),
 					),
 				},
 			},
@@ -76,5 +76,5 @@ func TestMockOrganizationDataSource(t *testing.T) {
 }
 
 const testAccOrganizationDataSourceConfig = `
-data "catalyst_organization" "test" {}
+data "diagrid_organization" "test" {}
 `

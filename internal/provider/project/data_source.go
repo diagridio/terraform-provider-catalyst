@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
@@ -15,7 +15,7 @@ var _ datasource.DataSource = &projectDataSource{}
 
 // projectDataSource defines the data source implementation.
 type projectDataSource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewDataSource() datasource.DataSource {

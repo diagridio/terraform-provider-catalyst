@@ -16,15 +16,15 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 )
 
 var _ resource.Resource = &subscriptionResource{}
 var _ resource.ResourceWithImportState = &subscriptionResource{}
 
 type subscriptionResource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewResource() resource.Resource {
@@ -43,7 +43,7 @@ func (r *subscriptionResource) Schema(ctx context.Context,
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Catalyst Subscription resource",
+		MarkdownDescription: "Diagrid Subscription resource",
 		Attributes: map[string]schema.Attribute{
 			"project_name": schema.StringAttribute{
 				MarkdownDescription: "Project name",

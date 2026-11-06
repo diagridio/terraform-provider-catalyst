@@ -17,9 +17,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 )
 
 var (
@@ -37,32 +37,32 @@ func testSteps() []resource.TestStep {
 	return []resource.TestStep{
 		// Create and Read testing
 		{
-			ResourceName: "catalyst_region.test",
+			ResourceName: "diagrid_region.test",
 			Config:       testAccRegionResourceConfig(regionName, regionIngress, regionHost, regionLocation),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_region.test", "name", regionName),
-				resource.TestCheckResourceAttr("catalyst_region.test", "ingress", regionIngress),
-				resource.TestCheckResourceAttr("catalyst_region.test", "host", regionHost),
-				resource.TestCheckResourceAttr("catalyst_region.test", "location", regionLocation),
-				resource.TestCheckResourceAttr("catalyst_region.test", "connected", "false"),
+				resource.TestCheckResourceAttr("diagrid_region.test", "name", regionName),
+				resource.TestCheckResourceAttr("diagrid_region.test", "ingress", regionIngress),
+				resource.TestCheckResourceAttr("diagrid_region.test", "host", regionHost),
+				resource.TestCheckResourceAttr("diagrid_region.test", "location", regionLocation),
+				resource.TestCheckResourceAttr("diagrid_region.test", "connected", "false"),
 			),
 		},
 		// DataSource testing
 		{
-			ResourceName: "data.catalyst_region.test",
+			ResourceName: "data.diagrid_region.test",
 			Config: testAccRegionResourceConfig(regionName, regionIngress, regionHost, regionLocation) +
 				testAccRegionDataSourceConfig(regionName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "name", regionName),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "ingress", regionIngress),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "host", regionHost),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "location", regionLocation),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "connected", "false"),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "name", regionName),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "ingress", regionIngress),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "host", regionHost),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "location", regionLocation),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "connected", "false"),
 			),
 		},
 		// ImportState testing
 		{
-			ResourceName:                         "catalyst_region.test",
+			ResourceName:                         "diagrid_region.test",
 			ImportState:                          true,
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        regionName,
@@ -71,36 +71,36 @@ func testSteps() []resource.TestStep {
 			// since it won't be available
 			ImportStateVerifyIgnore: []string{"join_token"},
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_region.test", "name", regionName),
-				resource.TestCheckResourceAttr("catalyst_region.test", "ingress", regionIngress),
-				resource.TestCheckResourceAttr("catalyst_region.test", "host", regionHost),
-				resource.TestCheckResourceAttr("catalyst_region.test", "location", regionLocation),
-				resource.TestCheckResourceAttr("catalyst_region.test", "connected", "false"),
+				resource.TestCheckResourceAttr("diagrid_region.test", "name", regionName),
+				resource.TestCheckResourceAttr("diagrid_region.test", "ingress", regionIngress),
+				resource.TestCheckResourceAttr("diagrid_region.test", "host", regionHost),
+				resource.TestCheckResourceAttr("diagrid_region.test", "location", regionLocation),
+				resource.TestCheckResourceAttr("diagrid_region.test", "connected", "false"),
 			),
 		},
 		// Update and Read testing
 		{
-			ResourceName: "catalyst_region.test",
+			ResourceName: "diagrid_region.test",
 			Config:       testAccRegionResourceConfig(regionName, regionIngress, "regionhost2", "regionLocation2"),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_region.test", "name", regionName),
-				resource.TestCheckResourceAttr("catalyst_region.test", "ingress", regionIngress),
-				resource.TestCheckResourceAttr("catalyst_region.test", "host", "regionhost2"),
-				resource.TestCheckResourceAttr("catalyst_region.test", "location", "regionLocation2"),
-				resource.TestCheckResourceAttr("catalyst_region.test", "connected", "false"),
+				resource.TestCheckResourceAttr("diagrid_region.test", "name", regionName),
+				resource.TestCheckResourceAttr("diagrid_region.test", "ingress", regionIngress),
+				resource.TestCheckResourceAttr("diagrid_region.test", "host", "regionhost2"),
+				resource.TestCheckResourceAttr("diagrid_region.test", "location", "regionLocation2"),
+				resource.TestCheckResourceAttr("diagrid_region.test", "connected", "false"),
 			),
 		},
 		// DataSource testing after update
 		{
-			ResourceName: "data.catalyst_region.test",
+			ResourceName: "data.diagrid_region.test",
 			Config: testAccRegionResourceConfig(regionName, regionIngress, "regionhost2", "regionLocation2") +
 				testAccRegionDataSourceConfig(regionName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "name", regionName),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "ingress", regionIngress),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "host", "regionhost2"),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "location", "regionLocation2"),
-				resource.TestCheckResourceAttr("data.catalyst_region.test", "connected", "false"),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "name", regionName),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "ingress", regionIngress),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "host", "regionhost2"),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "location", "regionLocation2"),
+				resource.TestCheckResourceAttr("data.diagrid_region.test", "connected", "false"),
 			),
 		},
 		// Delete testing automatically occurs in TestCase
@@ -130,8 +130,8 @@ func TestMockRegionResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetRegion(gomock.Any(), gomock.Any()).
@@ -147,8 +147,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			CreateRegion(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, r *catalyst_client.Region) (string, error) {
 				region = &catalyst_client.Region{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindRegion),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindRegion),
 					Metadata: &catalyst_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
@@ -190,7 +190,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccRegionResourceConfig(name, ingress, host, location string) string {
 	return fmt.Sprintf(`
-resource "catalyst_region" "test" {
+resource "diagrid_region" "test" {
   name = %q
   ingress = %q
   host = %q
