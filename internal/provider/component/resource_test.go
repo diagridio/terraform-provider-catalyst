@@ -144,7 +144,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 						Name: lo.ToPtr(projectName),
 					},
 					Spec: &catalyst_client.ProjectSpec{
-						Region: lo.ToPtr("default"),
+						Region:                      lo.ToPtr("default"),
+						DefaultWorkflowStoreEnabled: lo.ToPtr(false),
 					},
 					Status: &catalyst_client.ProjectStatus{
 						Status: lo.ToPtr("ready"),
@@ -319,7 +320,11 @@ func testAccComponentResourceConfig(projectName, componentName, componentType, v
 
 	return fmt.Sprintf(`
 resource "diagrid_project" "test" {
-	name           = %q
+	name                           = %q
+	# The component sets actorStateStore, which the API refuses while the
+	# project's managed workflow store is on, and new projects have it on
+	# unless they say otherwise.
+	default_workflow_store_enabled = false
 }
 
 resource "diagrid_component" "test" {
