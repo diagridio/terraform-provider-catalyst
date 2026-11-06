@@ -11,8 +11,8 @@ import (
 	"go.uber.org/mock/gomock"
 
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 )
 
 func TestMockRegionDataSource(t *testing.T) {
@@ -30,12 +30,12 @@ func TestMockRegionDataSource(t *testing.T) {
 				{
 					Config: testAccRegionDataSourceConfig(regionName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_region.test", "name", regionName),
-						resource.TestCheckResourceAttr("data.catalyst_region.test", "host", regionHost),
-						resource.TestCheckResourceAttr("data.catalyst_region.test", "ingress", regionIngress),
-						resource.TestCheckResourceAttr("data.catalyst_region.test", "location", regionLocation),
-						resource.TestCheckResourceAttr("data.catalyst_region.test", "type", regionType),
-						resource.TestCheckResourceAttr("data.catalyst_region.test", "connected", "true"),
+						resource.TestCheckResourceAttr("data.diagrid_region.test", "name", regionName),
+						resource.TestCheckResourceAttr("data.diagrid_region.test", "host", regionHost),
+						resource.TestCheckResourceAttr("data.diagrid_region.test", "ingress", regionIngress),
+						resource.TestCheckResourceAttr("data.diagrid_region.test", "location", regionLocation),
+						resource.TestCheckResourceAttr("data.diagrid_region.test", "type", regionType),
+						resource.TestCheckResourceAttr("data.diagrid_region.test", "connected", "true"),
 					),
 				},
 			},
@@ -43,15 +43,15 @@ func TestMockRegionDataSource(t *testing.T) {
 }
 
 func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetRegion(gomock.Any(), gomock.Any()).
 			Return(
 				&catalyst_client.Region{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindRegion),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindRegion),
 					Metadata: &catalyst_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
@@ -73,7 +73,7 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 
 func testAccRegionDataSourceConfig(name string) string {
 	return fmt.Sprintf(`
-data "catalyst_region" "test" {
+data "diagrid_region" "test" {
 	name = %q
 }
 `, name)

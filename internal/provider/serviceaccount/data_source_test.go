@@ -10,8 +10,8 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -49,11 +49,11 @@ func TestMockServiceAccountDataSource(t *testing.T) {
 				{
 					Config: testAccServiceAccountResourceConfigDS(dsServiceAccountName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_service_account.test", "name", dsServiceAccountName),
-						resource.TestCheckResourceAttr("catalyst_service_account.test", "description", dsServiceAccountDescription),
-						resource.TestCheckResourceAttr("catalyst_service_account.test", "owner", dsServiceAccountOwner),
-						resource.TestCheckResourceAttr("catalyst_service_account.test", "role", dsServiceAccountRole),
-						resource.TestCheckResourceAttrSet("catalyst_service_account.test", "email"),
+						resource.TestCheckResourceAttr("diagrid_service_account.test", "name", dsServiceAccountName),
+						resource.TestCheckResourceAttr("diagrid_service_account.test", "description", dsServiceAccountDescription),
+						resource.TestCheckResourceAttr("diagrid_service_account.test", "owner", dsServiceAccountOwner),
+						resource.TestCheckResourceAttr("diagrid_service_account.test", "role", dsServiceAccountRole),
+						resource.TestCheckResourceAttrSet("diagrid_service_account.test", "email"),
 					),
 				},
 				// Read service account datasource by name
@@ -61,11 +61,11 @@ func TestMockServiceAccountDataSource(t *testing.T) {
 					Config: testAccServiceAccountResourceConfigDS(dsServiceAccountName) +
 						testAccServiceAccountDatasourceConfigByName(dsServiceAccountName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_service_account.test_by_name", "name", dsServiceAccountName),
-						resource.TestCheckResourceAttr("data.catalyst_service_account.test_by_name", "description", dsServiceAccountDescription),
-						resource.TestCheckResourceAttr("data.catalyst_service_account.test_by_name", "owner", dsServiceAccountOwner),
-						resource.TestCheckResourceAttr("data.catalyst_service_account.test_by_name", "role", dsServiceAccountRole),
-						resource.TestCheckResourceAttrSet("data.catalyst_service_account.test_by_name", "email"),
+						resource.TestCheckResourceAttr("data.diagrid_service_account.test_by_name", "name", dsServiceAccountName),
+						resource.TestCheckResourceAttr("data.diagrid_service_account.test_by_name", "description", dsServiceAccountDescription),
+						resource.TestCheckResourceAttr("data.diagrid_service_account.test_by_name", "owner", dsServiceAccountOwner),
+						resource.TestCheckResourceAttr("data.diagrid_service_account.test_by_name", "role", dsServiceAccountRole),
+						resource.TestCheckResourceAttrSet("data.diagrid_service_account.test_by_name", "email"),
 					),
 				},
 				// Delete testing automatically occurs in TestCase
@@ -74,8 +74,8 @@ func TestMockServiceAccountDataSource(t *testing.T) {
 }
 
 func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetUserOrg(gomock.Any()).
@@ -154,7 +154,7 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 
 func testAccServiceAccountDatasourceConfigByName(name string) string {
 	return fmt.Sprintf(`
-data "catalyst_service_account" "test_by_name" {
+data "diagrid_service_account" "test_by_name" {
   name = %q
 }
 `, name)
@@ -162,7 +162,7 @@ data "catalyst_service_account" "test_by_name" {
 
 func testAccServiceAccountResourceConfigDS(name string) string {
 	return fmt.Sprintf(`
-resource "catalyst_service_account" "test" {
+resource "diagrid_service_account" "test" {
   name        = %q
   description = %q
   owner       = %q

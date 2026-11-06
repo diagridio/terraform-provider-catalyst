@@ -10,9 +10,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -40,36 +40,36 @@ func testSteps() []resource.TestStep {
 	return []resource.TestStep{
 		// Create and Read testing
 		{
-			ResourceName: "catalyst_service_account.test",
+			ResourceName: "diagrid_service_account.test",
 			Config:       testAccServiceAccountResourceConfig(serviceAccountName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "name", serviceAccountName),
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "description", serviceAccountDescription),
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "owner", serviceAccountOwner),
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "role", serviceAccountRole),
-				resource.TestCheckResourceAttrSet("catalyst_service_account.test", "email"),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "name", serviceAccountName),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "description", serviceAccountDescription),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "owner", serviceAccountOwner),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "role", serviceAccountRole),
+				resource.TestCheckResourceAttrSet("diagrid_service_account.test", "email"),
 			),
 		},
 		// ImportState testing
 		{
-			ResourceName:                         "catalyst_service_account.test",
+			ResourceName:                         "diagrid_service_account.test",
 			ImportState:                          true,
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateIdFunc: func(s *terraform.State) (string, error) {
-				return s.RootModule().Resources["catalyst_service_account.test"].Primary.Attributes["name"], nil
+				return s.RootModule().Resources["diagrid_service_account.test"].Primary.Attributes["name"], nil
 			},
 			ImportStateVerify:       true,
 			ImportStateVerifyIgnore: []string{"status"},
 		},
 		// Update and Read testing
 		{
-			ResourceName: "catalyst_service_account.test",
+			ResourceName: "diagrid_service_account.test",
 			Config:       testAccServiceAccountResourceConfigUpdated(serviceAccountName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "name", serviceAccountName),
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "description", "Updated description"),
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "owner", serviceAccountOwner),
-				resource.TestCheckResourceAttr("catalyst_service_account.test", "role", "cra.diagrid:viewer"),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "name", serviceAccountName),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "description", "Updated description"),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "owner", serviceAccountOwner),
+				resource.TestCheckResourceAttr("diagrid_service_account.test", "role", "cra.diagrid:viewer"),
 			),
 		},
 		// Delete testing automatically occurs in TestCase
@@ -100,8 +100,8 @@ func TestMockServiceAccountResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetUserOrg(gomock.Any()).
@@ -182,7 +182,7 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccServiceAccountResourceConfig(name string) string {
 	return fmt.Sprintf(`
-resource "catalyst_service_account" "test" {
+resource "diagrid_service_account" "test" {
   name        = %q
   description = %q
   owner       = %q
@@ -193,7 +193,7 @@ resource "catalyst_service_account" "test" {
 
 func testAccServiceAccountResourceConfigUpdated(name string) string {
 	return fmt.Sprintf(`
-resource "catalyst_service_account" "test" {
+resource "diagrid_service_account" "test" {
   name        = %q
   description = "Updated description"
   owner       = %q

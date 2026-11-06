@@ -21,8 +21,8 @@ import (
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 )
 
 var (
@@ -58,10 +58,10 @@ func TestMockProjectDataSource(t *testing.T) {
 				{
 					Config: testAccProjectResourceConfig(projectName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
-						resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
-						resource.TestCheckResourceAttr("catalyst_project.test", "grpc_endpoint", fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),
-						resource.TestCheckResourceAttr("catalyst_project.test", "http_endpoint", fmt.Sprintf("http://http-%s.%s", projectName, regionIngress)),
+						resource.TestCheckResourceAttr("diagrid_project.test", "name", projectName),
+						resource.TestCheckResourceAttr("diagrid_project.test", "region", regionName),
+						resource.TestCheckResourceAttr("diagrid_project.test", "grpc_endpoint", fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),
+						resource.TestCheckResourceAttr("diagrid_project.test", "http_endpoint", fmt.Sprintf("http://http-%s.%s", projectName, regionIngress)),
 					),
 				},
 				// Read project datasource
@@ -71,10 +71,10 @@ func TestMockProjectDataSource(t *testing.T) {
 					Config: testAccProjectResourceConfig(projectName) +
 						testAccProjectDatasourceConfig(projectName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_project.test", "name", projectName),
-						resource.TestCheckResourceAttr("data.catalyst_project.test", "region", regionName),
-						resource.TestCheckResourceAttr("data.catalyst_project.test", "grpc_endpoint", fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),
-						resource.TestCheckResourceAttr("data.catalyst_project.test", "http_endpoint", fmt.Sprintf("http://http-%s.%s", projectName, regionIngress)),
+						resource.TestCheckResourceAttr("data.diagrid_project.test", "name", projectName),
+						resource.TestCheckResourceAttr("data.diagrid_project.test", "region", regionName),
+						resource.TestCheckResourceAttr("data.diagrid_project.test", "grpc_endpoint", fmt.Sprintf("grpc://grpc-%s.%s", projectName, regionIngress)),
+						resource.TestCheckResourceAttr("data.diagrid_project.test", "http_endpoint", fmt.Sprintf("http://http-%s.%s", projectName, regionIngress)),
 					),
 				},
 				// Delete testing automatically occurs in TestCase
@@ -83,8 +83,8 @@ func TestMockProjectDataSource(t *testing.T) {
 }
 
 func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetUserOrg(gomock.Any()).
@@ -103,8 +103,8 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 			CreateRegion(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, r *catalyst_client.Region) (string, error) {
 				region = &catalyst_client.Region{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindRegion),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindRegion),
 					Metadata: &catalyst_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
@@ -161,8 +161,8 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectName),
@@ -202,7 +202,7 @@ func mockDatasourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory
 
 func testAccProjectDatasourceConfig(name string) string {
 	return fmt.Sprintf(`
-data "catalyst_project" "test" {
+data "diagrid_project" "test" {
   name = %q
 }
 `, name)

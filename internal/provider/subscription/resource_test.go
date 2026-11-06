@@ -10,9 +10,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -53,21 +53,21 @@ func TestMockSubscriptionResource(t *testing.T) {
 				{
 					Config: testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName, appidName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "name", subscriptionName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.default", "/orders/default"),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.#", "2"),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.0.match", "event.type == \"order.created\""),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.enabled", "true"),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.max_messages_count", "100"),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.dead_letter_topic", "orders-deadletter"),
-						resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.metadata.maxConcurrentHandlers", "10"),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "name", subscriptionName),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "project_name", projectName),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "pubsub_name", pubsubName),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "topic", topicName),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.routes.default", "/orders/default"),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.routes.rules.#", "2"),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.routes.rules.0.match", "event.type == \"order.created\""),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.bulk_subscribe.enabled", "true"),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.bulk_subscribe.max_messages_count", "100"),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.dead_letter_topic", "orders-deadletter"),
+						resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.metadata.maxConcurrentHandlers", "10"),
 					),
 				},
 				{
-					ResourceName:                         "catalyst_subscription.test",
+					ResourceName:                         "diagrid_subscription.test",
 					ImportState:                          true,
 					ImportStateVerifyIdentifierAttribute: "name",
 					ImportStateId:                        fmt.Sprintf("%s/%s", projectName, subscriptionName),
@@ -85,16 +85,16 @@ func TestAccSubscriptionResource(t *testing.T) {
 			{
 				Config: testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName, appidName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "name", subscriptionName),
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "project_name", projectName),
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "pubsub_name", pubsubName),
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "topic", topicName),
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.routes.rules.#", "2"),
-					resource.TestCheckResourceAttr("catalyst_subscription.test", "spec.bulk_subscribe.max_await_duration_ms", "1000"),
+					resource.TestCheckResourceAttr("diagrid_subscription.test", "name", subscriptionName),
+					resource.TestCheckResourceAttr("diagrid_subscription.test", "project_name", projectName),
+					resource.TestCheckResourceAttr("diagrid_subscription.test", "pubsub_name", pubsubName),
+					resource.TestCheckResourceAttr("diagrid_subscription.test", "topic", topicName),
+					resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.routes.rules.#", "2"),
+					resource.TestCheckResourceAttr("diagrid_subscription.test", "spec.bulk_subscribe.max_await_duration_ms", "1000"),
 				),
 			},
 			{
-				ResourceName:                         "catalyst_subscription.test",
+				ResourceName:                         "diagrid_subscription.test",
 				ImportState:                          true,
 				ImportStateVerifyIdentifierAttribute: "name",
 				ImportStateId:                        fmt.Sprintf("%s/%s", projectName, subscriptionName),
@@ -106,8 +106,8 @@ func TestAccSubscriptionResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().GetUserOrg(gomock.Any()).Return(
 			&common_client.Organization{
@@ -136,8 +136,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(uuid.NewString()),
 						Name: lo.ToPtr(projectName),
@@ -290,29 +290,29 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccSubscriptionResourceConfig(projectName, subscriptionName, pubsubName, topicName, appidName string) string {
 	return fmt.Sprintf(`
-resource "catalyst_project" "test" {
+resource "diagrid_project" "test" {
   name           = %[1]q
 }
 
-resource "catalyst_appid" "test_appid" {
-  project_id = catalyst_project.test.name
+resource "diagrid_appid" "test_appid" {
+  project_id = diagrid_project.test.name
   name       = %[5]q
   protocol   = "http"
 }
 
-resource "catalyst_pubsub" "test_pubsub" {
-  project_name     = catalyst_project.test.name
+resource "diagrid_pubsub" "test_pubsub" {
+  project_name     = diagrid_project.test.name
   name             = %[3]q
   component_name   = %[3]q
   create_component = true
 }
 
-resource "catalyst_subscription" "test" {
-  project_name = catalyst_project.test.name
+resource "diagrid_subscription" "test" {
+  project_name = diagrid_project.test.name
   name         = %[2]q
-  pubsub_name  = catalyst_pubsub.test_pubsub.name
+  pubsub_name  = diagrid_pubsub.test_pubsub.name
   topic        = %[4]q
-  scopes       = [catalyst_appid.test_appid.name]
+  scopes       = [diagrid_appid.test_appid.name]
 	spec = {
 		routes = {
 			rules = [

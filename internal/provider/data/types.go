@@ -1,7 +1,7 @@
 package data
 
-import "github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+import "github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 
 type ProviderData struct {
-	Client catalyst.Client
+	Client diagrid.Client
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
@@ -13,7 +13,7 @@ import (
 var _ datasource.DataSource = &serviceAccountDataSource{}
 
 type serviceAccountDataSource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewDataSource() datasource.DataSource {

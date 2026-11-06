@@ -1,6 +1,9 @@
 # Visit https://goreleaser.com for documentation on how to customize this
 # behavior.
 version: 2
+# The registry requires artifacts named terraform-provider-<NAME>_*; pin it so
+# it does not depend on the repository or directory name.
+project_name: terraform-provider-diagrid
 before:
   hooks:
     # this is just an example and not a requirement for provider building/publishing

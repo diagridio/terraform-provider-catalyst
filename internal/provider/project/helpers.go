@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
 )
 
 func read(ctx context.Context,
-	client catalyst.Client,
+	client diagrid.Client,
 	m *model,
 ) error {
 	tflog.Debug(ctx, "reading project",

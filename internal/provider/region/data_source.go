@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -17,7 +17,7 @@ var _ datasource.DataSource = &dataSource{}
 
 // dataSource defines the data source implementation.
 type dataSource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewDataSource() datasource.DataSource {

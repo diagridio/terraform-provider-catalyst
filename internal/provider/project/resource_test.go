@@ -11,9 +11,9 @@ import (
 	catalyst_client "github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	common_client "github.com/diagridio/cloudgrid/sdk/go/pkg/common/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
-	"github.com/diagridio/terraform-provider-catalyst/internal/test/acceptance"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/test/acceptance"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -25,34 +25,34 @@ func testSteps() []resource.TestStep {
 	return []resource.TestStep{
 		// Create and Read testing
 		{
-			ResourceName: "catalyst_project.test",
+			ResourceName: "diagrid_project.test",
 			Config:       testAccProjectResourceConfig(projectName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
-				resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
+				resource.TestCheckResourceAttr("diagrid_project.test", "name", projectName),
+				resource.TestCheckResourceAttr("diagrid_project.test", "region", regionName),
 			),
 		},
 		// ImportState testing
 		{
-			ResourceName:                         "catalyst_project.test",
+			ResourceName:                         "diagrid_project.test",
 			ImportState:                          true,
 			ImportStateVerifyIdentifierAttribute: "name",
 			ImportStateId:                        projectName,
 			ImportStateVerify:                    true,
 			ImportStateVerifyIgnore:              []string{"status"},
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
-				resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
+				resource.TestCheckResourceAttr("diagrid_project.test", "name", projectName),
+				resource.TestCheckResourceAttr("diagrid_project.test", "region", regionName),
 			),
 		},
 		// Update and Read testing
 		{
-			ResourceName: "catalyst_project.test",
+			ResourceName: "diagrid_project.test",
 			Config: testAccProjectResourceConfig(projectName) +
 				testAccProjectDatasourceConfig(projectName),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr("catalyst_project.test", "name", projectName),
-				resource.TestCheckResourceAttr("catalyst_project.test", "region", regionName),
+				resource.TestCheckResourceAttr("diagrid_project.test", "name", projectName),
+				resource.TestCheckResourceAttr("diagrid_project.test", "region", regionName),
 			),
 		},
 		// Delete testing automatically occurs in TestCase
@@ -84,8 +84,8 @@ func TestMockProjectResource(t *testing.T) {
 }
 
 func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
-	return func(endpoint, apiKey string, tlsSkipVerify bool) (catalyst.Client, error) {
-		c := catalyst.NewMockClient(ctrl)
+	return func(endpoint, apiKey string, tlsSkipVerify bool) (diagrid.Client, error) {
+		c := diagrid.NewMockClient(ctrl)
 
 		c.EXPECT().
 			GetUserOrg(gomock.Any()).
@@ -104,8 +104,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 			CreateRegion(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, r *catalyst_client.Region) (string, error) {
 				region = &catalyst_client.Region{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindRegion),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindRegion),
 					Metadata: &catalyst_client.Metadata{
 						Name: lo.ToPtr(regionName),
 					},
@@ -162,8 +162,8 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 				}
 
 				return &catalyst_client.Project{
-					ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-					Kind:       lo.ToPtr(catalyst.KindProject),
+					ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+					Kind:       lo.ToPtr(diagrid.KindProject),
 					Metadata: &catalyst_client.Metadata{
 						Uid:  lo.ToPtr(strconv.FormatInt(rand.Int63(), 10)),
 						Name: lo.ToPtr(projectName),
@@ -203,15 +203,15 @@ func mockResourceClientFactory(ctrl *gomock.Controller) provider.ClientFactory {
 
 func testAccProjectResourceConfig(name string) string {
 	return fmt.Sprintf(`
-resource "catalyst_region" "test" {
+resource "diagrid_region" "test" {
   name = %q
   ingress = %q
   host = %q
   location = %q
 }
 
-resource "catalyst_project" "test" {
-  region = catalyst_region.test.name
+resource "diagrid_project" "test" {
+  region = diagrid_region.test.name
   name = %q
 }
 `, regionName, regionIngress, regionHost, regionLocation, name)

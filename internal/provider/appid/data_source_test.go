@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -26,8 +26,8 @@ func TestMockAppIdDataSource(t *testing.T) {
 				{
 					Config: testAccAppIdResourceConfig(projectName, appidName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("catalyst_appid.test", "name", appidName),
-						resource.TestCheckResourceAttr("catalyst_appid.test", "project_id", projectName),
+						resource.TestCheckResourceAttr("diagrid_appid.test", "name", appidName),
+						resource.TestCheckResourceAttr("diagrid_appid.test", "project_id", projectName),
 					),
 				},
 				// Read AppId datasource
@@ -35,8 +35,8 @@ func TestMockAppIdDataSource(t *testing.T) {
 					Config: testAccAppIdResourceConfig(projectName, appidName) +
 						testAccAppIdDatasourceConfig(projectName, appidName),
 					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("data.catalyst_appid.test", "name", appidName),
-						resource.TestCheckResourceAttr("data.catalyst_appid.test", "project_id", projectName),
+						resource.TestCheckResourceAttr("data.diagrid_appid.test", "name", appidName),
+						resource.TestCheckResourceAttr("data.diagrid_appid.test", "project_id", projectName),
 					),
 				},
 			},
@@ -45,7 +45,7 @@ func TestMockAppIdDataSource(t *testing.T) {
 
 func testAccAppIdDatasourceConfig(projectName, appidName string) string {
 	return fmt.Sprintf(`
-data "catalyst_appid" "test" {
+data "diagrid_appid" "test" {
   project_id = %q
   name       = %q
 }

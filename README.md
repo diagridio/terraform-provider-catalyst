@@ -1,4 +1,4 @@
-# Terraform Provider for Catalyst
+# Terraform Provider for Diagrid
 
 ## Requirements
 

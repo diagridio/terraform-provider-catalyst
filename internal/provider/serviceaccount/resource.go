@@ -14,16 +14,16 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/helpers"
 )
 
 var _ resource.Resource = &serviceAccountResource{}
 var _ resource.ResourceWithImportState = &serviceAccountResource{}
 
 type serviceAccountResource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewResource() resource.Resource {
@@ -42,7 +42,7 @@ func (s *serviceAccountResource) Schema(ctx context.Context,
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Catalyst service account resource",
+		MarkdownDescription: "Diagrid service account resource",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Service account name",
@@ -112,8 +112,8 @@ func (s *serviceAccountResource) Create(ctx context.Context,
 		})
 
 	serviceAccount := &client.ServiceAccount{
-		ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-		Kind:       lo.ToPtr(catalyst.KindServiceAccount),
+		ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+		Kind:       lo.ToPtr(diagrid.KindServiceAccount),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},

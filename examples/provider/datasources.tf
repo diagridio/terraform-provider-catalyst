@@ -1,7 +1,7 @@
-data "catalyst_organization" "organization" {
+data "diagrid_organization" "organization" {
 }
 
-data "catalyst_project" "prj1" {
+data "diagrid_project" "prj1" {
   name = var.project_name
 }
 

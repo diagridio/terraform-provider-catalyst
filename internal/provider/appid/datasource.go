@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
 )
 
 var _ datasource.DataSource = &appidDataSource{}
 
 type appidDataSource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewDataSource() datasource.DataSource {
@@ -74,8 +74,8 @@ func (d *appidDataSource) Schema(ctx context.Context,
 						Sensitive:           true,
 					},
 					"token_header": schema.StringAttribute{
-						MarkdownDescription: "Deprecated: Catalyst no longer supports a custom header for the authentication token. Always null.",
-						DeprecationMessage:  "Catalyst no longer supports a custom header for the app endpoint token, so this attribute is always null. It will be removed in a future release.",
+						MarkdownDescription: "Deprecated: Diagrid no longer supports a custom header for the authentication token. Always null.",
+						DeprecationMessage:  "Diagrid no longer supports a custom header for the app endpoint token, so this attribute is always null. It will be removed in a future release.",
 						Computed:            true,
 					},
 					"client_timeout_seconds": schema.Int64Attribute{

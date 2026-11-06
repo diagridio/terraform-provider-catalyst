@@ -1,7 +1,7 @@
 package configuration
 
 import (
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -78,14 +78,14 @@ func configurationSpecAttribute(required, computed bool) schema.SingleNestedAttr
 	)
 }
 
-// trustDomainAttr is the access control trust domain. Catalyst strips any
+// trustDomainAttr is the access control trust domain. Diagrid strips any
 // value set here and uses the organization's own trust domain, so the
 // attribute is deprecated and kept only so existing configurations still apply.
 func trustDomainAttr(computed bool) schema.StringAttribute {
 	req, opt, comp := helpers.AttributeModes(false, computed)
 	return schema.StringAttribute{
-		MarkdownDescription: "Deprecated: Catalyst sets the trust domain to your organization's own and ignores this value.",
-		DeprecationMessage:  "Catalyst sets the trust domain to your organization's own and ignores this value. Remove it from your configuration; it will be removed in a future release.",
+		MarkdownDescription: "Deprecated: Diagrid sets the trust domain to your organization's own and ignores this value.",
+		DeprecationMessage:  "Diagrid sets the trust domain to your organization's own and ignores this value. Remove it from your configuration; it will be removed in a future release.",
 		Required:            req,
 		Optional:            opt,
 		Computed:            comp,

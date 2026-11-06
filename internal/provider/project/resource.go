@@ -12,9 +12,9 @@ import (
 	"github.com/diagridio/cloudgrid/sdk/go/pkg/catalyst/client"
 	diagrid_errors "github.com/diagridio/cloudgrid/sdk/go/pkg/errors"
 
-	"github.com/diagridio/terraform-provider-catalyst/internal/catalyst"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/data"
-	"github.com/diagridio/terraform-provider-catalyst/internal/provider/helpers"
+	"github.com/diagridio/terraform-provider-diagrid/internal/diagrid"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/data"
+	"github.com/diagridio/terraform-provider-diagrid/internal/provider/helpers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -23,7 +23,7 @@ var _ resource.ResourceWithImportState = &projectResource{}
 
 // projectResource defines the resource implementation.
 type projectResource struct {
-	client catalyst.Client
+	client diagrid.Client
 }
 
 func NewResource() resource.Resource {
@@ -43,7 +43,7 @@ func (p *projectResource) Schema(ctx context.Context,
 ) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Catalyst project resource",
+		MarkdownDescription: "Diagrid project resource",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Project name",
@@ -144,8 +144,8 @@ func (p *projectResource) Create(ctx context.Context,
 		})
 
 	project := &client.Project{
-		ApiVersion: lo.ToPtr(catalyst.CatalystDiagridV1Beta1),
-		Kind:       lo.ToPtr(catalyst.KindProject),
+		ApiVersion: lo.ToPtr(diagrid.APIVersionV1Beta1),
+		Kind:       lo.ToPtr(diagrid.KindProject),
 		Metadata: &client.Metadata{
 			Name: lo.ToPtr(model.GetName()),
 		},
